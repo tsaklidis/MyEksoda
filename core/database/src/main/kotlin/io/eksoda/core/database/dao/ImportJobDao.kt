@@ -6,6 +6,14 @@ import androidx.room.Query
 import io.eksoda.core.database.entity.ImportJobEntity
 import kotlinx.coroutines.flow.Flow
 
+/** An import job with its receipt's merchant and total, once imported. */
+data class ImportJobRow(
+    @androidx.room.Embedded val job: ImportJobEntity,
+    @androidx.room.ColumnInfo(name = "merchant_name") val merchantName: String?,
+    @androidx.room.ColumnInfo(name = "total_minor") val totalMinor: Long?,
+    val currency: String?,
+)
+
 /**
  * Import jobs (`imports.py`, `pipeline.py`). State changes are conditional updates on the
  * current status, so a second worker or a stale screen cannot overwrite a newer state; callers
@@ -24,8 +32,15 @@ interface ImportJobDao {
     )
     suspend fun findByIdentity(providerCode: String, urlIdentity: String): ImportJobEntity?
 
-    @Query("SELECT * FROM import_job ORDER BY created_at DESC")
-    fun observeAll(): Flow<List<ImportJobEntity>>
+    /** Jobs newest first, with the merchant and total of an imported receipt. */
+    @Query(
+        """SELECT import_job.*, merchant.display_name AS merchant_name, receipt.gross_total_minor AS total_minor,
+           receipt.currency AS currency
+           FROM import_job LEFT JOIN receipt ON receipt.id = import_job.receipt_id
+           LEFT JOIN merchant ON merchant.id = receipt.merchant_id
+           ORDER BY import_job.created_at DESC""",
+    )
+    fun observeAll(): Flow<List<ImportJobRow>>
 
     @Query("SELECT * FROM import_job WHERE status = 'pending'")
     suspend fun pending(): List<ImportJobEntity>

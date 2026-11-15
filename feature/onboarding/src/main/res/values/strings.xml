@@ -3,4 +3,10 @@
     <string name="onboarding_title">Welcome to Eksoda</string>
     <string name="onboarding_promise_title">Your receipts never leave your phone</string>
     <string name="onboarding_promise_body">Eksoda uses the network only to download a receipt you scanned, from the company that issued it. There are no accounts, no Eksoda servers, no analytics and no crash reporting. Backups are encrypted with a passphrase only you know.</string>
+    <string name="onboarding_create_title">Create your household</string>
+    <string name="onboarding_household_name">Household name</string>
+    <string name="onboarding_household_name_hint">Home</string>
+    <string name="onboarding_defaults">Currency %1$s · Time zone %2$s</string>
+    <string name="onboarding_create">Create household</string>
+    <string name="onboarding_failed">The household could not be created. Try again.</string>
 </resources>

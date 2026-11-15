@@ -50,6 +50,8 @@ data class MerchantEntity(
     @ColumnInfo(name = "vat_number") val vatNumber: String,
     @ColumnInfo(name = "legal_name") val legalName: String,
     @ColumnInfo(name = "display_name") val displayName: String,
+    /** `normalizeText(display_name)`, for search (§6.5). */
+    @ColumnInfo(name = "normalized_display_name") val normalizedDisplayName: String,
     /** Imports never overwrite a name the user set (§6.3). */
     @ColumnInfo(name = "display_name_set_by_user") val displayNameSetByUser: Boolean = false,
     @ColumnInfo(name = "activity_description") val activityDescription: String = "",

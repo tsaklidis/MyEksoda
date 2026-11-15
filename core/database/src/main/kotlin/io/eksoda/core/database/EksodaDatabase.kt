@@ -38,7 +38,7 @@ import io.eksoda.core.database.entity.TombstoneEntity
         ImportJobEntity::class,
         TombstoneEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = true,
 )
 abstract class EksodaDatabase : RoomDatabase() {

@@ -135,6 +135,7 @@ class Persister @Inject constructor(
                 vatNumber = issuer.vatNumber,
                 legalName = details.getValue("legal_name"),
                 displayName = deriveDisplayName(details.getValue("legal_name")),
+                normalizedDisplayName = normalizeText(deriveDisplayName(details.getValue("legal_name"))),
                 activityDescription = details.getValue("activity_description"),
                 taxOffice = details.getValue("tax_office"),
                 gemiNumber = details.getValue("gemi_number"),
@@ -166,7 +167,8 @@ class Persister @Inject constructor(
         val previousDefault = deriveDisplayName(existing.legalName)
         val derivedName = !existing.displayNameSetByUser && existing.displayName == previousDefault
         if ("legal_name" in changed && derivedName) {
-            updated = updated.copy(displayName = deriveDisplayName(updated.legalName))
+            val name = deriveDisplayName(updated.legalName)
+            updated = updated.copy(displayName = name, normalizedDisplayName = normalizeText(name))
         }
         merchants.update(updated)
         return updated
