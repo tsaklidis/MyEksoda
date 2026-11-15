@@ -10,11 +10,11 @@ import io.eksoda.core.data.repository.AnalyticsRepository
 import io.eksoda.core.data.repository.HouseholdRepository
 import io.eksoda.core.model.Period
 import io.eksoda.core.model.SpendingSummary
-import java.time.Clock
-import javax.inject.Inject
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.time.Clock
+import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(

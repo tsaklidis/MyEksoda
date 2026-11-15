@@ -1,25 +1,46 @@
 package io.eksoda.feature.products.detail
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import io.eksoda.core.model.Money
-import io.eksoda.core.model.Product
 import io.eksoda.core.model.MerchantPrices
+import io.eksoda.core.model.Money
 import io.eksoda.core.model.PriceComparison
 import io.eksoda.core.model.PriceEntry
+import io.eksoda.core.model.Product
 import io.eksoda.core.ui.component.MoneyText
 import java.time.format.DateTimeFormatter
 
@@ -29,7 +50,7 @@ fun ProductDetailScreen(
     onBackClick: () -> Unit,
     onEditClick: (String) -> Unit,
     onReceiptClick: (String) -> Unit,
-    viewModel: ProductDetailViewModel = hiltViewModel()
+    viewModel: ProductDetailViewModel = hiltViewModel(),
 ) {
     val uiState = viewModel.uiState
 
@@ -49,25 +70,27 @@ fun ProductDetailScreen(
                     IconButton(onClick = { /* More actions: Merge */ }) {
                         Icon(Icons.Default.MoreVert, contentDescription = "More")
                     }
-                }
+                },
             )
-        }
+        },
     ) { padding ->
+        val product = uiState.product
+        val error = uiState.error
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
-            if (uiState.isLoading && uiState.product == null) {
+            if (uiState.isLoading && product == null) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            } else if (uiState.product != null) {
+            } else if (product != null) {
                 ProductContent(
-                    product = uiState.product!!,
+                    product = product,
                     prices = uiState.prices,
                     comparison = uiState.comparison,
-                    onReceiptClick = onReceiptClick
+                    onReceiptClick = onReceiptClick,
                 )
-            } else if (uiState.error != null) {
+            } else if (error != null) {
                 Text(
-                    text = uiState.error!!,
+                    text = error,
                     color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.align(Alignment.Center)
+                    modifier = Modifier.align(Alignment.Center),
                 )
             }
         }
@@ -79,11 +102,11 @@ fun ProductContent(
     product: Product,
     prices: List<PriceEntry>,
     comparison: PriceComparison?,
-    onReceiptClick: (String) -> Unit
+    onReceiptClick: (String) -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp)
+        contentPadding = PaddingValues(16.dp),
     ) {
         item {
             ProductHeader(product, lastPurchase = prices.firstOrNull())
@@ -95,7 +118,7 @@ fun ProductContent(
                 Text(
                     text = "Where it's cheapest",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 ComparisonCard(comparison)
@@ -107,7 +130,7 @@ fun ProductContent(
             Text(
                 text = "Purchase History",
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
             )
             Spacer(modifier = Modifier.height(8.dp))
         }
@@ -115,7 +138,7 @@ fun ProductContent(
         items(prices) { price ->
             PriceHistoryRow(
                 price = price,
-                onClick = { onReceiptClick(price.receiptId) }
+                onClick = { onReceiptClick(price.receiptId) },
             )
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
         }
@@ -131,20 +154,24 @@ fun ProductHeader(product: Product, lastPurchase: PriceEntry?) {
         Text(
             text = product.name,
             style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
         )
         Text(
-            text = listOfNotNull(product.brand, product.category?.name, packageSize).joinToString(" · "),
+            text = listOfNotNull(
+                product.brand,
+                product.category?.name,
+                packageSize,
+            ).joinToString(" · "),
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
         if (lastPurchase != null) {
             Spacer(modifier = Modifier.height(16.dp))
             Card(
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                )
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                ),
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text("Last paid", style = MaterialTheme.typography.labelSmall)
@@ -171,13 +198,13 @@ fun MerchantComparisonRow(row: MerchantPrices, normalizedUnit: String?) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = row.rank?.toString() ?: "–",
                 style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.width(24.dp)
+                modifier = Modifier.width(24.dp),
             )
             Text(text = row.merchant.name, style = MaterialTheme.typography.bodyLarge)
         }
@@ -188,7 +215,7 @@ fun MerchantComparisonRow(row: MerchantPrices, normalizedUnit: String?) {
                 Text(
                     text = " / $normalizedUnit",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -210,12 +237,12 @@ fun PriceHistoryRow(price: PriceEntry, onClick: () -> Unit) {
             Text(
                 text = listOfNotNull(
                     date.format(dateFormatter),
-                    quantity?.let { "$it ${price.unit ?: "x"}" }
-                ).joinToString(" · ")
+                    quantity?.let { "$it ${price.unit ?: "x"}" },
+                ).joinToString(" · "),
             )
         },
         trailingContent = {
             MoneyText(money = price.grossAmount)
-        }
+        },
     )
 }

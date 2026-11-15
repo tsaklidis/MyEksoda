@@ -10,7 +10,15 @@ import kotlinx.coroutines.flow.Flow
 interface HouseholdRepository {
     val household: Flow<Household?>
 
-    suspend fun createHousehold(name: String, defaultCurrency: String, timezone: String): Result<Household>
+    suspend fun createHousehold(
+        name: String,
+        defaultCurrency: String,
+        timezone: String,
+    ): Result<Household>
 
-    suspend fun updateHousehold(name: String, defaultCurrency: String, timezone: String): Result<Unit>
+    suspend fun updateHousehold(
+        name: String,
+        defaultCurrency: String,
+        timezone: String,
+    ): Result<Unit>
 }

@@ -1,13 +1,36 @@
 package io.eksoda.feature.products.review
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -16,9 +39,9 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
+import io.eksoda.core.model.Money
 import io.eksoda.core.model.ReviewItem
 import io.eksoda.core.ui.component.MoneyText
-import io.eksoda.core.model.Money
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
@@ -29,7 +52,7 @@ fun ReviewScreen(
     onBackClick: () -> Unit,
     onNavigateToMatch: (String) -> Unit,
     onNavigateToCreate: (String, String) -> Unit,
-    viewModel: ReviewViewModel = hiltViewModel()
+    viewModel: ReviewViewModel = hiltViewModel(),
 ) {
     val items = viewModel.items.collectAsLazyPagingItems()
     val uiState = viewModel.uiState
@@ -42,9 +65,9 @@ fun ReviewScreen(
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
-                }
+                },
             )
-        }
+        },
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             if (items.loadState.refresh is LoadState.Loading) {
@@ -53,13 +76,13 @@ fun ReviewScreen(
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+                    verticalArrangement = Arrangement.Center,
                 ) {
                     Icon(
                         Icons.Default.Check,
                         contentDescription = null,
                         modifier = Modifier.size(64.dp),
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = MaterialTheme.colorScheme.primary,
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text("All caught up ✓", style = MaterialTheme.typography.headlineSmall)
@@ -68,18 +91,18 @@ fun ReviewScreen(
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     items(
                         count = items.itemCount,
-                        key = items.itemKey { it.id }
+                        key = items.itemKey { it.id },
                     ) { index ->
                         val item = items[index]
                         if (item != null) {
                             ReviewCard(
                                 item = item,
                                 onMatchClick = { onNavigateToMatch(item.id) },
-                                onCreateClick = { onNavigateToCreate(item.id, item.description) }
+                                onCreateClick = { onNavigateToCreate(item.id, item.description) },
                             )
                         }
                     }
@@ -87,13 +110,15 @@ fun ReviewScreen(
             }
 
             if (uiState.isSubmitting) {
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter))
+                LinearProgressIndicator(
+                    modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter),
+                )
             }
 
             uiState.successMessage?.let { msg ->
                 Snackbar(
                     modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp),
-                    action = { TextButton(onClick = viewModel::clearMessages) { Text("OK") } }
+                    action = { TextButton(onClick = viewModel::clearMessages) { Text("OK") } },
                 ) { Text(msg) }
             }
         }
@@ -101,11 +126,7 @@ fun ReviewScreen(
 }
 
 @Composable
-fun ReviewCard(
-    item: ReviewItem,
-    onMatchClick: () -> Unit,
-    onCreateClick: () -> Unit
-) {
+fun ReviewCard(item: ReviewItem, onMatchClick: () -> Unit, onCreateClick: () -> Unit) {
     val dateFormatter = DateTimeFormatter.ofPattern("MMM dd")
     val date = item.issuedAt
 
@@ -113,18 +134,18 @@ fun ReviewCard(
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = item.description,
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
                     )
                     Text(
                         text = "${item.merchantName} · ${date.format(dateFormatter)}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
                 MoneyText(money = item.grossAmount)
@@ -135,7 +156,7 @@ fun ReviewCard(
                 Text(
                     text = "${quantity.stripTrailingZeros().toPlainString()} ${item.unit ?: "x"}",
                     style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(top = 4.dp)
+                    modifier = Modifier.padding(top = 4.dp),
                 )
             }
 
@@ -147,7 +168,11 @@ fun ReviewCard(
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(onClick = onCreateClick) {
-                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("New product")
                 }

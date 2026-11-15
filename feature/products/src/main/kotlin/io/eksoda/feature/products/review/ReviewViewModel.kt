@@ -7,17 +7,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import dagger.hilt.android.lifecycle.HiltViewModel
 import io.eksoda.core.data.repository.ProductRepository
 import io.eksoda.core.model.ReviewItem
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class ReviewViewModel @Inject constructor(
-    private val productRepository: ProductRepository
-) : ViewModel() {
+class ReviewViewModel @Inject constructor(private val productRepository: ProductRepository) :
+    ViewModel() {
 
     val items: Flow<PagingData<ReviewItem>> = productRepository.getReviewItems()
         .cachedIn(viewModelScope)
@@ -34,7 +33,7 @@ class ReviewViewModel @Inject constructor(
             } else {
                 uiState.copy(
                     isSubmitting = false,
-                    error = result.exceptionOrNull()?.message ?: "Failed to match item"
+                    error = result.exceptionOrNull()?.message ?: "Failed to match item",
                 )
             }
         }
@@ -49,7 +48,7 @@ class ReviewViewModel @Inject constructor(
             } else {
                 uiState.copy(
                     isSubmitting = false,
-                    error = result.exceptionOrNull()?.message ?: "Failed to create product"
+                    error = result.exceptionOrNull()?.message ?: "Failed to create product",
                 )
             }
         }
@@ -63,5 +62,5 @@ class ReviewViewModel @Inject constructor(
 data class ReviewUiState(
     val isSubmitting: Boolean = false,
     val error: String? = null,
-    val successMessage: String? = null
+    val successMessage: String? = null,
 )

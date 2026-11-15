@@ -4,13 +4,17 @@ import com.android.build.api.dsl.CommonExtension
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.api.tasks.testing.Test
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-/** SDK levels and the JVM target (docs/android-standalone.md §3). */
+/**
+ * SDK levels (docs/android-standalone.md §3). compileSdk is 37 because the current AndroidX
+ * releases require it; the target stays 36, so runtime behavior is unchanged (§16, L0).
+ */
 internal object Sdk {
-    const val COMPILE = 36
+    const val COMPILE = 37
     const val TARGET = 36
     const val MIN = 26
 }
@@ -31,6 +35,8 @@ internal fun Project.configureAndroid(extension: CommonExtension) {
         lint.lintConfig = rootProject.file("config/lint/lint.xml")
     }
     configureKotlinJvmTarget()
+    // Most feature modules have no tests until their milestone; an empty test task is not an error.
+    tasks.withType<Test>().configureEach { failOnNoDiscoveredTests.set(false) }
 }
 
 internal fun Project.configureKotlinJvmTarget() {

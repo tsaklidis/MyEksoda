@@ -50,8 +50,4 @@ public data class MerchantPrices(
     val stats: PriceStats,
 )
 
-public data class AvailableUnit(
-    val normalizedUnit: String,
-    val currency: String,
-    val count: Int,
-)
+public data class AvailableUnit(val normalizedUnit: String, val currency: String, val count: Int)

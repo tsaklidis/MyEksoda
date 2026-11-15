@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Release: HTTPS only. Debug builds override this file from src/debug/res/xml. -->
+<!-- HTTPS only, and only the system's certificate authorities: certificates a user or an app
+     added are not trusted (docs/android-standalone.md §7.4 rule 8). Applies to every build type. -->
 <network-security-config>
-    <base-config cleartextTrafficPermitted="false" />
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
 </network-security-config>

@@ -21,5 +21,9 @@ interface ProductRepository {
 
     suspend fun matchItem(itemId: String, productId: String): Result<Unit>
 
-    suspend fun createProductFromItem(itemId: String, name: String, categoryId: String?): Result<Unit>
+    suspend fun createProductFromItem(
+        itemId: String,
+        name: String,
+        categoryId: String?,
+    ): Result<Unit>
 }

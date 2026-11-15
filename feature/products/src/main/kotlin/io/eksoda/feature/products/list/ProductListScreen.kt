@@ -1,15 +1,31 @@
 package io.eksoda.feature.products.list
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -23,7 +39,7 @@ import io.eksoda.core.model.Product
 fun ProductListScreen(
     onProductClick: (String) -> Unit,
     onAddProductClick: () -> Unit,
-    viewModel: ProductListViewModel = hiltViewModel()
+    viewModel: ProductListViewModel = hiltViewModel(),
 ) {
     val products = viewModel.products.collectAsLazyPagingItems()
 
@@ -38,47 +54,51 @@ fun ProductListScreen(
                         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                         modifier = Modifier.fillMaxWidth(),
                         colors = TextFieldDefaults.colors(
-                            focusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
-                            unfocusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
-                            disabledContainerColor = androidx.compose.ui.graphics.Color.Transparent,
-                            focusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
-                            unfocusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            disabledContainerColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
                         ),
-                        singleLine = true
+                        singleLine = true,
                     )
-                }
+                },
             )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = onAddProductClick) {
                 Icon(Icons.Default.Add, contentDescription = "New Product")
             }
-        }
+        },
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 items(
                     count = products.itemCount,
-                    key = products.itemKey { it.id }
+                    key = products.itemKey { it.id },
                 ) { index ->
                     val product = products[index]
                     if (product != null) {
                         ProductItem(
                             product = product,
-                            onClick = { onProductClick(product.id) }
+                            onClick = { onProductClick(product.id) },
                         )
                         HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                     }
                 }
 
-                when (val state = products.loadState.append) {
+                when (products.loadState.append) {
                     is LoadState.Loading -> {
                         item {
-                            Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
+                            Box(
+                                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                contentAlignment = Alignment.Center,
+                            ) {
                                 CircularProgressIndicator(modifier = Modifier.size(24.dp))
                             }
                         }
                     }
+
                     else -> {}
                 }
             }
@@ -91,10 +111,7 @@ fun ProductListScreen(
 }
 
 @Composable
-fun ProductItem(
-    product: Product,
-    onClick: () -> Unit
-) {
+fun ProductItem(product: Product, onClick: () -> Unit) {
     ListItem(
         modifier = Modifier.clickable(onClick = onClick),
         headlineContent = {
@@ -108,9 +125,9 @@ fun ProductItem(
                 Text(
                     text = "${product.lineCount}×",
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-        }
+        },
     )
 }

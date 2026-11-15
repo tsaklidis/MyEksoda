@@ -7,13 +7,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.eksoda.core.data.repository.ReceiptRepository
-import javax.inject.Inject
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
-class ScanViewModel @Inject constructor(
-    private val receiptRepository: ReceiptRepository,
-) : ViewModel() {
+class ScanViewModel @Inject constructor(private val receiptRepository: ReceiptRepository) :
+    ViewModel() {
 
     var uiState by mutableStateOf(ScanUiState())
         private set
@@ -28,7 +27,11 @@ class ScanViewModel @Inject constructor(
             uiState = if (result.isSuccess) {
                 uiState.copy(isSubmitting = false, submitted = true)
             } else {
-                uiState.copy(isSubmitting = false, lastSubmittedUrl = null, error = ScanError.SubmitFailed)
+                uiState.copy(
+                    isSubmitting = false,
+                    lastSubmittedUrl = null,
+                    error = ScanError.SubmitFailed,
+                )
             }
         }
     }

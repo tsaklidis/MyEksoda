@@ -26,6 +26,7 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
                 "testImplementation"(libs.library("assertk"))
                 "testImplementation"(libs.library("robolectric"))
                 "testImplementation"(libs.library("androidx-test-core"))
+                "testImplementation"(libs.library("androidx-test-ext-junit"))
                 "testImplementation"(libs.library("kotlinx-coroutines-test"))
             }
         }

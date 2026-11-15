@@ -16,7 +16,7 @@ fun MoneyText(
     money: Money,
     modifier: Modifier = Modifier,
     color: Color = Color.Unspecified,
-    fontWeight: FontWeight? = null
+    fontWeight: FontWeight? = null,
 ) {
     val amount = money.format()
     val currency = money.currency
@@ -32,6 +32,6 @@ fun MoneyText(
             }
         },
         modifier = modifier,
-        color = color
+        color = color,
     )
 }

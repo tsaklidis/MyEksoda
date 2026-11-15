@@ -13,17 +13,9 @@ public data class Receipt(
     val createdAt: OffsetDateTime,
 )
 
-public data class Merchant(
-    val id: String,
-    val name: String,
-)
+public data class Merchant(val id: String, val name: String)
 
-public data class Store(
-    val id: String,
-    val name: String,
-    val address: String?,
-    val city: String?,
-)
+public data class Store(val id: String, val name: String, val address: String?, val city: String?)
 
 public data class ReceiptItem(
     val id: String,

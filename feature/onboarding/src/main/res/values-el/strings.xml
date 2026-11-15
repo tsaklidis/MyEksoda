@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="onboarding_title">Καλώς ήρθατε στο Eksoda</string>
+    <string name="onboarding_promise_title">Οι αποδείξεις σας δεν φεύγουν ποτέ από το κινητό σας</string>
+    <string name="onboarding_promise_body">Το Eksoda χρησιμοποιεί το δίκτυο μόνο για να κατεβάσει μια απόδειξη που σαρώσατε, από την εταιρεία που την εξέδωσε. Δεν υπάρχουν λογαριασμοί, διακομιστές του Eksoda, στατιστικά χρήσης ή αναφορές σφαλμάτων. Τα αντίγραφα ασφαλείας κρυπτογραφούνται με έναν κωδικό που ξέρετε μόνο εσείς.</string>
+</resources>

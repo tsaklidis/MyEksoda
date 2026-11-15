@@ -1,34 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Eksoda</string>
-    <string name="welcome_title">Eksoda</string>
-    <string name="welcome_subtitle">Κρατήστε εύκολα τον έλεγχο των εξόδων του νοικοκυριού σας.</string>
-    <string name="login">Είσοδος</string>
-    <string name="register">Εγγραφή</string>
-    <string name="email">Email</string>
-    <string name="password">Κωδικός πρόσβασης</string>
-    <string name="display_name">Όνομα εμφάνισης</string>
-    <string name="invite_code">Κωδικός πρόσκλησης</string>
-    <string name="login_welcome_back">Καλώς ορίσατε</string>
-    <string name="no_account_register">Δεν έχετε λογαριασμό; Εγγραφείτε</string>
-    <string name="already_have_account_login">Έχετε ήδη λογαριασμό; Συνδεθείτε</string>
-
-    <string name="home">Αρχική</string>
-    <string name="receipts">Αποδείξεις</string>
-    <string name="scan">Σάρωση</string>
-    <string name="insights">Αναλύσεις</string>
-    <string name="products">Προϊόντα</string>
-
-    <string name="spent_this_month">Έξοδα μήνα</string>
-    <string name="receipts_count">%1$d αποδείξεις</string>
-    <string name="items_to_review">%1$d είδη για έλεγχο</string>
-
-    <string name="search_receipts">Αναζήτηση αποδείξεων...</string>
-    <string name="no_receipts_found">Δεν βρέθηκαν αποδείξεις</string>
-
-    <string name="total_amount">Συνολικό Ποσό</string>
-    <string name="items">Είδη</string>
-    <string name="delete_receipt">Διαγραφή Απόδειξης</string>
-    <string name="delete_receipt_confirm">Είστε σίγουροι ότι θέλετε να διαγράψετε αυτή την απόδειξη; Αυτή η ενέργεια δεν αναιρείται.</string>
-    <string name="cancel">Ακύρωση</string>
-    <string name="delete">Διαγραφή</string>
+    <string name="app_name" translatable="false">Eksoda</string>
 </resources>

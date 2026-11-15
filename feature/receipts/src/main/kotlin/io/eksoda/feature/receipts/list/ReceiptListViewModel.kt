@@ -8,7 +8,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.eksoda.core.data.repository.ReceiptRepository
 import io.eksoda.core.model.Receipt
 import io.eksoda.core.model.ReceiptFilter
-import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
@@ -19,11 +18,11 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.update
+import javax.inject.Inject
 
 @HiltViewModel
-class ReceiptListViewModel @Inject constructor(
-    private val receiptRepository: ReceiptRepository,
-) : ViewModel() {
+class ReceiptListViewModel @Inject constructor(receiptRepository: ReceiptRepository) :
+    ViewModel() {
 
     private val _filter = MutableStateFlow(ReceiptFilter())
     val filter: StateFlow<ReceiptFilter> = _filter.asStateFlow()

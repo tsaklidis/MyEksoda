@@ -11,11 +11,16 @@ naming:
 complexity:
   LongMethod:
     ignoreAnnotated: ['Composable']
+  CyclomaticComplexMethod:
+    ignoreSimpleWhenEntries: true
   LongParameterList:
     ignoreAnnotated: ['Composable']
     ignoreDefaultParameters: true
 
 style:
+  UnusedPrivateFunction:
+    # Previews are called by the IDE only.
+    ignoreAnnotated: ['Preview']
   MagicNumber:
     # Layout values (16.dp, 0.7f) belong to the composable that uses them.
     ignoreAnnotated: ['Composable', 'Preview']
@@ -23,7 +28,7 @@ style:
     ignoreCompanionObjectPropertyDeclaration: true
   ForbiddenImport:
     active: true
-    imports:
+    forbiddenImports:
       - value: 'android.util.Log'
         reason: 'Log through the Logger wrapper in core:data, never android.util.Log (§5.5).'
       - value: 'kotlinx.coroutines.GlobalScope'

@@ -6,17 +6,19 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import io.eksoda.core.data.repository.ReceiptRepository
 import io.eksoda.core.model.Receipt
-import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ReceiptDetailViewModel @Inject constructor(
     private val receiptRepository: ReceiptRepository,
-    savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
     private val receiptId: String = checkNotNull(savedStateHandle["receiptId"])
@@ -40,7 +42,12 @@ class ReceiptDetailViewModel @Inject constructor(
                     }
                 }
                 .catch { e ->
-                    uiState = uiState.copy(isLoading = false, error = e.message ?: "Failed to load receipt")
+                    uiState =
+                        uiState.copy(
+                            isLoading = false,
+                            error =
+                            e.message ?: "Failed to load receipt",
+                        )
                 }
                 .collect()
         }
@@ -55,7 +62,7 @@ class ReceiptDetailViewModel @Inject constructor(
             } else {
                 uiState = uiState.copy(
                     isLoading = false,
-                    error = result.exceptionOrNull()?.message ?: "Failed to delete receipt"
+                    error = result.exceptionOrNull()?.message ?: "Failed to delete receipt",
                 )
             }
         }
@@ -66,5 +73,5 @@ data class ReceiptDetailUiState(
     val receipt: Receipt? = null,
     val isLoading: Boolean = false,
     val isDeleted: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
 )

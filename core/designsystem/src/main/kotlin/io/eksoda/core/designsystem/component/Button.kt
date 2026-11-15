@@ -16,7 +16,7 @@ fun EksodaButton(
     text: String,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    isLoading: Boolean = false
+    isLoading: Boolean = false,
 ) {
     Button(
         onClick = onClick,
@@ -24,7 +24,7 @@ fun EksodaButton(
             .fillMaxWidth()
             .height(56.dp),
         enabled = enabled && !isLoading,
-        shape = MaterialTheme.shapes.medium
+        shape = MaterialTheme.shapes.medium,
     ) {
         if (isLoading) {
             Text("Loading...") // Placeholder for a proper spinner

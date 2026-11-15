@@ -44,15 +44,12 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import java.util.concurrent.Executors
 import zxingcpp.BarcodeReader
+import java.util.concurrent.Executors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ScanScreen(
-    onClose: () -> Unit,
-    viewModel: ScanViewModel = hiltViewModel(),
-) {
+fun ScanScreen(onClose: () -> Unit, viewModel: ScanViewModel = hiltViewModel()) {
     val context = LocalContext.current
     val uiState = viewModel.uiState
 

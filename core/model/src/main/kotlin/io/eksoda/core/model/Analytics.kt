@@ -50,13 +50,6 @@ public data class SpendingBucket(
 )
 
 /** `monthly_trend()`, with empty months filled in. */
-public data class MonthlyTrend(
-    val currency: String,
-    val months: List<MonthTotal>,
-)
+public data class MonthlyTrend(val currency: String, val months: List<MonthTotal>)
 
-public data class MonthTotal(
-    val month: YearMonth,
-    val total: BigDecimal,
-    val receipts: Int,
-)
+public data class MonthTotal(val month: YearMonth, val total: BigDecimal, val receipts: Int)

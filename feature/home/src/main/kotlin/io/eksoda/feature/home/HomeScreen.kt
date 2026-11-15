@@ -1,7 +1,16 @@
 package io.eksoda.feature.home
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -11,7 +20,19 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,7 +52,7 @@ fun HomeScreen(
     onNavigateToReview: () -> Unit,
     onNavigateToImports: () -> Unit,
     onNavigateToAccount: () -> Unit,
-    viewModel: HomeViewModel = hiltViewModel()
+    viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val uiState = viewModel.uiState
 
@@ -43,12 +64,15 @@ fun HomeScreen(
                     IconButton(onClick = onNavigateToAccount) {
                         Icon(Icons.Default.AccountCircle, contentDescription = "Account")
                     }
-                }
+                },
             )
-        }
+        },
     ) { padding ->
         if (uiState.isLoading && uiState.summary == null) {
-            Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+            Box(
+                modifier = Modifier.fillMaxSize().padding(padding),
+                contentAlignment = Alignment.Center,
+            ) {
                 CircularProgressIndicator()
             }
         } else {
@@ -57,19 +81,19 @@ fun HomeScreen(
                     .fillMaxSize()
                     .padding(padding)
                     .verticalScroll(rememberScrollState())
-                    .padding(16.dp)
+                    .padding(16.dp),
             ) {
                 uiState.summary?.let { summary ->
                     SpendingCard(
                         summary = summary,
-                        onClick = onNavigateToInsights
+                        onClick = onNavigateToInsights,
                     )
                     Spacer(modifier = Modifier.height(24.dp))
-                    
+
                     if (summary.needsReviewCount > 0) {
                         ReviewBadge(
                             count = summary.needsReviewCount,
-                            onClick = onNavigateToReview
+                            onClick = onNavigateToReview,
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                     }
@@ -79,32 +103,32 @@ fun HomeScreen(
                     text = "Quick Actions",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(vertical = 8.dp)
+                    modifier = Modifier.padding(vertical = 8.dp),
                 )
-                
+
                 Row(modifier = Modifier.fillMaxWidth()) {
                     ActionCard(
                         title = "Receipts",
                         icon = Icons.Default.Receipt,
                         modifier = Modifier.weight(1f),
-                        onClick = onNavigateToReceipts
+                        onClick = onNavigateToReceipts,
                     )
                     Spacer(modifier = Modifier.width(16.dp))
                     ActionCard(
                         title = "Imports",
                         icon = Icons.Default.History,
                         modifier = Modifier.weight(1f),
-                        onClick = onNavigateToImports
+                        onClick = onNavigateToImports,
                     )
                 }
-                
+
                 Spacer(modifier = Modifier.height(32.dp))
-                
+
                 if (uiState.hasError) {
                     Text(
                         text = "Could not load the dashboard.",
                         color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
                     )
                     Button(onClick = viewModel::loadDashboard) {
                         Text("Retry")
@@ -116,32 +140,29 @@ fun HomeScreen(
 }
 
 @Composable
-fun SpendingCard(
-    summary: SpendingSummary,
-    onClick: () -> Unit
-) {
+fun SpendingCard(summary: SpendingSummary, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        )
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+        ),
     ) {
         Column(modifier = Modifier.padding(24.dp)) {
             Text(
                 text = "Spent this month",
                 style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
             )
             Row(
                 verticalAlignment = Alignment.Bottom,
-                modifier = Modifier.padding(top = 8.dp)
+                modifier = Modifier.padding(top = 8.dp),
             ) {
                 MoneyText(
                     money = Money(summary.current.spending, summary.currency),
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.alignByBaseline()
+                    modifier = Modifier.alignByBaseline(),
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 val changePercent = summary.changePercent
@@ -150,9 +171,13 @@ fun SpendingCard(
                     Text(
                         text = "${if (isIncrease) "+" else ""}${changePercent.toPlainString()}%",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = if (isIncrease) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                        color = if (isIncrease) {
+                            MaterialTheme.colorScheme.error
+                        } else {
+                            MaterialTheme.colorScheme.primary
+                        },
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(bottom = 4.dp).alignByBaseline()
+                        modifier = Modifier.padding(bottom = 4.dp).alignByBaseline(),
                     )
                 }
             }
@@ -160,26 +185,23 @@ fun SpendingCard(
                 text = "${summary.current.receiptCount} receipts",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
-                modifier = Modifier.padding(top = 8.dp)
+                modifier = Modifier.padding(top = 8.dp),
             )
         }
     }
 }
 
 @Composable
-fun ReviewBadge(
-    count: Int,
-    onClick: () -> Unit
-) {
+fun ReviewBadge(count: Int, onClick: () -> Unit) {
     Surface(
         onClick = onClick,
         color = MaterialTheme.colorScheme.errorContainer,
         contentColor = MaterialTheme.colorScheme.onErrorContainer,
-        shape = MaterialTheme.shapes.medium
+        shape = MaterialTheme.shapes.medium,
     ) {
         Row(
             modifier = Modifier.padding(16.dp).fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(Icons.Default.Warning, contentDescription = null)
             Spacer(modifier = Modifier.width(16.dp))
@@ -187,7 +209,7 @@ fun ReviewBadge(
                 text = "$count items to review",
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
             Icon(Icons.Default.ArrowForward, contentDescription = null)
         }
@@ -199,7 +221,7 @@ fun ActionCard(
     title: String,
     icon: ImageVector,
     modifier: Modifier = Modifier,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     OutlinedCard(
         modifier = modifier.height(100.dp).clickable(onClick = onClick),
@@ -207,7 +229,7 @@ fun ActionCard(
         Column(
             modifier = Modifier.fillMaxSize().padding(16.dp),
             verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Icon(icon, contentDescription = null)
             Spacer(modifier = Modifier.height(8.dp))

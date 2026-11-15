@@ -11,8 +11,8 @@ internal val Project.libs: VersionCatalog
     get() = extensions.getByType<VersionCatalogsExtension>().named("libs")
 
 internal fun VersionCatalog.library(alias: String): Provider<MinimalExternalModuleDependency> =
-    findLibrary(alias).orElseThrow { IllegalArgumentException("No library '$alias' in libs.versions.toml") }
+    findLibrary(alias).orElseThrow { IllegalArgumentException("No library '$alias' in the catalog") }
 
 internal fun VersionCatalog.versionOf(alias: String): String =
-    findVersion(alias).orElseThrow { IllegalArgumentException("No version '$alias' in libs.versions.toml") }
+    findVersion(alias).orElseThrow { IllegalArgumentException("No version '$alias' in the catalog") }
         .requiredVersion

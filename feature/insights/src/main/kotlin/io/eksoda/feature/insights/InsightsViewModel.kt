@@ -11,10 +11,10 @@ import io.eksoda.core.model.CategorySpending
 import io.eksoda.core.model.MonthlyTrend
 import io.eksoda.core.model.Period
 import io.eksoda.core.model.SpendingSummary
-import java.time.Clock
-import javax.inject.Inject
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import java.time.Clock
+import javax.inject.Inject
 
 @HiltViewModel
 class InsightsViewModel @Inject constructor(

@@ -1,15 +1,42 @@
 package io.eksoda.feature.receipts.detail
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -25,7 +52,7 @@ import java.time.format.DateTimeFormatter
 fun ReceiptDetailScreen(
     onBackClick: () -> Unit,
     onProductClick: (String) -> Unit,
-    viewModel: ReceiptDetailViewModel = hiltViewModel()
+    viewModel: ReceiptDetailViewModel = hiltViewModel(),
 ) {
     val uiState = viewModel.uiState
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -52,9 +79,9 @@ fun ReceiptDetailScreen(
                     IconButton(onClick = { /* More actions */ }) {
                         Icon(Icons.Default.MoreVert, contentDescription = "More")
                     }
-                }
+                },
             )
-        }
+        },
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             if (uiState.isLoading && uiState.receipt == null) {
@@ -62,13 +89,13 @@ fun ReceiptDetailScreen(
             } else if (uiState.receipt != null) {
                 ReceiptContent(
                     receipt = uiState.receipt,
-                    onProductClick = onProductClick
+                    onProductClick = onProductClick,
                 )
             } else if (uiState.error != null) {
                 Text(
                     text = uiState.error,
                     color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.align(Alignment.Center)
+                    modifier = Modifier.align(Alignment.Center),
                 )
             }
         }
@@ -78,14 +105,18 @@ fun ReceiptDetailScreen(
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
             title = { Text("Delete Receipt") },
-            text = { Text("Are you sure you want to delete this receipt? This action cannot be undone.") },
+            text = {
+                Text("Are you sure you want to delete this receipt? This action cannot be undone.")
+            },
             confirmButton = {
                 TextButton(
                     onClick = {
                         viewModel.deleteReceipt()
                         showDeleteDialog = false
                     },
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error,
+                    ),
                 ) {
                     Text("Delete")
                 }
@@ -94,32 +125,29 @@ fun ReceiptDetailScreen(
                 TextButton(onClick = { showDeleteDialog = false }) {
                     Text("Cancel")
                 }
-            }
+            },
         )
     }
 }
 
 @Composable
-fun ReceiptContent(
-    receipt: Receipt,
-    onProductClick: (String) -> Unit
-) {
+fun ReceiptContent(receipt: Receipt, onProductClick: (String) -> Unit) {
     val dateFormatter = DateTimeFormatter.ofPattern("EEEE, MMM dd, yyyy 'at' HH:mm")
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp)
+        contentPadding = PaddingValues(16.dp),
     ) {
         item {
             Text(
                 text = receipt.merchant.name,
                 style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
             )
             Text(
                 text = receipt.issuedAt.format(dateFormatter),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Spacer(modifier = Modifier.height(24.dp))
         }
@@ -128,15 +156,15 @@ fun ReceiptContent(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                )
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                ),
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text("Total Amount", style = MaterialTheme.typography.labelLarge)
                     MoneyText(
                         money = receipt.totalAmount,
                         modifier = Modifier.padding(top = 4.dp),
-                        fontWeight = FontWeight.Black
+                        fontWeight = FontWeight.Black,
                     )
                 }
             }
@@ -147,7 +175,7 @@ fun ReceiptContent(
             Text(
                 text = "Items",
                 style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
             )
             Spacer(modifier = Modifier.height(8.dp))
         }
@@ -155,17 +183,17 @@ fun ReceiptContent(
         items(receipt.items) { item ->
             ReceiptItemRow(
                 item = item,
-                onProductClick = onProductClick
+                onProductClick = onProductClick,
             )
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
         }
-        
+
         if (receipt.items.isEmpty()) {
             item {
                 Text(
                     "No items available for this receipt.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -173,21 +201,18 @@ fun ReceiptContent(
 }
 
 @Composable
-fun ReceiptItemRow(
-    item: ReceiptItem,
-    onProductClick: (String) -> Unit
-) {
+fun ReceiptItemRow(item: ReceiptItem, onProductClick: (String) -> Unit) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Top
+            verticalAlignment = Alignment.Top,
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = item.description,
                     style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.Medium,
                 )
                 val productId = item.productId
                 val productName = item.productName
@@ -196,7 +221,7 @@ fun ReceiptItemRow(
                         text = productName,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.clickable { onProductClick(productId) }
+                        modifier = Modifier.clickable { onProductClick(productId) },
                     )
                 }
             }
@@ -207,22 +232,22 @@ fun ReceiptItemRow(
         if (quantity != null) {
             Row(
                 modifier = Modifier.padding(top = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     text = "${quantity.stripTrailingZeros().toPlainString()} ${item.unit ?: "x"}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 if (unitPrice != null) {
                     Text(
                         text = " @ ",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     MoneyText(
                         money = unitPrice,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }

@@ -1,10 +1,12 @@
 package io.eksoda.buildlogic
 
 import com.diffplug.gradle.spotless.SpotlessExtension
-import io.gitlab.arturbosch.detekt.extensions.DetektExtension
+import dev.detekt.gradle.Detekt
+import dev.detekt.gradle.extensions.DetektExtension
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
+import org.gradle.kotlin.dsl.withType
 
 /**
  * Spotless (ktlint) and detekt for one module (docs/android-standalone.md §5.1, §12.2), plus the
@@ -24,21 +26,14 @@ internal fun Project.configureQuality() {
         }
     }
 
-    pluginManager.apply("io.gitlab.arturbosch.detekt")
+    pluginManager.apply("dev.detekt")
     extensions.configure<DetektExtension> {
-        buildUponDefaultConfig = true
-        parallel = true
+        buildUponDefaultConfig.set(true)
+        parallel.set(true)
         config.setFrom(rootProject.file("config/detekt/detekt.yml"))
         source.setFrom("src/main/kotlin", "src/test/kotlin", "src/androidTest/kotlin")
     }
-    // detekt 1.23 runs its own Kotlin compiler. Gradle would otherwise align it with the
-    // project's Kotlin version and detekt refuses to start.
-    val detektKotlin = libs.versionOf("detektKotlin")
-    configurations.matching { it.name == "detekt" }.configureEach {
-        resolutionStrategy.eachDependency {
-            if (requested.group == "org.jetbrains.kotlin") useVersion(detektKotlin)
-        }
-    }
+    tasks.withType<Detekt>().configureEach { jvmTarget.set("17") }
 
     if (path != ENGINE_PATH) {
         configurations.configureEach {
