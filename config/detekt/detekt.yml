@@ -9,15 +9,30 @@ naming:
     constantPattern: '[A-Z][A-Za-z0-9_]*'
 
 complexity:
-  LongMethod:
-    ignoreAnnotated: ['Composable']
+  # The provider parsers mirror the Python parsers method by method and check by check
+  # (§0.3 "port, don't redesign"), so these structure rules do not apply to them.
   CyclomaticComplexMethod:
     ignoreSimpleWhenEntries: true
+    excludes: ['**/core/engine/**/providers/**']
+  LongMethod:
+    ignoreAnnotated: ['Composable']
+    excludes: ['**/core/engine/**/providers/**']
   LongParameterList:
     ignoreAnnotated: ['Composable']
     ignoreDefaultParameters: true
+  TooManyFunctions:
+    # Engine files mirror one Python file each (§5.1), with one private helper per rule.
+    ignorePrivate: true
+    ignoreOverridden: true
+    excludes: ['**/core/engine/**/providers/**']
 
 style:
+  ReturnCount:
+    # Early returns for missing values are the norm in the ported rules.
+    excludeGuardClauses: true
+  ThrowsCount:
+    excludeGuardClauses: true
+    excludes: ['**/core/engine/**/providers/**', '**/core/engine/**/fetch/**']
   UnusedPrivateFunction:
     # Previews are called by the IDE only.
     ignoreAnnotated: ['Preview']
