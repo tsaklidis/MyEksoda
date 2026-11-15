@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Eksoda" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:colorPrimary">@color/eksoda_primary</item>
+        <item name="android:statusBarColor">@color/eksoda_primary</item>
+    </style>
+
+    <color name="eksoda_primary">#2E7D32</color>
+</resources>

@@ -1,0 +1,53 @@
+# Built on detekt's default configuration (buildUponDefaultConfig). Only differences are listed.
+# docs/android-standalone.md §5 and §12.2.
+
+naming:
+  FunctionNaming:
+    # Composables are named like types.
+    ignoreAnnotated: ['Composable']
+  TopLevelPropertyNaming:
+    constantPattern: '[A-Z][A-Za-z0-9_]*'
+
+complexity:
+  LongMethod:
+    ignoreAnnotated: ['Composable']
+  LongParameterList:
+    ignoreAnnotated: ['Composable']
+    ignoreDefaultParameters: true
+
+style:
+  MagicNumber:
+    # Layout values (16.dp, 0.7f) belong to the composable that uses them.
+    ignoreAnnotated: ['Composable', 'Preview']
+    ignorePropertyDeclaration: true
+    ignoreCompanionObjectPropertyDeclaration: true
+  ForbiddenImport:
+    active: true
+    imports:
+      - value: 'android.util.Log'
+        reason: 'Log through the Logger wrapper in core:data, never android.util.Log (§5.5).'
+      - value: 'kotlinx.coroutines.GlobalScope'
+        reason: 'No GlobalScope. Work that outlives a screen goes to WorkManager (§4.3).'
+      - value: 'java.util.Date'
+        reason: 'Use java.time only (§5.3).'
+      - value: 'java.util.Calendar'
+        reason: 'Use java.time only (§5.3).'
+    excludes: ['**/core/data/**/log/Logger.kt']
+  ForbiddenMethodCall:
+    active: true
+    # Never Double or Float for money, quantities, prices or rates (§5.2). Charts convert to
+    # Float for drawing only, in core:designsystem's chart package.
+    methods:
+      - value: 'kotlin.io.print'
+        reason: 'No console output.'
+      - value: 'kotlin.io.println'
+        reason: 'No console output.'
+      - value: 'java.math.BigDecimal.<init>(kotlin.Double)'
+        reason: 'Create BigDecimal from a String or a Long with a scale (§5.2).'
+      - value: 'java.math.BigDecimal.valueOf(kotlin.Double)'
+        reason: 'Create BigDecimal from a String or a Long with a scale (§5.2).'
+      - value: 'java.math.BigDecimal.toDouble'
+        reason: 'Never Double for money or quantities (§5.2).'
+      - value: 'java.math.BigDecimal.toFloat'
+        reason: 'Never Float for money or quantities (§5.2).'
+    excludes: ['**/core/designsystem/**/chart/**', '**/test/**', '**/androidTest/**']

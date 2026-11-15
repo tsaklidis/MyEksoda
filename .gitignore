@@ -1,0 +1,22 @@
+# Gradle and build outputs
+.gradle/
+.kotlin/
+build/
+**/build/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Local SDK path and signing material
+local.properties
+*.jks
+*.keystore
+keystore.properties
+
+# IDEs and OS
+.idea/
+*.iml
+.vscode/
+*.swp
+.DS_Store
+

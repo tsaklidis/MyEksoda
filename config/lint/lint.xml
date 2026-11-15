@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android Lint for every module. Versions are pinned on purpose (docs/android-standalone.md §3),
+     so "a newer version is available" checks are off; everything else keeps its default. -->
+<lint>
+    <issue id="GradleDependency" severity="ignore" />
+    <issue id="NewerVersionAvailable" severity="ignore" />
+    <issue id="AndroidGradlePluginVersion" severity="ignore" />
+    <issue id="MissingTranslation" severity="error" />
+    <issue id="HardcodedText" severity="error" />
+</lint>

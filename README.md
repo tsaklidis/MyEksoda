@@ -1,0 +1,34 @@
+# Eksoda for Android
+
+Eksoda is a household expense app built around Greek e-receipts. Scan
+the QR code on a receipt, and Eksoda downloads the receipt from the
+company that issued it. It then tracks what you spend, what each product
+costs over time, and where it is cheapest.
+
+**Your receipts never leave your phone.** There is no Eksoda server and
+no account. The app connects only to the receipt providers' websites,
+and all data is stored encrypted on the device. Backups are files
+encrypted with a passphrase only you know.
+
+> Status: in development. The implementation guide and milestones are in
+> [`docs/android-standalone.md`](docs/android-standalone.md).
+
+## Documents
+
+| Document | What it covers |
+|---|---|
+| [`docs/android-standalone.md`](docs/android-standalone.md) | Architecture, data model, porting guide, security, testing, milestones (L0–L7) |
+| [`docs/android-app.md`](docs/android-app.md) | Screens, navigation, visual design, localization, accessibility |
+
+## Relationship to the Eksoda server
+
+The receipt parsing and analytics logic was first built and tested as a
+Django backend in a separate repository, the Eksoda server. That code
+is the reference implementation that this app's Kotlin engine is ported
+from. Its sanitized receipt fixtures, expected outputs and test vectors
+are copied into [`testdata/server/`](testdata/server/) with
+`scripts/sync-server-testdata.sh`.
+
+## License
+
+MIT, see [LICENSE](LICENSE).
