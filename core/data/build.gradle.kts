@@ -10,6 +10,14 @@ dependencies {
     api(libs.kotlinx.coroutines.core)
     implementation(project(":core:database"))
     implementation(project(":core:engine"))
+    implementation(libs.sqlcipher.android)
+    implementation(libs.androidx.work.runtime)
+    implementation(libs.androidx.hilt.work)
+    ksp(libs.androidx.hilt.compiler)
+    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.process)
+    implementation(libs.room.ktx)
 }
 
 kover {

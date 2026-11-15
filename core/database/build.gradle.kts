@@ -5,6 +5,8 @@ plugins {
 
 dependencies {
     implementation(project(":core:model"))
-    implementation(libs.sqlcipher.android)
     implementation(libs.androidx.sqlite)
+    api(libs.room.runtime)
+    api(libs.room.paging)
+    api(libs.androidx.paging.common)
 }

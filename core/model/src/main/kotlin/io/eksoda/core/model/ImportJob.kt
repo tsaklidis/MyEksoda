@@ -27,3 +27,15 @@ public enum class ImportOutcome(public val code: String) {
     DUPLICATE("duplicate"),
     RECEIPT_DELETED("receipt_deleted"),
 }
+
+/** The result of submitting a receipt link (docs/android-standalone.md §7.2). */
+public sealed interface ImportSubmission {
+    /** A new job, or a failed or deleted import started again: it imports when online. */
+    public data class Queued(val jobId: String) : ImportSubmission
+
+    /** The receipt is already stored. */
+    public data class AlreadyImported(val receiptId: String) : ImportSubmission
+
+    /** The link is already waiting to be imported. */
+    public data class AlreadyPending(val jobId: String) : ImportSubmission
+}

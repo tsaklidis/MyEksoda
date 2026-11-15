@@ -1,7 +1,34 @@
 package io.eksoda
 
 import android.app.Application
+import androidx.hilt.work.HiltWorkerFactory
+import androidx.work.Configuration
+import dagger.Lazy
 import dagger.hilt.android.HiltAndroidApp
+import io.eksoda.core.data.di.ApplicationScope
+import io.eksoda.core.data.imports.ImportStartup
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltAndroidApp
-class EksodaApplication : Application()
+class EksodaApplication :
+    Application(),
+    Configuration.Provider {
+    @Inject lateinit var workerFactory: HiltWorkerFactory
+
+    /** Lazy: opening the encrypted database must not happen on the main thread at start. */
+    @Inject lateinit var importStartup: Lazy<ImportStartup>
+
+    @Inject @ApplicationScope
+    lateinit var applicationScope: CoroutineScope
+
+    override val workManagerConfiguration: Configuration
+        get() = Configuration.Builder().setWorkerFactory(workerFactory).build()
+
+    override fun onCreate() {
+        super.onCreate()
+        // The after-update retry and requeueing pending imports (docs/android-standalone.md §7.3).
+        applicationScope.launch { importStartup.get().run() }
+    }
+}

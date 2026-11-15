@@ -13,18 +13,22 @@ complexity:
   # (§0.3 "port, don't redesign"), so these structure rules do not apply to them.
   CyclomaticComplexMethod:
     ignoreSimpleWhenEntries: true
-    excludes: ['**/core/engine/**/providers/**']
+    # Room DAOs: one function per query.
+    excludes: ['**/core/engine/**/providers/**', '**/core/database/**/dao/**']
   LongMethod:
     ignoreAnnotated: ['Composable']
-    excludes: ['**/core/engine/**/providers/**']
+    # Room DAOs: one function per query.
+    excludes: ['**/core/engine/**/providers/**', '**/core/database/**/dao/**']
   LongParameterList:
-    ignoreAnnotated: ['Composable']
+    # Composables, and constructors Hilt fills in.
+    ignoreAnnotated: ['Composable', 'Inject', 'AssistedInject']
     ignoreDefaultParameters: true
   TooManyFunctions:
     # Engine files mirror one Python file each (§5.1), with one private helper per rule.
     ignorePrivate: true
     ignoreOverridden: true
-    excludes: ['**/core/engine/**/providers/**']
+    # Room DAOs: one function per query.
+    excludes: ['**/core/engine/**/providers/**', '**/core/database/**/dao/**']
 
 style:
   ReturnCount:
