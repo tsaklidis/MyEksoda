@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name" translatable="false">Eksoda</string>
+    <string name="data_unavailable">Eksoda can\'t open its data on this phone. Restoring from a backup will be possible in a later version.</string>
+    <string name="tab_receipts">Receipts</string>
+    <string name="tab_products">Products</string>
 </resources>

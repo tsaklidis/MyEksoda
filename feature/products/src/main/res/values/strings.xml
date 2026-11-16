@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Common -->
+    <string name="back">Back</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="delete">Delete</string>
+    <string name="change">Change</string>
+    <string name="more_options">More options</string>
+    <string name="search_clear">Clear search</string>
+    <string name="filter_clear">Clear filters</string>
+    <string name="filter_remove">Remove filter: %1$s</string>
+    <string name="sort_title">Sort</string>
+    <string name="percent">%1$s%%</string>
+
+    <!-- Units -->
+    <string name="unit_kg">kg</string>
+    <string name="unit_l">l</string>
+    <string name="unit_piece">piece</string>
+    <string name="unit_other">unit</string>
+    <string name="package_g">g</string>
+    <string name="package_kg">kg</string>
+    <string name="package_l">l</string>
+    <string name="package_ml">ml</string>
+    <string name="package_cl">cl</string>
+    <string name="package_size">%1$s %2$s</string>
+    <string name="price_per_unit">%1$s/%2$s</string>
+    <string name="quantity_times">%1$s ×</string>
+
+    <!-- Product list -->
+    <string name="products_title">Products</string>
+    <string name="products_search">Search products</string>
+    <string name="products_empty_title">No products yet</string>
+    <string name="products_empty_body">Products appear here as you scan receipts.</string>
+    <string name="products_no_match">No products match</string>
+    <string name="products_no_match_hint">Try another name or clear the filters.</string>
+    <string name="filter_category">Category</string>
+    <string name="filter_bought_at">Bought at</string>
+    <string name="filter_bought_at_name">At %1$s</string>
+    <string name="sort_name">Name</string>
+    <string name="sort_most_bought">Most bought</string>
+    <plurals name="product_bought">
+        <item quantity="one">bought once</item>
+        <item quantity="other">bought %1$d times</item>
+    </plurals>
+
+    <!-- Product form -->
+    <string name="product_new">New product</string>
+    <string name="product_edit">Edit product</string>
+    <string name="product_name">Name</string>
+    <string name="product_brand">Brand (optional)</string>
+    <string name="product_category">Category</string>
+    <string name="product_package">Package size (optional)</string>
+    <string name="product_package_hint">For example 500 and g, or 1 and l. Prices per kg or liter need it.</string>
+    <string name="product_package_warning">Changing the package size recalculates the price per unit of every purchase.</string>
+    <string name="product_saved">Product saved</string>
+    <string name="category_none">No category</string>
+
+    <!-- Product detail -->
+    <string name="product_missing">This product no longer exists</string>
+    <string name="stats_latest">Last paid</string>
+    <string name="stats_average">Average</string>
+    <string name="stats_minimum">Lowest</string>
+    <string name="stats_maximum">Highest</string>
+    <plurals name="stats_purchases">
+        <item quantity="one">%1$d purchase</item>
+        <item quantity="other">%1$d purchases</item>
+    </plurals>
+    <string name="chart_title">Price over time</string>
+    <string name="chart_description">Price chart, from %1$s to %2$s</string>
+    <string name="comparison_title">Where it\'s cheapest</string>
+    <string name="comparison_one_merchant">Only bought at %1$s so far.</string>
+    <string name="comparison_unknown_unit">Add a package size to compare prices per kg or liter.</string>
+    <string name="history_title">Purchase history</string>
+    <string name="history_empty">No purchases with a price yet.</string>
+    <string name="merge_menu">Merge with other products</string>
+    <string name="merge_title">These are the same product</string>
+    <string name="merge_hint">Pick products to merge into %1$s.</string>
+    <string name="merge_action">Merge</string>
+    <plurals name="merge_confirm">
+        <item quantity="one">%1$d product will be merged into %2$s and deleted. Its purchase history moves here.</item>
+        <item quantity="other">%1$d products will be merged into %2$s and deleted. Their purchase history moves here.</item>
+    </plurals>
+    <plurals name="product_merged">
+        <item quantity="one">%1$d product merged</item>
+        <item quantity="other">%1$d products merged</item>
+    </plurals>
+
+    <!-- Review -->
+    <string name="review_title">Help us match these items</string>
+    <string name="review_intro">These lines could not be matched to a product. Match each one once and future receipts follow.</string>
+    <string name="review_match">Match to a product</string>
+    <string name="review_match_hint">Future receipts from this shop will match automatically.</string>
+    <string name="review_new">New product</string>
+    <string name="review_not_product">Not a product</string>
+    <string name="review_code">Code %1$s</string>
+    <string name="review_matched">Matched. Future receipts from this shop will match automatically.</string>
+    <string name="review_reclassified">Marked as not a product</string>
+    <string name="review_done_title">All caught up ✓</string>
+    <string name="review_done_body">Every line is matched to a product.</string>
+    <string name="line_discount">Discount</string>
+    <string name="line_fee">Fee</string>
+    <string name="line_other">Other</string>
+
+    <!-- Categories -->
+    <string name="categories_title">Categories</string>
+    <string name="categories_own">Your categories</string>
+    <string name="categories_system">Built-in categories</string>
+    <string name="category_new">New category</string>
+    <string name="category_rename">Rename category</string>
+    <string name="category_name">Name</string>
+    <string name="category_locked">Built-in, cannot be changed</string>
+    <string name="category_deleted">Category deleted</string>
+    <plurals name="category_products">
+        <item quantity="one">%1$d product</item>
+        <item quantity="other">%1$d products</item>
+    </plurals>
+
+    <!-- Merchants -->
+    <string name="merchants_title">Merchants</string>
+    <string name="merchants_search">Search merchants</string>
+    <string name="merchants_empty">No merchants yet</string>
+    <string name="merchants_no_match">No merchants match</string>
+    <plurals name="merchant_receipts">
+        <item quantity="one">%1$d receipt</item>
+        <item quantity="other">%1$d receipts</item>
+    </plurals>
+    <string name="merchant_missing">This merchant no longer exists</string>
+    <string name="merchant_details">Details</string>
+    <string name="merchant_vat">VAT number</string>
+    <string name="merchant_receipts">Receipts</string>
+    <string name="merchant_last_receipt">Last receipt</string>
+    <string name="merchant_address">Address</string>
+    <string name="merchant_open_maps">Open in Maps</string>
+    <string name="merchant_default_category">Default category</string>
+    <string name="merchant_default_category_hint">Used for this shop\'s receipts in the category filter and in Insights.</string>
+    <string name="merchant_stores">Stores</string>
+    <string name="merchant_store_unnamed">Store without an address</string>
+    <string name="merchant_rename">Rename</string>
+    <string name="merchant_name">Name</string>
+    <string name="merchant_rename_hint">Clear it to use the name from the receipts again.</string>
+
+    <!-- Errors -->
+    <string name="error_blank_name">Enter a name.</string>
+    <string name="error_name_taken">A category with this name exists.</string>
+    <string name="error_system_category">Built-in categories cannot be changed. Create your own category instead.</string>
+    <string name="error_category_in_use">Products use this category. Move them to another category first.</string>
+    <string name="error_not_a_product_line">Only product lines can be linked to products.</string>
+    <string name="error_package_incomplete">Set the package quantity and unit together, or neither.</string>
+    <string name="error_too_many_products">Merge at most 50 products at a time.</string>
+    <string name="error_not_found">It no longer exists.</string>
+    <string name="error_save_failed">Could not save. Try again.</string>
+</resources>

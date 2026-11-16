@@ -159,7 +159,10 @@ data class MerchantProductMappingEntity(
         Index(value = ["mark"], unique = true),
         Index(value = ["issuer_country", "issuer_vat", "uid"], unique = true),
         Index(value = ["source_key"], unique = true),
-        Index("issued_at"),
+        // (x, id) match the list's orderings (ReceiptQuery), so pages need no temporary sort.
+        Index(value = ["issued_at", "id"]),
+        Index(value = ["gross_total_minor", "id"]),
+        Index("issued_local_date"),
         Index(value = ["merchant_id", "issued_at"]),
         Index("store_id"),
     ],
@@ -281,7 +284,7 @@ data class ReceiptItemEntity(
         Index(
             value = ["provider_code", "url_identity"],
             unique = true,
-        ), Index("receipt_id"), Index("status"),
+        ), Index("receipt_id"), Index("status"), Index("created_at"),
     ],
     foreignKeys = [
         ForeignKey(

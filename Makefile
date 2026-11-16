@@ -7,7 +7,7 @@ SERVER ?= $(HOME)/eksoda
 # detekt with type resolution: the debug variant of Android modules, main and test of JVM modules.
 DETEKT := detektDebug detektDebugUnitTest :core:engine:detektMain :core:engine:detektTest :core:model:detektMain :core:model:detektTest
 
-.PHONY: build test lint coverage no-telemetry check install sync-testdata format clean
+.PHONY: build test lint coverage no-telemetry check install sync-testdata format clean codemap
 
 build:  ## Debug APK
 	$(GRADLE) assembleDebug
@@ -39,6 +39,9 @@ sync-testdata:  ## Copy fixtures and vectors from the server checkout (§10.1)
 
 format:  ## Apply ktlint formatting
 	$(GRADLE) spotlessApply
+
+codemap:  ## Regenerate docs/codemap/SYMBOLS.md (declaration index)
+	python3 scripts/codemap.py
 
 clean:
 	$(GRADLE) clean

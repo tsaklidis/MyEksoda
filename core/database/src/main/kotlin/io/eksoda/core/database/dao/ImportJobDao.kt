@@ -1,16 +1,29 @@
 package io.eksoda.core.database.dao
 
+import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import io.eksoda.core.database.entity.ImportJobEntity
 import kotlinx.coroutines.flow.Flow
 
-/** An import job with its receipt's merchant and total, once imported. */
+/**
+ * An import job as the imports list shows it, with its receipt's merchant and total once
+ * imported. Only the columns the list needs: never the `submitted_url` credential (§8.1).
+ */
 data class ImportJobRow(
-    @androidx.room.Embedded val job: ImportJobEntity,
-    @androidx.room.ColumnInfo(name = "merchant_name") val merchantName: String?,
-    @androidx.room.ColumnInfo(name = "total_minor") val totalMinor: Long?,
+    val id: String,
+    @ColumnInfo(name = "provider_code") val providerCode: String,
+    @ColumnInfo(name = "source_host") val sourceHost: String,
+    val status: String,
+    val outcome: String?,
+    @ColumnInfo(name = "next_attempt_at") val nextAttemptAt: Long?,
+    @ColumnInfo(name = "last_error_code") val lastErrorCode: String?,
+    @ColumnInfo(name = "receipt_id") val receiptId: String?,
+    @ColumnInfo(name = "finished_at") val finishedAt: Long?,
+    @ColumnInfo(name = "created_at") val createdAt: Long,
+    @ColumnInfo(name = "merchant_name") val merchantName: String?,
+    @ColumnInfo(name = "total_minor") val totalMinor: Long?,
     val currency: String?,
 )
 
@@ -34,8 +47,11 @@ interface ImportJobDao {
 
     /** Jobs newest first, with the merchant and total of an imported receipt. */
     @Query(
-        """SELECT import_job.*, merchant.display_name AS merchant_name, receipt.gross_total_minor AS total_minor,
-           receipt.currency AS currency
+        """SELECT import_job.id, import_job.provider_code, import_job.source_host,
+           import_job.status, import_job.outcome, import_job.next_attempt_at,
+           import_job.last_error_code, import_job.receipt_id, import_job.finished_at,
+           import_job.created_at, merchant.display_name AS merchant_name,
+           receipt.gross_total_minor AS total_minor, receipt.currency AS currency
            FROM import_job LEFT JOIN receipt ON receipt.id = import_job.receipt_id
            LEFT JOIN merchant ON merchant.id = receipt.merchant_id
            ORDER BY import_job.created_at DESC""",

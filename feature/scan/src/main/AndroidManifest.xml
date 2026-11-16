@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Only to read receipt QR codes, on the device (android-app.md §6.3.1). -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Paste and photo import still work on phones without a camera. -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera.any"
+        android:required="false" />
+
+</manifest>

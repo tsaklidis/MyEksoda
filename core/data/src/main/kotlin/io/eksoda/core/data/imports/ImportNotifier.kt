@@ -14,6 +14,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ProcessLifecycleOwner
+import androidx.work.ForegroundInfo
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.eksoda.core.data.R
 import io.eksoda.core.data.util.Fixed
@@ -41,7 +42,7 @@ class ImportNotifier @Inject constructor(
             ProcessLifecycleOwner.get().lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
         }
         if (visible || !canNotify()) return
-        ensureChannel()
+        ensureChannel(CHANNEL_ID, R.string.import_notification_channel, IMPORTANCE_IMPORTED)
         val amount = NumberFormat.getCurrencyInstance().apply {
             currency =
                 Currency.getInstance("EUR")
@@ -71,6 +72,21 @@ class ImportNotifier @Inject constructor(
         NotificationManagerCompat.from(context).notify(persisted.receiptId.hashCode(), notification)
     }
 
+    /**
+     * The quiet notification of an expedited import below Android 12, where it runs as a
+     * foreground service (ImportWorker.getForegroundInfo). It shows no merchant and no URL.
+     */
+    fun progress(): ForegroundInfo {
+        ensureChannel(PROGRESS_CHANNEL_ID, R.string.import_progress_channel, IMPORTANCE_PROGRESS)
+        val notification = NotificationCompat.Builder(context, PROGRESS_CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.stat_notify_sync_noanim)
+            .setContentTitle(context.getString(R.string.import_progress_title))
+            .setOngoing(true)
+            .setSilent(true)
+            .build()
+        return ForegroundInfo(PROGRESS_NOTIFICATION_ID, notification)
+    }
+
     private fun canNotify(): Boolean {
         val granted = android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.TIRAMISU ||
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) ==
@@ -78,13 +94,8 @@ class ImportNotifier @Inject constructor(
         return granted && NotificationManagerCompat.from(context).areNotificationsEnabled()
     }
 
-    private fun ensureChannel() {
-        val channel =
-            NotificationChannel(
-                CHANNEL_ID,
-                context.getString(R.string.import_notification_channel),
-                NotificationManager.IMPORTANCE_DEFAULT,
-            )
+    private fun ensureChannel(id: String, name: Int, importance: Int) {
+        val channel = NotificationChannel(id, context.getString(name), importance)
         context.getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
     }
 
@@ -93,5 +104,9 @@ class ImportNotifier @Inject constructor(
         val NOTIFY_IMPORTS_KEY = booleanPreferencesKey("notify_imports")
         private const val CHANNEL_ID = "imports"
         private const val GROUP = "imports"
+        private const val PROGRESS_CHANNEL_ID = "import_progress"
+        private const val PROGRESS_NOTIFICATION_ID = 1
+        private const val IMPORTANCE_IMPORTED = NotificationManager.IMPORTANCE_DEFAULT
+        private const val IMPORTANCE_PROGRESS = NotificationManager.IMPORTANCE_LOW
     }
 }

@@ -3,7 +3,6 @@ package io.eksoda.core.data.repository
 import androidx.paging.PagingData
 import io.eksoda.core.model.ImportJob
 import io.eksoda.core.model.ImportSubmission
-import io.eksoda.core.model.Option
 import io.eksoda.core.model.Receipt
 import io.eksoda.core.model.ReceiptDetail
 import io.eksoda.core.model.ReceiptFilter
@@ -40,16 +39,4 @@ interface ReceiptRepository {
      * Tab after the user confirms; never log, copy or share it (§8.1).
      */
     suspend fun originalLink(id: String): String?
-
-    fun merchantOptions(): Flow<List<Option>>
-
-    fun storeOptions(merchantId: String): Flow<List<Option>>
-
-    /** System categories, with their slug as the name (shown translated). */
-    fun categoryOptions(): Flow<List<Option>>
-
-    suspend fun searchProducts(query: String): List<Option>
-
-    /** The merchant of a receipt, for its store picker. */
-    suspend fun merchantOf(receiptId: String): String?
 }

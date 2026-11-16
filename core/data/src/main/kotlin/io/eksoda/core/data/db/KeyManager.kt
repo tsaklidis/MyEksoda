@@ -14,6 +14,21 @@ import javax.crypto.spec.GCMParameterSpec
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * The SQLCipher raw-key form `x'<64 hex digits>'` of the 32-byte database key.
+ *
+ * SQLCipher uses a raw key as is. Given as a passphrase, the same bytes would go through
+ * PBKDF2 with 256,000 iterations on every connection it opens (several at app start), which
+ * costs hundreds of milliseconds on a mid-range phone. The key is already 32 random bytes, so
+ * stretching it adds nothing.
+ */
+fun sqlCipherRawKey(key: ByteArray): ByteArray {
+    require(key.size == RAW_KEY_BYTES) { "the database key must be $RAW_KEY_BYTES bytes" }
+    return "x'${key.toHexString()}'".toByteArray(Charsets.US_ASCII)
+}
+
+private const val RAW_KEY_BYTES = 32
+
 /** The database key exists but cannot be unwrapped (e.g. the Keystore was reset by a device restore). */
 class DatabaseKeyUnavailable(cause: Throwable) :
     Exception("the database key cannot be unwrapped", cause)

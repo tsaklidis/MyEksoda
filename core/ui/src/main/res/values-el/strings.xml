@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="import_error_invalid_url">Αυτός δεν είναι σύνδεσμος απόδειξης.</string>
+    <string name="import_error_unsupported_provider">Το Eksoda δεν διαβάζει ακόμη αποδείξεις από αυτή την εταιρεία.</string>
+    <string name="import_error_unsupported_url_format">Το Eksoda δεν αναγνωρίζει αυτόν τον σύνδεσμο απόδειξης.</string>
+    <string name="import_error_provider_unreachable">Ο ιστότοπος της απόδειξης δεν είναι διαθέσιμος αυτή τη στιγμή.</string>
+    <string name="import_error_provider_timeout">Ο ιστότοπος της απόδειξης άργησε να απαντήσει.</string>
+    <string name="import_error_provider_error">Ο ιστότοπος της απόδειξης είχε πρόβλημα.</string>
+    <string name="import_error_receipt_not_found">Η απόδειξη δεν έχει δημοσιευτεί ακόμη.</string>
+    <string name="import_error_blocked_destination">Ο σύνδεσμος οδηγεί κάπου όπου το Eksoda δεν συνδέεται.</string>
+    <string name="import_error_response_too_large">Η σελίδα της απόδειξης είναι πολύ μεγάλη.</string>
+    <string name="import_error_unexpected_content_type">Ο σύνδεσμος δεν άνοιξε σελίδα απόδειξης.</string>
+    <string name="import_error_provider_format_changed">Η εταιρεία άλλαξε τη σελίδα των αποδείξεων. Μια ενημέρωση της εφαρμογής θα το διορθώσει.</string>
+    <string name="import_error_inconsistent_source">Η σελίδα της απόδειξης έχει αντιφατικά στοιχεία.</string>
+    <string name="import_error_internal_error">Κάτι πήγε στραβά κατά την ανάγνωση της απόδειξης.</string>
+
+    <string name="category_groceries">Τρόφιμα</string>
+    <string name="category_dairy_and_eggs">Γαλακτοκομικά και αυγά</string>
+    <string name="category_meat_and_fish">Κρέας και ψάρι</string>
+    <string name="category_fruits_and_vegetables">Φρούτα και λαχανικά</string>
+    <string name="category_bakery">Αρτοποιείο</string>
+    <string name="category_beverages">Ποτά</string>
+    <string name="category_frozen_food">Κατεψυγμένα</string>
+    <string name="category_snacks_and_sweets">Σνακ και γλυκά</string>
+    <string name="category_cleaning_products">Καθαριστικά</string>
+    <string name="category_personal_care">Προσωπική φροντίδα</string>
+    <string name="category_household_items">Είδη σπιτιού</string>
+    <string name="category_pet_supplies">Είδη κατοικιδίων</string>
+    <string name="category_restaurants_and_cafes">Εστιατόρια και καφέ</string>
+    <string name="category_pharmacy_and_health">Φαρμακείο και υγεία</string>
+    <string name="category_fuel_and_transport">Καύσιμα και μετακινήσεις</string>
+    <string name="category_clothing_and_footwear">Ρούχα και υποδήματα</string>
+    <string name="category_electronics_and_appliances">Ηλεκτρονικά και συσκευές</string>
+    <string name="category_services">Υπηρεσίες</string>
+    <string name="category_other">Άλλα</string>
+
+    <string name="day_today">Σήμερα</string>
+    <string name="day_yesterday">Χθες</string>
+</resources>

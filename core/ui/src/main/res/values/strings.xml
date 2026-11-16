@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Import errors, by engine code (docs/android-standalone.md §5.4). -->
+    <string name="import_error_invalid_url">That isn\'t a receipt link.</string>
+    <string name="import_error_unsupported_provider">Eksoda can\'t read receipts from this company yet.</string>
+    <string name="import_error_unsupported_url_format">Eksoda doesn\'t recognize this receipt link.</string>
+    <string name="import_error_provider_unreachable">The receipt\'s website can\'t be reached right now.</string>
+    <string name="import_error_provider_timeout">The receipt\'s website took too long to answer.</string>
+    <string name="import_error_provider_error">The receipt\'s website had a problem.</string>
+    <string name="import_error_receipt_not_found">The receipt isn\'t published yet.</string>
+    <string name="import_error_blocked_destination">This link points somewhere Eksoda won\'t connect to.</string>
+    <string name="import_error_response_too_large">The receipt page is too large to read.</string>
+    <string name="import_error_unexpected_content_type">The link didn\'t open a receipt page.</string>
+    <string name="import_error_provider_format_changed">The company changed its receipt page. An app update will fix this.</string>
+    <string name="import_error_inconsistent_source">The receipt page has conflicting information.</string>
+    <string name="import_error_internal_error">Something went wrong while reading the receipt.</string>
+
+    <!-- System categories, by slug (§6.3). -->
+    <string name="category_groceries">Groceries</string>
+    <string name="category_dairy_and_eggs">Dairy and eggs</string>
+    <string name="category_meat_and_fish">Meat and fish</string>
+    <string name="category_fruits_and_vegetables">Fruits and vegetables</string>
+    <string name="category_bakery">Bakery</string>
+    <string name="category_beverages">Beverages</string>
+    <string name="category_frozen_food">Frozen food</string>
+    <string name="category_snacks_and_sweets">Snacks and sweets</string>
+    <string name="category_cleaning_products">Cleaning products</string>
+    <string name="category_personal_care">Personal care</string>
+    <string name="category_household_items">Household items</string>
+    <string name="category_pet_supplies">Pet supplies</string>
+    <string name="category_restaurants_and_cafes">Restaurants and cafés</string>
+    <string name="category_pharmacy_and_health">Pharmacy and health</string>
+    <string name="category_fuel_and_transport">Fuel and transport</string>
+    <string name="category_clothing_and_footwear">Clothing and footwear</string>
+    <string name="category_electronics_and_appliances">Electronics and appliances</string>
+    <string name="category_services">Services</string>
+    <string name="category_other">Other</string>
+
+    <string name="day_today">Today</string>
+    <string name="day_yesterday">Yesterday</string>
+</resources>

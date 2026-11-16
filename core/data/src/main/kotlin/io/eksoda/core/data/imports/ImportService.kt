@@ -77,14 +77,16 @@ class ImportService @Inject constructor(
                 else -> ImportSubmission.AlreadyPending(existing.id)
             }
         }
-        if (submission is ImportSubmission.Queued) scheduler.enqueue(submission.jobId)
+        if (submission is ImportSubmission.Queued) {
+            scheduler.enqueue(submission.jobId, userInitiated = true)
+        }
         return submission
     }
 
     /** `retry_import`: a failed job starts again with the full schedule. False when it is not failed. */
     suspend fun retry(jobId: String): Boolean {
         val requeued = coordinator.write { jobs.requeueFailed(jobId, clock.millis()) == 1 }
-        if (requeued) scheduler.enqueue(jobId)
+        if (requeued) scheduler.enqueue(jobId, userInitiated = true)
         return requeued
     }
 

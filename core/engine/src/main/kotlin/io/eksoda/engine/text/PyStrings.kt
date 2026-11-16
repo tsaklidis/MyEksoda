@@ -69,6 +69,16 @@ internal fun String.pyIsAscii(): Boolean = all { it.code < FIRST_NON_ASCII }
 internal fun String.pyIsAlpha(): Boolean =
     isNotEmpty() && codePoints().allMatch { Character.isLetter(it) }
 
+/**
+ * Unicode `\d`, `\w` and `\s`. The JVM needs UNICODE_CHARACTER_CLASS for that. Android's regex
+ * engine is ICU: it rejects the flag, and its classes are Unicode-aware already.
+ */
+private val UNICODE_CLASSES: Int = try {
+    Pattern.compile("", Pattern.UNICODE_CHARACTER_CLASS)
+    Pattern.UNICODE_CHARACTER_CLASS
+} catch (_: IllegalArgumentException) {
+    0
+}
+
 /** Compiles a pattern with Python's Unicode-aware `\d`, `\w` and `\s` (§9.3). */
-internal fun pyRegex(pattern: String): Regex =
-    Pattern.compile(pattern, Pattern.UNICODE_CHARACTER_CLASS).toRegex()
+internal fun pyRegex(pattern: String): Regex = Pattern.compile(pattern, UNICODE_CLASSES).toRegex()

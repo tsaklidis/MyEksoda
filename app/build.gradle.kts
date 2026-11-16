@@ -38,13 +38,21 @@ android {
 
 dependencies {
     implementation(project(":core:designsystem"))
+    implementation(project(":core:ui"))
     implementation(project(":core:data"))
     implementation(project(":feature:onboarding"))
+    implementation(project(":feature:products"))
+    implementation(project(":feature:receipts"))
+    implementation(project(":feature:scan"))
 
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.navigation.compose)
+    // Bottom bar on phones, navigation rail on tablets (android-app.md §4.1).
+    implementation(libs.androidx.compose.material3.navigation.suite)
+    implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.work.runtime)
     implementation(libs.androidx.hilt.work)

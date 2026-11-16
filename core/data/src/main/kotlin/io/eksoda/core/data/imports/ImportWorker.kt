@@ -3,6 +3,7 @@ package io.eksoda.core.data.imports
 import android.content.Context
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
+import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -40,6 +41,12 @@ class ImportWorker @AssistedInject constructor(
     private val appVersion: AppVersion,
     private val clock: Clock,
 ) : CoroutineWorker(context, parameters) {
+
+    /**
+     * Below Android 12 WorkManager runs expedited work as a foreground service, which needs a
+     * notification ("Importing receipt…", never the URL). Android 12+ does not call this.
+     */
+    override suspend fun getForegroundInfo(): ForegroundInfo = notifier.progress()
 
     override suspend fun doWork(): Result {
         val jobId = inputData.getString(KEY_JOB_ID) ?: return Result.success()

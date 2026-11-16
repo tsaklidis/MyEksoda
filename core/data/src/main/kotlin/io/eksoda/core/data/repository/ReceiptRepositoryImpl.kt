@@ -5,6 +5,7 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
 import io.eksoda.core.data.db.WriteCoordinator
+import io.eksoda.core.data.di.DefaultDispatcher
 import io.eksoda.core.data.imports.ImportService
 import io.eksoda.core.data.util.Fixed
 import io.eksoda.core.data.util.NetworkMonitor
@@ -12,6 +13,7 @@ import io.eksoda.core.database.dao.ImportJobDao
 import io.eksoda.core.database.dao.ImportJobRow
 import io.eksoda.core.database.dao.ReceiptDao
 import io.eksoda.core.database.dao.ReceiptItemRow
+import io.eksoda.core.database.dao.ReceiptListRow
 import io.eksoda.core.database.dao.ReceiptRow
 import io.eksoda.core.database.dao.TombstoneDao
 import io.eksoda.core.database.entity.TombstoneEntity
@@ -25,7 +27,6 @@ import io.eksoda.core.model.LineType
 import io.eksoda.core.model.MatchStatus
 import io.eksoda.core.model.Merchant
 import io.eksoda.core.model.Money
-import io.eksoda.core.model.Option
 import io.eksoda.core.model.PaymentMethod
 import io.eksoda.core.model.Receipt
 import io.eksoda.core.model.ReceiptDetail
@@ -36,9 +37,10 @@ import io.eksoda.core.model.ReceiptWarning
 import io.eksoda.core.model.Store
 import io.eksoda.core.model.VatAmount
 import io.eksoda.engine.ReceiptException
-import io.eksoda.engine.text.normalizeText
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -68,19 +70,25 @@ class ReceiptRepositoryImpl @Inject constructor(
     private val householdZone: HouseholdZone,
     private val network: NetworkMonitor,
     private val clock: Clock,
+    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : ReceiptRepository {
 
-    override fun getReceipts(filter: ReceiptFilter): Flow<PagingData<Receipt>> =
-        Pager(PagingConfig(pageSize = PAGE_SIZE)) { receipts.pagingRows(ReceiptQuery.list(filter)) }.flow
+    override fun getReceipts(filter: ReceiptFilter): Flow<PagingData<Receipt>> {
+        val query = ReceiptQuery.list(filter)
+        return Pager(PagingConfig(pageSize = PAGE_SIZE)) { receipts.pagingRows(query) }.flow
             .map { page ->
                 val zone = householdZone.current()
                 page.map { it.toModel(zone) }
             }
+    }
 
-    override fun getReceipt(id: String): Flow<ReceiptDetail?> =
-        combine(receipts.observeRow(ReceiptQuery.one(id)), receipts.observeItems(id)) { row, items ->
-            row?.toDetail(items, householdZone.current())
-        }
+    /** Parsing `source_data` and mapping the lines run off the main thread. */
+    override fun getReceipt(id: String): Flow<ReceiptDetail?> = combine(
+        receipts.observeRow(ReceiptQuery.one(id)),
+        receipts.observeItems(id),
+    ) { row, items ->
+        row?.toDetail(items, householdZone.current())
+    }.flowOn(defaultDispatcher)
 
     override suspend fun importReceipt(url: String): Result<ImportSubmission> = runCatching {
         try {
@@ -93,7 +101,8 @@ class ReceiptRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun getImportJobs(): Flow<List<ImportJob>> = jobs.observeAll().map { rows -> rows.map { it.toModel() } }
+    override fun getImportJobs(): Flow<List<ImportJob>> =
+        jobs.observeAll().map { rows -> rows.map { it.toModel() } }
 
     override suspend fun retryImport(id: String): Result<Unit> = runCatching {
         check(importService.retry(id)) { "only a failed import can be retried" }
@@ -114,47 +123,67 @@ class ReceiptRepositoryImpl @Inject constructor(
     }
 
     override suspend fun setNote(id: String, note: String): Result<Unit> = runCatching {
-        coordinator.write { check(receipts.setNote(id, note.take(MAX_NOTE_LENGTH), clock.millis()) == 1) }
+        val text = note.trim().take(MAX_NOTE_LENGTH)
+        coordinator.write { check(receipts.setNote(id, text, clock.millis()) == 1) }
     }
 
-    override suspend fun setExcludedFromAnalytics(id: String, excluded: Boolean): Result<Unit> = runCatching {
-        coordinator.write { check(receipts.setExcluded(id, excluded, clock.millis()) == 1) }
-    }
+    override suspend fun setExcludedFromAnalytics(id: String, excluded: Boolean): Result<Unit> =
+        runCatching {
+            coordinator.write { check(receipts.setExcluded(id, excluded, clock.millis()) == 1) }
+        }
 
     override suspend fun setStore(id: String, storeId: String?): Result<Unit> = runCatching {
-        coordinator.write { check(receipts.setStore(id, storeId, clock.millis()) == 1) { "not a store of this merchant" } }
+        coordinator.write {
+            check(receipts.setStore(id, storeId, clock.millis()) == 1) {
+                "not a store of this merchant"
+            }
+        }
     }
 
     override suspend fun originalLink(id: String): String? = receipts.sourceUrl(id)
 
-    override fun merchantOptions(): Flow<List<Option>> = receipts.merchantOptions().map { rows -> rows.map { Option(it.id, it.name) } }
-
-    override fun storeOptions(merchantId: String): Flow<List<Option>> =
-        receipts.storeOptions(merchantId).map { rows -> rows.map { Option(it.id, it.name) } }
-
-    override fun categoryOptions(): Flow<List<Option>> = receipts.categoryOptions().map { rows -> rows.map { Option(it.id, it.name) } }
-
-    override suspend fun searchProducts(query: String): List<Option> {
-        val key = normalizeText(query)
-        return if (key.isEmpty()) emptyList() else receipts.searchProducts(key).map { Option(it.id, it.name) }
-    }
-
-    override suspend fun merchantOf(receiptId: String): String? = receipts.merchantId(receiptId)
-
     // --- mapping --------------------------------------------------------------------------------
 
-    private fun ReceiptRow.toModel(zone: ZoneId): Receipt = Receipt(
+    private fun ReceiptRow.toModel(zone: ZoneId): Receipt = ReceiptListRow(
         id = receipt.id,
-        merchant = Merchant(id = receipt.merchantId, name = merchantName),
-        store = receipt.storeId?.let { Store(it, storeName.orEmpty(), storeStreet?.ifEmpty { null }, storeCity?.ifEmpty { null }) },
-        issuedAt = OffsetDateTime.ofInstant(Instant.ofEpochMilli(receipt.issuedAt), zone),
-        issuedDate = LocalDate.parse(receipt.issuedLocalDate),
-        totalAmount = money(receipt.grossTotalMinor, receipt.currency),
-        itemCount = itemCount,
-        paymentMethod = PaymentMethod.fromCode(receipt.paymentMethod),
-        documentKind = DocumentKind.fromCode(receipt.documentKind),
-        cancelled = receipt.status == "cancelled",
+        merchantId = receipt.merchantId,
+        storeId = receipt.storeId,
+        issuedAt = receipt.issuedAt,
+        issuedLocalDate = receipt.issuedLocalDate,
+        currency = receipt.currency,
+        grossTotalMinor = receipt.grossTotalMinor,
+        paymentMethod = receipt.paymentMethod,
+        documentKind = receipt.documentKind,
+        status = receipt.status,
         excludedFromAnalytics = receipt.excludedFromAnalytics,
+        merchantName = merchantName,
+        storeName = storeName,
+        storeStreet = storeStreet,
+        storeCity = storeCity,
+        itemCount = itemCount,
+        needsReview = needsReview,
+        hasWarnings = hasWarnings,
+    ).toModel(zone)
+
+    private fun ReceiptListRow.toModel(zone: ZoneId): Receipt = Receipt(
+        id = id,
+        merchant = Merchant(id = merchantId, name = merchantName),
+        store = storeId?.let {
+            Store(
+                id = it,
+                name = storeName.orEmpty(),
+                address = storeStreet?.ifEmpty { null },
+                city = storeCity?.ifEmpty { null },
+            )
+        },
+        issuedAt = OffsetDateTime.ofInstant(Instant.ofEpochMilli(issuedAt), zone),
+        issuedDate = LocalDate.parse(issuedLocalDate),
+        totalAmount = money(grossTotalMinor, currency),
+        itemCount = itemCount,
+        paymentMethod = PaymentMethod.fromCode(paymentMethod),
+        documentKind = DocumentKind.fromCode(documentKind),
+        cancelled = status == STATUS_CANCELLED,
+        excludedFromAnalytics = excludedFromAnalytics,
         needsReview = needsReview,
         hasWarnings = hasWarnings,
     )
@@ -165,36 +194,17 @@ class ReceiptRepositoryImpl @Inject constructor(
         val currency = receipt.currency
         return ReceiptDetail(
             receipt = toModel(zone),
-            issueTime = when (coverage?.get("issue_time")?.jsonPrimitive?.contentOrNull) {
-                "approximate" -> IssueTime.APPROXIMATE
-                "date_only" -> IssueTime.DATE_ONLY
-                else -> IssueTime.EXACT
-            },
+            issueTime = issueTime(coverage?.get("issue_time")?.jsonPrimitive?.contentOrNull),
             hasLineItems = coverage?.get("line_items")?.jsonPrimitive?.booleanOrNull != false,
             items = items.map { it.toModel(currency) },
-            payments = (source["payments"] as? JsonArray).orEmpty().map { element ->
-                val payment = element.jsonObject
-                ReceiptPayment(
-                    amount = Money(decimal(payment, "amount") ?: BigDecimal.ZERO, currency),
-                    method = PaymentMethod.fromCode(payment["method"]?.jsonPrimitive?.contentOrNull),
-                    label = payment["method_label"]?.jsonPrimitive?.contentOrNull,
-                    estimated = payment["derived"]?.jsonPrimitive?.booleanOrNull == true,
-                )
+            payments = (source["payments"] as? JsonArray).orEmpty().map {
+                payment(it.jsonObject, currency)
             },
-            vatBreakdown = (source["vat_breakdown"] as? JsonArray).orEmpty().map { element ->
-                val entry = element.jsonObject
-                VatAmount(
-                    rate = decimal(entry, "rate"),
-                    net = Money(decimal(entry, "net") ?: BigDecimal.ZERO, currency),
-                    vat = Money(decimal(entry, "vat") ?: BigDecimal.ZERO, currency),
-                )
+            vatBreakdown = (source["vat_breakdown"] as? JsonArray).orEmpty().map {
+                vatAmount(it.jsonObject, currency)
             },
-            warnings = json.parseToJsonElement(receipt.validationWarnings).jsonArray.map { element ->
-                val issue = element.jsonObject
-                ReceiptWarning(
-                    code = issue["code"]?.jsonPrimitive?.contentOrNull.orEmpty(),
-                    lineNumber = issue["line_number"]?.jsonPrimitive?.intOrNull,
-                )
+            warnings = json.parseToJsonElement(receipt.validationWarnings).jsonArray.map {
+                warning(it.jsonObject)
             },
             userNote = receipt.userNote,
             documentNumber = receipt.documentNumber,
@@ -210,45 +220,81 @@ class ReceiptRepositoryImpl @Inject constructor(
     private fun ReceiptItemRow.toModel(currency: String): ReceiptItem = ReceiptItem(
         id = item.id,
         lineNumber = item.lineNumber,
-        lineType = LineType.entries.firstOrNull { it.name.equals(item.lineType, ignoreCase = true) } ?: LineType.OTHER,
+        lineType = LineType.entries.firstOrNull { it.name.equals(item.lineType, ignoreCase = true) }
+            ?: LineType.OTHER,
         description = item.description,
         quantity = Fixed.toDecimalOrNull(item.quantityE4, Fixed.E4),
         unit = item.unit,
         unitPrice = Fixed.toDecimalOrNull(item.unitPriceE4, Fixed.E4)?.let { Money(it, currency) },
         totalPrice = money(item.grossAmountMinor, currency),
-        matchStatus = MatchStatus.entries.firstOrNull { it.name.equals(item.matchStatus, ignoreCase = true) }
+        matchStatus = MatchStatus.entries
+            .firstOrNull { it.name.equals(item.matchStatus, ignoreCase = true) }
             ?: MatchStatus.NOT_A_PRODUCT,
         productId = item.productId,
         productName = productName,
         categorySlug = categorySlug,
-        normalizedUnitPrice = Fixed.toDecimalOrNull(item.normalizedUnitPriceE4, Fixed.E4)?.let { Money(it, currency) },
+        normalizedUnitPrice = Fixed.toDecimalOrNull(item.normalizedUnitPriceE4, Fixed.E4)
+            ?.let { Money(it, currency) },
         normalizedUnit = item.normalizedUnit,
     )
 
     private fun ImportJobRow.toModel() = ImportJob(
-        id = job.id,
-        status = ImportStatus.entries.first { it.code == job.status },
-        outcome = job.outcome?.let { code -> ImportOutcome.entries.firstOrNull { it.code == code } },
-        providerCode = job.providerCode,
-        sourceHost = job.sourceHost,
-        createdAt = Instant.ofEpochMilli(job.createdAt),
-        finishedAt = job.finishedAt?.let(Instant::ofEpochMilli),
-        receiptId = job.receiptId,
-        errorCode = job.lastErrorCode,
-        nextAttemptAt = job.nextAttemptAt?.takeIf { job.status == ImportService.STATUS_PENDING && job.lastErrorCode != null }
+        id = id,
+        status = ImportStatus.entries.first { it.code == status },
+        outcome = outcome?.let { code ->
+            ImportOutcome.entries.firstOrNull { it.code == code }
+        },
+        providerCode = providerCode,
+        sourceHost = sourceHost,
+        createdAt = Instant.ofEpochMilli(createdAt),
+        finishedAt = finishedAt?.let(Instant::ofEpochMilli),
+        receiptId = receiptId,
+        errorCode = lastErrorCode,
+        // A pending job with an error is waiting for its next attempt (android-app.md §6.3.4).
+        nextAttemptAt = nextAttemptAt
+            ?.takeIf { status == ImportService.STATUS_PENDING && lastErrorCode != null }
             ?.let(Instant::ofEpochMilli),
         merchantName = merchantName,
-        total = totalMinor?.let { money(it, currency ?: "EUR") },
+        total = totalMinor?.let { money(it, currency ?: DEFAULT_CURRENCY) },
     )
-
-    private fun money(minor: Long, currency: String) = Money(Fixed.toDecimal(minor, Fixed.MINOR), currency)
-
-    private fun decimal(json: JsonObject, key: String): BigDecimal? =
-        json[key]?.jsonPrimitive?.contentOrNull?.let(::BigDecimal)
 
     private companion object {
         const val PAGE_SIZE = 25
+
+        /** android-app.md §6.4.3: `user_note` up to 2000 characters. */
         const val MAX_NOTE_LENGTH = 2000
+        const val STATUS_CANCELLED = "cancelled"
+        const val DEFAULT_CURRENCY = "EUR"
         val json = Json { ignoreUnknownKeys = true }
     }
 }
+
+private fun money(minor: Long, currency: String) =
+    Money(Fixed.toDecimal(minor, Fixed.MINOR), currency)
+
+private fun decimal(json: JsonObject, key: String): BigDecimal? =
+    json[key]?.jsonPrimitive?.contentOrNull?.let(::BigDecimal)
+
+private fun issueTime(code: String?): IssueTime = when (code) {
+    "approximate" -> IssueTime.APPROXIMATE
+    "date_only" -> IssueTime.DATE_ONLY
+    else -> IssueTime.EXACT
+}
+
+private fun payment(payment: JsonObject, currency: String) = ReceiptPayment(
+    amount = Money(decimal(payment, "amount") ?: BigDecimal.ZERO, currency),
+    method = PaymentMethod.fromCode(payment["method"]?.jsonPrimitive?.contentOrNull),
+    label = payment["method_label"]?.jsonPrimitive?.contentOrNull,
+    estimated = payment["derived"]?.jsonPrimitive?.booleanOrNull == true,
+)
+
+private fun vatAmount(entry: JsonObject, currency: String) = VatAmount(
+    rate = decimal(entry, "rate"),
+    net = Money(decimal(entry, "net") ?: BigDecimal.ZERO, currency),
+    vat = Money(decimal(entry, "vat") ?: BigDecimal.ZERO, currency),
+)
+
+private fun warning(issue: JsonObject) = ReceiptWarning(
+    code = issue["code"]?.jsonPrimitive?.contentOrNull.orEmpty(),
+    lineNumber = issue["line_number"]?.jsonPrimitive?.intOrNull,
+)

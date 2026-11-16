@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- NetworkMonitor: "Saved, will import when online" (docs/android-standalone.md §7.2). -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Expedited imports below Android 12 run as a WorkManager foreground service (§7.2). -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
+</manifest>

@@ -18,10 +18,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
+/** A centered icon, title, optional one-line [description] and optional action. */
 @Composable
 fun EmptyState(
     title: String,
-    description: String,
+    description: String?,
     icon: ImageVector,
     modifier: Modifier = Modifier,
     actionText: String? = null,
@@ -46,13 +47,15 @@ fun EmptyState(
             style = MaterialTheme.typography.titleLarge,
             textAlign = TextAlign.Center,
         )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = description,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
+        if (!description.isNullOrBlank()) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+        }
         if (actionText != null && onActionClick != null) {
             Spacer(modifier = Modifier.height(24.dp))
             Button(onClick = onActionClick) {

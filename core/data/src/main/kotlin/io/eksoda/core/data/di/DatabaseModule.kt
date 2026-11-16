@@ -10,8 +10,10 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import io.eksoda.core.data.db.KeyManager
+import io.eksoda.core.data.db.sqlCipherRawKey
 import io.eksoda.core.database.CategorySeed
 import io.eksoda.core.database.EksodaDatabase
+import io.eksoda.core.database.dao.CategoryDao
 import io.eksoda.core.database.dao.HouseholdDao
 import io.eksoda.core.database.dao.ImportJobDao
 import io.eksoda.core.database.dao.MerchantDao
@@ -37,7 +39,9 @@ object DatabaseModule {
     ): EksodaDatabase {
         System.loadLibrary("sqlcipher")
         val exists = context.getDatabasePath(DATABASE_NAME).exists()
-        val factory = SupportOpenHelperFactory(keyManager.passphrase(databaseExists = exists))
+        // The raw-key form skips SQLCipher's per-connection key stretching (KeyManager.kt).
+        val key = sqlCipherRawKey(keyManager.passphrase(databaseExists = exists))
+        val factory = SupportOpenHelperFactory(key)
         return Room.databaseBuilder(context, EksodaDatabase::class.java, DATABASE_NAME)
             .openHelperFactory(factory)
             .addCallback(
@@ -59,6 +63,8 @@ object DatabaseModule {
     @Provides fun merchantDao(database: EksodaDatabase): MerchantDao = database.merchantDao()
 
     @Provides fun productDao(database: EksodaDatabase): ProductDao = database.productDao()
+
+    @Provides fun categoryDao(database: EksodaDatabase): CategoryDao = database.categoryDao()
 
     @Provides fun tombstoneDao(database: EksodaDatabase): TombstoneDao = database.tombstoneDao()
 }

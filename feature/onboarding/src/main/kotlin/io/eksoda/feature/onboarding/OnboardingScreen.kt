@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -43,7 +44,11 @@ fun OnboardingRoute(viewModel: OnboardingViewModel = hiltViewModel()) {
 
 /** The privacy promise (§1.3), then creating the household (§11). */
 @Composable
-fun OnboardingScreen(state: OnboardingUiState, onEvent: (OnboardingEvent) -> Unit, modifier: Modifier = Modifier) {
+fun OnboardingScreen(
+    state: OnboardingUiState,
+    onEvent: (OnboardingEvent) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Surface(modifier = modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -59,7 +64,13 @@ fun OnboardingScreen(state: OnboardingUiState, onEvent: (OnboardingEvent) -> Uni
                 textAlign = TextAlign.Center,
                 modifier = Modifier.semantics { heading() },
             )
-            Icon(Icons.Outlined.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+            // The privacy promise's anchor: big enough to read as a picture, not a stray glyph.
+            Icon(
+                imageVector = Icons.Outlined.Lock,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(top = 8.dp).size(48.dp),
+            )
             Text(
                 text = stringResource(R.string.onboarding_promise_title),
                 style = MaterialTheme.typography.titleLarge,
@@ -82,7 +93,10 @@ fun OnboardingScreen(state: OnboardingUiState, onEvent: (OnboardingEvent) -> Uni
                 label = { Text(stringResource(R.string.onboarding_household_name)) },
                 placeholder = { Text(stringResource(R.string.onboarding_household_name_hint)) },
                 singleLine = true,
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words, imeAction = ImeAction.Done),
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Words,
+                    imeAction = ImeAction.Done,
+                ),
                 keyboardActions = KeyboardActions(onDone = { onEvent(OnboardingEvent.Create) }),
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -93,7 +107,10 @@ fun OnboardingScreen(state: OnboardingUiState, onEvent: (OnboardingEvent) -> Uni
                 modifier = Modifier.fillMaxWidth(),
             )
             if (state.failed) {
-                Text(stringResource(R.string.onboarding_failed), color = MaterialTheme.colorScheme.error)
+                Text(
+                    text = stringResource(R.string.onboarding_failed),
+                    color = MaterialTheme.colorScheme.error,
+                )
             }
             Button(
                 onClick = { onEvent(OnboardingEvent.Create) },

@@ -1,220 +1,339 @@
 package io.eksoda.feature.products.detail
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.icons.outlined.Inventory2
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import io.eksoda.core.model.MerchantPrices
-import io.eksoda.core.model.Money
-import io.eksoda.core.model.PriceComparison
-import io.eksoda.core.model.PriceEntry
-import io.eksoda.core.model.Product
-import io.eksoda.core.ui.component.MoneyText
-import java.time.format.DateTimeFormatter
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.compose.collectAsLazyPagingItems
+import io.eksoda.core.designsystem.component.SectionCard
+import io.eksoda.core.model.ComparisonReason
+import io.eksoda.core.model.ProductDraft
+import io.eksoda.core.ui.component.DelayedProgressIndicator
+import io.eksoda.core.ui.component.EmptyState
+import io.eksoda.core.ui.text.categoryName
+import io.eksoda.feature.products.R
+import io.eksoda.feature.products.common.CategoryBadge
+import io.eksoda.feature.products.common.ProductFormSheet
+import io.eksoda.feature.products.common.ProductPickerSheet
+import io.eksoda.feature.products.common.catalogErrorRes
+import io.eksoda.feature.products.common.packageLabel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProductDetailScreen(
-    onBackClick: () -> Unit,
-    onEditClick: (String) -> Unit,
+fun ProductDetailRoute(
+    onBack: () -> Unit,
     onReceiptClick: (String) -> Unit,
     viewModel: ProductDetailViewModel = hiltViewModel(),
 ) {
-    val uiState = viewModel.uiState
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    var editing by rememberSaveable { mutableStateOf(false) }
+    var picking by rememberSaveable { mutableStateOf(false) }
+    var mergeIds by rememberSaveable { mutableStateOf(emptyList<String>()) }
+    var confirmMerge by rememberSaveable { mutableStateOf(false) }
+    val resources = LocalResources.current
+    LaunchedEffect(viewModel) {
+        viewModel.effects.collect { effect ->
+            val message = when (effect) {
+                ProductDetailEffect.Saved -> {
+                    editing = false
+                    resources.getString(R.string.product_saved)
+                }
 
+                is ProductDetailEffect.Merged -> {
+                    mergeIds = emptyList()
+                    resources.getQuantityString(
+                        R.plurals.product_merged,
+                        effect.count,
+                        effect.count,
+                    )
+                }
+
+                is ProductDetailEffect.Failed -> resources.getString(catalogErrorRes(effect.error))
+            }
+            snackbarHostState.showSnackbar(message)
+        }
+    }
+    ProductDetailScreen(
+        state = state,
+        snackbarHostState = snackbarHostState,
+        onBack = onBack,
+        onEditClick = { editing = true },
+        onMergeClick = {
+            mergeIds = emptyList()
+            picking = true
+        },
+        onUnitSelect = { viewModel.onEvent(ProductDetailEvent.UnitSelected(it)) },
+        onReceiptClick = onReceiptClick,
+    )
+    val loaded = state as? ProductDetailUiState.Loaded ?: return
+    if (editing) {
+        val product = loaded.product
+        ProductFormSheet(
+            title = stringResource(R.string.product_edit),
+            initial = ProductDraft(
+                name = product.name,
+                brand = product.brand.orEmpty(),
+                categoryId = product.category?.id,
+                packageQuantity = product.packageQuantity,
+                packageUnit = product.packageUnit,
+            ),
+            categories = loaded.categories,
+            onSave = { viewModel.onEvent(ProductDetailEvent.SaveRequested(it)) },
+            onDismiss = {
+                editing = false
+                viewModel.onEvent(ProductDetailEvent.FormClosed)
+            },
+            warnPackageChange = true,
+            saving = loaded.form.saving,
+            errorText = if (loaded.form.failed) {
+                stringResource(catalogErrorRes(loaded.form.error))
+            } else {
+                null
+            },
+        )
+    }
+    if (picking) {
+        var query by rememberSaveable { mutableStateOf("") }
+        val items = viewModel.pickerItems.collectAsLazyPagingItems()
+        ProductPickerSheet(
+            title = stringResource(R.string.merge_title),
+            header = stringResource(R.string.merge_hint, loaded.product.name),
+            query = query,
+            onQueryChange = {
+                query = it
+                viewModel.onEvent(ProductDetailEvent.PickerQueryChanged(it))
+            },
+            items = items,
+            excludeId = loaded.product.id,
+            selected = mergeIds.toSet(),
+            onPick = { product ->
+                mergeIds = if (product.id in mergeIds) {
+                    mergeIds - product.id
+                } else {
+                    mergeIds + product.id
+                }
+            },
+            confirmText = stringResource(R.string.merge_action),
+            onConfirm = {
+                picking = false
+                confirmMerge = true
+            },
+            onDismiss = { picking = false },
+        )
+    }
+    if (confirmMerge) {
+        AlertDialog(
+            onDismissRequest = { confirmMerge = false },
+            title = { Text(stringResource(R.string.merge_title)) },
+            text = {
+                Text(
+                    pluralStringResource(
+                        R.plurals.merge_confirm,
+                        mergeIds.size,
+                        mergeIds.size,
+                        loaded.product.name,
+                    ),
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        confirmMerge = false
+                        viewModel.onEvent(ProductDetailEvent.MergeConfirmed(mergeIds.toSet()))
+                    },
+                ) { Text(stringResource(R.string.merge_action)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmMerge = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+        )
+    }
+}
+
+/** Product detail (`android-app.md` §6.6.2). */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ProductDetailScreen(
+    state: ProductDetailUiState,
+    snackbarHostState: SnackbarHostState,
+    onBack: () -> Unit,
+    onEditClick: () -> Unit,
+    onMergeClick: () -> Unit,
+    onUnitSelect: (String) -> Unit,
+    onReceiptClick: (String) -> Unit,
+) {
+    val loaded = state as? ProductDetailUiState.Loaded
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(uiState.product?.name ?: "Product Detail") },
+                title = {
+                    Text(
+                        text = loaded?.product?.name.orEmpty(),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
                     }
                 },
                 actions = {
-                    IconButton(onClick = { uiState.product?.id?.let(onEditClick) }) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit")
-                    }
-                    IconButton(onClick = { /* More actions: Merge */ }) {
-                        Icon(Icons.Default.MoreVert, contentDescription = "More")
+                    if (loaded != null) {
+                        IconButton(onClick = onEditClick) {
+                            Icon(Icons.Default.Edit, stringResource(R.string.product_edit))
+                        }
+                        MoreMenu(onMergeClick)
                     }
                 },
             )
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
-        val product = uiState.product
-        val error = uiState.error
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
-            if (uiState.isLoading && product == null) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            } else if (product != null) {
-                ProductContent(
-                    product = product,
-                    prices = uiState.prices,
-                    comparison = uiState.comparison,
+            when (state) {
+                ProductDetailUiState.Loading ->
+                    DelayedProgressIndicator(modifier = Modifier.align(Alignment.Center))
+
+                ProductDetailUiState.Missing -> EmptyState(
+                    title = stringResource(R.string.product_missing),
+                    description = null,
+                    icon = Icons.Outlined.Inventory2,
+                    actionText = stringResource(R.string.back),
+                    onActionClick = onBack,
+                )
+
+                is ProductDetailUiState.Loaded -> ProductDetailContent(
+                    state = state,
+                    onEditClick = onEditClick,
+                    onUnitSelect = onUnitSelect,
                     onReceiptClick = onReceiptClick,
                 )
-            } else if (error != null) {
-                Text(
-                    text = error,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.align(Alignment.Center),
-                )
             }
         }
     }
 }
 
 @Composable
-fun ProductContent(
-    product: Product,
-    prices: List<PriceEntry>,
-    comparison: PriceComparison?,
+private fun ProductDetailContent(
+    state: ProductDetailUiState.Loaded,
+    onEditClick: () -> Unit,
+    onUnitSelect: (String) -> Unit,
     onReceiptClick: (String) -> Unit,
 ) {
+    val comparison = state.comparison
+    val stats = state.stats
+    val unit = state.unit
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        item {
-            ProductHeader(product, lastPurchase = prices.firstOrNull())
-            Spacer(modifier = Modifier.height(24.dp))
-        }
-
-        if (comparison != null && comparison.comparable) {
-            item {
-                Text(
-                    text = "Where it's cheapest",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                ComparisonCard(comparison)
-                Spacer(modifier = Modifier.height(24.dp))
-            }
-        }
-
-        item {
-            Text(
-                text = "Purchase History",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-
-        items(prices) { price ->
-            PriceHistoryRow(
-                price = price,
-                onClick = { onReceiptClick(price.receiptId) },
-            )
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-        }
-    }
-}
-
-@Composable
-fun ProductHeader(product: Product, lastPurchase: PriceEntry?) {
-    val packageSize = product.packageQuantity?.let { quantity ->
-        "${quantity.stripTrailingZeros().toPlainString()} ${product.packageUnit.orEmpty()}".trim()
-    }
-    Column {
-        Text(
-            text = product.name,
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-        )
-        Text(
-            text = listOfNotNull(
-                product.brand,
-                product.category?.name,
-                packageSize,
-            ).joinToString(" · "),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-
-        if (lastPurchase != null) {
-            Spacer(modifier = Modifier.height(16.dp))
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                ),
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Last paid", style = MaterialTheme.typography.labelSmall)
-                    MoneyText(money = lastPurchase.grossAmount)
+        item(key = "header") { Header(state) }
+        if (stats != null && unit != null) {
+            item(key = "units") { UnitSwitch(comparison.availableUnits, unit, onUnitSelect) }
+            item(key = "stats") { StatsGrid(stats) }
+            item(key = "chart") {
+                SectionCard(title = stringResource(R.string.chart_title)) {
+                    Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                        PriceChart(state.history.entries, unit, stats.currency)
+                    }
                 }
             }
         }
-    }
-}
-
-@Composable
-fun ComparisonCard(comparison: PriceComparison) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            comparison.merchants.forEach { row ->
-                MerchantComparisonRow(row, comparison.normalizedUnit)
+        if (comparison.reason != ComparisonReason.NO_PRICES) {
+            item(key = "comparison") {
+                SectionCard(title = stringResource(R.string.comparison_title)) {
+                    ComparisonContent(comparison, onEditClick)
+                }
+            }
+        }
+        if (state.history.entries.isNotEmpty()) {
+            item(key = "history-title") {
+                Text(
+                    text = stringResource(R.string.history_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+            }
+            items(state.history.entries, key = { it.itemId }) { entry ->
+                PurchaseRow(entry, onClick = { onReceiptClick(entry.receiptId) })
+            }
+        } else {
+            item(key = "no-history") {
+                Text(
+                    text = stringResource(R.string.history_empty),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }
 }
 
+/** "Delta · Dairy and eggs · 1 l". */
 @Composable
-fun MerchantComparisonRow(row: MerchantPrices, normalizedUnit: String?) {
+private fun Header(state: ProductDetailUiState.Loaded) {
+    val product = state.product
+    val parts = listOfNotNull(
+        product.brand,
+        product.category?.let { categoryName(it) },
+        product.packageQuantity?.let { quantity ->
+            product.packageUnit?.let { packageLabel(quantity, it) }
+        },
+    )
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.padding(vertical = 8.dp),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = row.rank?.toString() ?: "–",
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.width(24.dp),
-            )
-            Text(text = row.merchant.name, style = MaterialTheme.typography.bodyLarge)
-        }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            // Average price per normalized unit (e.g. per kg), quantity-weighted by the server.
-            MoneyText(money = Money(row.stats.average, row.stats.currency))
-            if (normalizedUnit != null) {
+        CategoryBadge(product.category?.slug, size = 56.dp)
+        Column {
+            Text(product.name, style = MaterialTheme.typography.headlineSmall)
+            if (parts.isNotEmpty()) {
                 Text(
-                    text = " / $normalizedUnit",
-                    style = MaterialTheme.typography.bodySmall,
+                    text = parts.joinToString(" · "),
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
@@ -223,26 +342,20 @@ fun MerchantComparisonRow(row: MerchantPrices, normalizedUnit: String?) {
 }
 
 @Composable
-fun PriceHistoryRow(price: PriceEntry, onClick: () -> Unit) {
-    val dateFormatter = DateTimeFormatter.ofPattern("MMM dd, yyyy")
-    val date = price.issuedAt
-    val quantity = price.quantity?.stripTrailingZeros()?.toPlainString()
-
-    ListItem(
-        modifier = Modifier.clickable(onClick = onClick),
-        headlineContent = {
-            Text(text = price.merchant.name)
-        },
-        supportingContent = {
-            Text(
-                text = listOfNotNull(
-                    date.format(dateFormatter),
-                    quantity?.let { "$it ${price.unit ?: "x"}" },
-                ).joinToString(" · "),
+private fun MoreMenu(onMergeClick: () -> Unit) {
+    var open by remember { mutableStateOf(false) }
+    Box {
+        IconButton(onClick = { open = true }) {
+            Icon(Icons.Default.MoreVert, stringResource(R.string.more_options))
+        }
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.merge_menu)) },
+                onClick = {
+                    open = false
+                    onMergeClick()
+                },
             )
-        },
-        trailingContent = {
-            MoneyText(money = price.grossAmount)
-        },
-    )
+        }
+    }
 }

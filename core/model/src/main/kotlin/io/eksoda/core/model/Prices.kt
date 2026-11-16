@@ -35,8 +35,8 @@ public data class PriceStats(
 
 public data class PriceComparison(
     val comparable: Boolean,
-    /** Why the prices cannot be compared, when [comparable] is false. */
-    val reason: String?,
+    /** Why the merchants are not ranked, when [comparable] is false. */
+    val reason: ComparisonReason?,
     val normalizedUnit: String?,
     val currency: String?,
     val merchants: List<MerchantPrices>,
@@ -51,3 +51,8 @@ public data class MerchantPrices(
 )
 
 public data class AvailableUnit(val normalizedUnit: String, val currency: String, val count: Int)
+
+public enum class ComparisonReason { NO_PRICES, UNKNOWN_UNIT, ONE_MERCHANT }
+
+/** A product's price observations, newest first, with statistics per unit and currency. */
+public data class PriceHistory(val entries: List<PriceEntry>, val stats: List<PriceStats>)

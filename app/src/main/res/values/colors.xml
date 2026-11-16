@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="ic_launcher_background">#FFFFFF</color>
+    <!-- The brand scheme's background (core:designsystem theme/Color.kt). -->
+    <color name="eksoda_window_background">#F6FAF8</color>
 </resources>

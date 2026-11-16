@@ -29,6 +29,8 @@ class EksodaApplication :
     override fun onCreate() {
         super.onCreate()
         // The after-update retry and requeueing pending imports (docs/android-standalone.md §7.3).
-        applicationScope.launch { importStartup.get().run() }
+        // A database that cannot be opened (its key does not match) must not crash the app at
+        // start: the UI shows "data unavailable" instead (AppViewModel).
+        applicationScope.launch { runCatching { importStartup.get().run() } }
     }
 }

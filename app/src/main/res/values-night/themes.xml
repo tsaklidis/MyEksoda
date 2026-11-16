@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Eksoda" parent="android:Theme.Material.NoActionBar">
+        <item name="android:colorPrimary">@color/eksoda_primary</item>
+        <item name="android:windowBackground">@color/eksoda_window_background</item>
+    </style>
+
+    <color name="eksoda_primary">#80CBC4</color>
+</resources>

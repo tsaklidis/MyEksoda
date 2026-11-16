@@ -2,6 +2,7 @@ package io.eksoda.core.database
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import io.eksoda.core.database.dao.CategoryDao
 import io.eksoda.core.database.dao.HouseholdDao
 import io.eksoda.core.database.dao.ImportJobDao
 import io.eksoda.core.database.dao.MerchantDao
@@ -38,7 +39,7 @@ import io.eksoda.core.database.entity.TombstoneEntity
         ImportJobEntity::class,
         TombstoneEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = true,
 )
 abstract class EksodaDatabase : RoomDatabase() {
@@ -53,4 +54,6 @@ abstract class EksodaDatabase : RoomDatabase() {
     abstract fun productDao(): ProductDao
 
     abstract fun tombstoneDao(): TombstoneDao
+
+    abstract fun categoryDao(): CategoryDao
 }

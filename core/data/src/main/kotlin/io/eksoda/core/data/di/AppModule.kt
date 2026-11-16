@@ -12,10 +12,20 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import io.eksoda.core.data.repository.CatalogRepository
+import io.eksoda.core.data.repository.CatalogRepositoryImpl
 import io.eksoda.core.data.repository.HouseholdRepository
 import io.eksoda.core.data.repository.HouseholdRepositoryImpl
+import io.eksoda.core.data.repository.ProductRepository
+import io.eksoda.core.data.repository.ProductRepositoryImpl
+import io.eksoda.core.data.repository.ReceiptFilterStore
+import io.eksoda.core.data.repository.ReceiptFilterStoreImpl
+import io.eksoda.core.data.repository.ReceiptOptionsRepository
+import io.eksoda.core.data.repository.ReceiptOptionsRepositoryImpl
 import io.eksoda.core.data.repository.ReceiptRepository
 import io.eksoda.core.data.repository.ReceiptRepositoryImpl
+import io.eksoda.core.data.repository.ReviewRepository
+import io.eksoda.core.data.repository.ReviewRepositoryImpl
 import io.eksoda.engine.Engine
 import io.eksoda.engine.fetch.SafeFetcher
 import kotlinx.coroutines.CoroutineDispatcher
@@ -63,4 +73,21 @@ interface RepositoryModule {
 
     @Binds
     fun bindHouseholdRepository(implementation: HouseholdRepositoryImpl): HouseholdRepository
+
+    @Binds
+    fun bindReceiptOptionsRepository(
+        implementation: ReceiptOptionsRepositoryImpl,
+    ): ReceiptOptionsRepository
+
+    @Binds
+    fun bindReceiptFilterStore(implementation: ReceiptFilterStoreImpl): ReceiptFilterStore
+
+    @Binds
+    fun bindProductRepository(implementation: ProductRepositoryImpl): ProductRepository
+
+    @Binds
+    fun bindReviewRepository(implementation: ReviewRepositoryImpl): ReviewRepository
+
+    @Binds
+    fun bindCatalogRepository(implementation: CatalogRepositoryImpl): CatalogRepository
 }

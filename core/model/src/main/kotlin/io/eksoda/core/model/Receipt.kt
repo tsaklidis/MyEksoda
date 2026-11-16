@@ -1,6 +1,7 @@
 package io.eksoda.core.model
 
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.time.OffsetDateTime
 
 /** A receipt as the lists show it. Times are in the household timezone. */
@@ -10,7 +11,7 @@ public data class Receipt(
     val store: Store?,
     val issuedAt: OffsetDateTime,
     /** `issued_local_date`, the day the receipt counts for. */
-    val issuedDate: java.time.LocalDate,
+    val issuedDate: LocalDate,
     val totalAmount: Money,
     val itemCount: Int,
     val paymentMethod: PaymentMethod,
@@ -21,10 +22,7 @@ public data class Receipt(
     val hasWarnings: Boolean,
 )
 
-public data class Merchant(
-    val id: String,
-    val name: String,
-)
+public data class Merchant(val id: String, val name: String)
 
 public data class Store(
     val id: String,
@@ -46,7 +44,8 @@ public enum class PaymentMethod(public val code: String) {
     ;
 
     public companion object {
-        public fun fromCode(code: String?): PaymentMethod = entries.firstOrNull { it.code == code } ?: UNKNOWN
+        public fun fromCode(code: String?): PaymentMethod =
+            entries.firstOrNull { it.code == code } ?: UNKNOWN
     }
 }
 
@@ -57,7 +56,8 @@ public enum class DocumentKind(public val code: String) {
     ;
 
     public companion object {
-        public fun fromCode(code: String?): DocumentKind = entries.firstOrNull { it.code == code } ?: OTHER
+        public fun fromCode(code: String?): DocumentKind =
+            entries.firstOrNull { it.code == code } ?: OTHER
     }
 }
 
@@ -87,7 +87,14 @@ public data class ReceiptItem(
     val normalizedUnit: String?,
 )
 
-public data class ReceiptPayment(val amount: Money, val method: PaymentMethod, val label: String?, val estimated: Boolean)
+public data class ReceiptPayment(
+    val amount: Money,
+    val method: PaymentMethod,
+    /** The label printed on the receipt, card-number-like digits removed. */
+    val label: String?,
+    /** Worked out by the parser, not printed ("derived"). */
+    val estimated: Boolean,
+)
 
 public data class VatAmount(val rate: BigDecimal?, val net: Money, val vat: Money)
 

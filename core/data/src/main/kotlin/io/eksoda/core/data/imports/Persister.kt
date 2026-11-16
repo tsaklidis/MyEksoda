@@ -3,11 +3,8 @@ package io.eksoda.core.data.imports
 import android.database.sqlite.SQLiteConstraintException
 import io.eksoda.core.data.util.Fixed
 import io.eksoda.core.database.dao.MerchantDao
-import io.eksoda.core.database.dao.ProductDao
 import io.eksoda.core.database.dao.ReceiptDao
 import io.eksoda.core.database.entity.MerchantEntity
-import io.eksoda.core.database.entity.MerchantProductMappingEntity
-import io.eksoda.core.database.entity.ProductEntity
 import io.eksoda.core.database.entity.ReceiptEntity
 import io.eksoda.core.database.entity.ReceiptItemEntity
 import io.eksoda.core.database.entity.StoreEntity
@@ -28,12 +25,6 @@ import io.eksoda.engine.persist.documentNumber
 import io.eksoda.engine.persist.isCancelled
 import io.eksoda.engine.persist.paymentMethod
 import io.eksoda.engine.persist.sourceData
-import io.eksoda.engine.products.PricedLine
-import io.eksoda.engine.products.ProductPackage
-import io.eksoda.engine.products.isReusedCode
-import io.eksoda.engine.products.mappingKey
-import io.eksoda.engine.products.newProduct
-import io.eksoda.engine.products.normalize
 import io.eksoda.engine.text.fingerprint
 import io.eksoda.engine.text.normalizeText
 import io.eksoda.engine.validation.ValidationIssue
@@ -60,7 +51,7 @@ data class Persisted(
  */
 class Persister @Inject constructor(
     private val merchants: MerchantDao,
-    private val products: ProductDao,
+    private val matcher: ProductMatcher,
     private val receipts: ReceiptDao,
     private val clock: Clock,
 ) {
@@ -135,7 +126,9 @@ class Persister @Inject constructor(
                 vatNumber = issuer.vatNumber,
                 legalName = details.getValue("legal_name"),
                 displayName = deriveDisplayName(details.getValue("legal_name")),
-                normalizedDisplayName = normalizeText(deriveDisplayName(details.getValue("legal_name"))),
+                normalizedDisplayName = normalizeText(
+                    deriveDisplayName(details.getValue("legal_name")),
+                ),
                 activityDescription = details.getValue("activity_description"),
                 taxOffice = details.getValue("tax_office"),
                 gemiNumber = details.getValue("gemi_number"),
@@ -304,18 +297,9 @@ class Persister @Inject constructor(
         val lineType = classify(line, normalized)
         val code = line.merchantProductCode?.ifEmpty { null }
         val product = if (lineType == LineType.PRODUCT) {
-            match(merchantId, line, normalized, code)
+            matcher.match(merchantId, line.description, normalized, code, line.unit)
         } else {
             null
-        }
-        val price = product?.let {
-            normalize(
-                PricedLine(lineType, line.quantity, line.unit, line.gross),
-                ProductPackage(
-                    Fixed.toDecimalOrNull(it.packageQuantityE4, Fixed.E4),
-                    it.packageUnit,
-                ),
-            )
         }
         val now = clock.millis()
         return ReceiptItemEntity(
@@ -340,81 +324,12 @@ class Persister @Inject constructor(
                 product != null -> "matched"
                 else -> "needs_review"
             },
-            normalizedQuantityE6 = price?.let { Fixed.toLong(it.quantity, Fixed.E6) },
-            normalizedUnit = price?.unit?.code,
-            normalizedUnitPriceE4 = price?.unitPrice?.let { Fixed.toLong(it, Fixed.E4) },
+            normalizedQuantityE6 = null,
+            normalizedUnit = null,
+            normalizedUnitPriceE4 = null,
             createdAt = now,
             updatedAt = now,
-        )
-    }
-
-    /**
-     * `match_item`: the mapping's product, a new product and mapping for a new item, or null when
-     * the code-reuse guard sends the line to review.
-     */
-    private suspend fun match(
-        merchantId: String,
-        line: Line,
-        normalized: String,
-        code: String?,
-    ): ProductEntity? {
-        val key = mappingKey(code, normalized)
-        val mapping = products.findMapping(merchantId, key)
-            ?: return createProductAndMapping(merchantId, line, normalized, code, key)
-        if (code != null && isReusedCode(normalized, mapping.normalizedDescription)) return null
-        if (mapping.lastSeenDescription != line.description) {
-            val description = if (mapping.merchantProductCode !=
-                null
-            ) {
-                normalized
-            } else {
-                mapping.normalizedDescription
-            }
-            // A code mapping follows the item's latest description (the guard compares to it).
-            products.updateMapping(
-                mapping.copy(
-                    lastSeenDescription = line.description,
-                    normalizedDescription = description,
-                    updatedAt = clock.millis(),
-                ),
-            )
-        }
-        return products.get(mapping.productId)
-    }
-
-    private suspend fun createProductAndMapping(
-        merchantId: String,
-        line: Line,
-        normalized: String,
-        code: String?,
-        key: String,
-    ): ProductEntity {
-        val proposal = newProduct(line.description, code, line.unit)
-        val now = clock.millis()
-        val product = ProductEntity(
-            id = UUID.randomUUID().toString(),
-            name = proposal.name,
-            normalizedName = normalizeText(proposal.name).take(FieldSize.PRODUCT_NAME),
-            packageQuantityE4 = Fixed.toLongOrNull(proposal.packageQuantity, Fixed.E4),
-            packageUnit = proposal.packageUnit,
-            createdAt = now,
-            updatedAt = now,
-        )
-        products.insert(product)
-        products.insertMapping(
-            MerchantProductMappingEntity(
-                id = UUID.randomUUID().toString(),
-                merchantId = merchantId,
-                merchantProductCode = code,
-                normalizedDescription = normalized,
-                lastSeenDescription = line.description,
-                productId = product.id,
-                mappingKey = key,
-                createdAt = now,
-                updatedAt = now,
-            ),
-        )
-        return product
+        ).withPrices(product)
     }
 
     private fun issueJson(issue: ValidationIssue) = buildJsonObject {

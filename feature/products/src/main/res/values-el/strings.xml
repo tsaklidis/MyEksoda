@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Common -->
+    <string name="back">Πίσω</string>
+    <string name="cancel">Ακύρωση</string>
+    <string name="save">Αποθήκευση</string>
+    <string name="delete">Διαγραφή</string>
+    <string name="change">Αλλαγή</string>
+    <string name="more_options">Περισσότερες επιλογές</string>
+    <string name="search_clear">Καθαρισμός αναζήτησης</string>
+    <string name="filter_clear">Καθαρισμός φίλτρων</string>
+    <string name="filter_remove">Αφαίρεση φίλτρου: %1$s</string>
+    <string name="sort_title">Ταξινόμηση</string>
+    <string name="percent">%1$s%%</string>
+
+    <!-- Units -->
+    <string name="unit_kg">κιλό</string>
+    <string name="unit_l">λίτρο</string>
+    <string name="unit_piece">τεμ.</string>
+    <string name="unit_other">μονάδα</string>
+    <string name="package_g">g</string>
+    <string name="package_kg">kg</string>
+    <string name="package_l">l</string>
+    <string name="package_ml">ml</string>
+    <string name="package_cl">cl</string>
+    <string name="package_size">%1$s %2$s</string>
+    <string name="price_per_unit">%1$s/%2$s</string>
+    <string name="quantity_times">%1$s ×</string>
+
+    <!-- Product list -->
+    <string name="products_title">Προϊόντα</string>
+    <string name="products_search">Αναζήτηση προϊόντων</string>
+    <string name="products_empty_title">Δεν υπάρχουν προϊόντα ακόμη</string>
+    <string name="products_empty_body">Τα προϊόντα εμφανίζονται εδώ καθώς σαρώνετε αποδείξεις.</string>
+    <string name="products_no_match">Κανένα προϊόν δεν ταιριάζει</string>
+    <string name="products_no_match_hint">Δοκιμάστε άλλο όνομα ή καθαρίστε τα φίλτρα.</string>
+    <string name="filter_category">Κατηγορία</string>
+    <string name="filter_bought_at">Αγορά από</string>
+    <string name="filter_bought_at_name">Από %1$s</string>
+    <string name="sort_name">Όνομα</string>
+    <string name="sort_most_bought">Συχνότερες αγορές</string>
+    <plurals name="product_bought">
+        <item quantity="one">αγοράστηκε μία φορά</item>
+        <item quantity="other">αγοράστηκε %1$d φορές</item>
+    </plurals>
+
+    <!-- Product form -->
+    <string name="product_new">Νέο προϊόν</string>
+    <string name="product_edit">Επεξεργασία προϊόντος</string>
+    <string name="product_name">Όνομα</string>
+    <string name="product_brand">Μάρκα (προαιρετικά)</string>
+    <string name="product_category">Κατηγορία</string>
+    <string name="product_package">Μέγεθος συσκευασίας (προαιρετικά)</string>
+    <string name="product_package_hint">Για παράδειγμα 500 και g, ή 1 και l. Χρειάζεται για τιμές ανά κιλό ή λίτρο.</string>
+    <string name="product_package_warning">Η αλλαγή του μεγέθους συσκευασίας υπολογίζει ξανά την τιμή μονάδας κάθε αγοράς.</string>
+    <string name="product_saved">Το προϊόν αποθηκεύτηκε</string>
+    <string name="category_none">Χωρίς κατηγορία</string>
+
+    <!-- Product detail -->
+    <string name="product_missing">Αυτό το προϊόν δεν υπάρχει πια</string>
+    <string name="stats_latest">Τελευταία τιμή</string>
+    <string name="stats_average">Μέση τιμή</string>
+    <string name="stats_minimum">Χαμηλότερη</string>
+    <string name="stats_maximum">Υψηλότερη</string>
+    <plurals name="stats_purchases">
+        <item quantity="one">%1$d αγορά</item>
+        <item quantity="other">%1$d αγορές</item>
+    </plurals>
+    <string name="chart_title">Τιμή στον χρόνο</string>
+    <string name="chart_description">Γράφημα τιμής, από %1$s έως %2$s</string>
+    <string name="comparison_title">Πού είναι φθηνότερο</string>
+    <string name="comparison_one_merchant">Έχει αγοραστεί μόνο από %1$s μέχρι τώρα.</string>
+    <string name="comparison_unknown_unit">Προσθέστε μέγεθος συσκευασίας για να συγκρίνετε τιμές ανά κιλό ή λίτρο.</string>
+    <string name="history_title">Ιστορικό αγορών</string>
+    <string name="history_empty">Δεν υπάρχουν ακόμη αγορές με τιμή.</string>
+    <string name="merge_menu">Συγχώνευση με άλλα προϊόντα</string>
+    <string name="merge_title">Είναι το ίδιο προϊόν</string>
+    <string name="merge_hint">Επιλέξτε προϊόντα για συγχώνευση στο %1$s.</string>
+    <string name="merge_action">Συγχώνευση</string>
+    <plurals name="merge_confirm">
+        <item quantity="one">%1$d προϊόν θα συγχωνευθεί στο %2$s και θα διαγραφεί. Το ιστορικό αγορών του μεταφέρεται εδώ.</item>
+        <item quantity="other">%1$d προϊόντα θα συγχωνευθούν στο %2$s και θα διαγραφούν. Το ιστορικό αγορών τους μεταφέρεται εδώ.</item>
+    </plurals>
+    <plurals name="product_merged">
+        <item quantity="one">Συγχωνεύθηκε %1$d προϊόν</item>
+        <item quantity="other">Συγχωνεύθηκαν %1$d προϊόντα</item>
+    </plurals>
+
+    <!-- Review -->
+    <string name="review_title">Βοηθήστε μας να αντιστοιχίσουμε αυτά τα είδη</string>
+    <string name="review_intro">Αυτές οι γραμμές δεν αντιστοιχίστηκαν σε προϊόν. Αντιστοιχίστε καθεμία μία φορά και οι επόμενες αποδείξεις ακολουθούν.</string>
+    <string name="review_match">Αντιστοίχιση με προϊόν</string>
+    <string name="review_match_hint">Οι επόμενες αποδείξεις από αυτό το κατάστημα θα αντιστοιχίζονται αυτόματα.</string>
+    <string name="review_new">Νέο προϊόν</string>
+    <string name="review_not_product">Δεν είναι προϊόν</string>
+    <string name="review_code">Κωδικός %1$s</string>
+    <string name="review_matched">Έγινε αντιστοίχιση. Οι επόμενες αποδείξεις από αυτό το κατάστημα θα αντιστοιχίζονται αυτόματα.</string>
+    <string name="review_reclassified">Σημειώθηκε ότι δεν είναι προϊόν</string>
+    <string name="review_done_title">Όλα εντάξει ✓</string>
+    <string name="review_done_body">Κάθε γραμμή έχει αντιστοιχιστεί σε προϊόν.</string>
+    <string name="line_discount">Έκπτωση</string>
+    <string name="line_fee">Χρέωση</string>
+    <string name="line_other">Άλλο</string>
+
+    <!-- Categories -->
+    <string name="categories_title">Κατηγορίες</string>
+    <string name="categories_own">Οι κατηγορίες σας</string>
+    <string name="categories_system">Ενσωματωμένες κατηγορίες</string>
+    <string name="category_new">Νέα κατηγορία</string>
+    <string name="category_rename">Μετονομασία κατηγορίας</string>
+    <string name="category_name">Όνομα</string>
+    <string name="category_locked">Ενσωματωμένη, δεν αλλάζει</string>
+    <string name="category_deleted">Η κατηγορία διαγράφηκε</string>
+    <plurals name="category_products">
+        <item quantity="one">%1$d προϊόν</item>
+        <item quantity="other">%1$d προϊόντα</item>
+    </plurals>
+
+    <!-- Merchants -->
+    <string name="merchants_title">Καταστήματα</string>
+    <string name="merchants_search">Αναζήτηση καταστημάτων</string>
+    <string name="merchants_empty">Δεν υπάρχουν καταστήματα ακόμη</string>
+    <string name="merchants_no_match">Κανένα κατάστημα δεν ταιριάζει</string>
+    <plurals name="merchant_receipts">
+        <item quantity="one">%1$d απόδειξη</item>
+        <item quantity="other">%1$d αποδείξεις</item>
+    </plurals>
+    <string name="merchant_missing">Αυτό το κατάστημα δεν υπάρχει πια</string>
+    <string name="merchant_details">Στοιχεία</string>
+    <string name="merchant_vat">ΑΦΜ</string>
+    <string name="merchant_receipts">Αποδείξεις</string>
+    <string name="merchant_last_receipt">Τελευταία απόδειξη</string>
+    <string name="merchant_address">Διεύθυνση</string>
+    <string name="merchant_open_maps">Άνοιγμα στους Χάρτες</string>
+    <string name="merchant_default_category">Προεπιλεγμένη κατηγορία</string>
+    <string name="merchant_default_category_hint">Χρησιμοποιείται για τις αποδείξεις αυτού του καταστήματος στο φίλτρο κατηγορίας και στα Στατιστικά.</string>
+    <string name="merchant_stores">Υποκαταστήματα</string>
+    <string name="merchant_store_unnamed">Υποκατάστημα χωρίς διεύθυνση</string>
+    <string name="merchant_rename">Μετονομασία</string>
+    <string name="merchant_name">Όνομα</string>
+    <string name="merchant_rename_hint">Αδειάστε το για να ξαναχρησιμοποιηθεί το όνομα από τις αποδείξεις.</string>
+
+    <!-- Errors -->
+    <string name="error_blank_name">Πληκτρολογήστε ένα όνομα.</string>
+    <string name="error_name_taken">Υπάρχει ήδη κατηγορία με αυτό το όνομα.</string>
+    <string name="error_system_category">Οι ενσωματωμένες κατηγορίες δεν αλλάζουν. Δημιουργήστε δική σας κατηγορία.</string>
+    <string name="error_category_in_use">Προϊόντα χρησιμοποιούν αυτή την κατηγορία. Μεταφέρετέ τα πρώτα σε άλλη κατηγορία.</string>
+    <string name="error_not_a_product_line">Μόνο γραμμές προϊόντων συνδέονται με προϊόντα.</string>
+    <string name="error_package_incomplete">Ορίστε μαζί την ποσότητα και τη μονάδα της συσκευασίας, ή κανένα από τα δύο.</string>
+    <string name="error_too_many_products">Συγχωνεύστε έως 50 προϊόντα κάθε φορά.</string>
+    <string name="error_not_found">Δεν υπάρχει πια.</string>
+    <string name="error_save_failed">Η αποθήκευση απέτυχε. Δοκιμάστε ξανά.</string>
+</resources>

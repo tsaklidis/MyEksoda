@@ -4,12 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.eksoda.core.data.repository.HouseholdRepository
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 data class OnboardingUiState(
     val name: String = "",
@@ -37,13 +37,17 @@ sealed interface OnboardingEvent {
  * once the household exists. Restoring a backup and the app lock come with L7.
  */
 @HiltViewModel
-class OnboardingViewModel @Inject constructor(private val households: HouseholdRepository) : ViewModel() {
+class OnboardingViewModel @Inject constructor(private val households: HouseholdRepository) :
+    ViewModel() {
     private val _state = MutableStateFlow(OnboardingUiState())
     val state: StateFlow<OnboardingUiState> = _state.asStateFlow()
 
     fun onEvent(event: OnboardingEvent) {
         when (event) {
-            is OnboardingEvent.NameChanged -> _state.update { it.copy(name = event.name, failed = false) }
+            is OnboardingEvent.NameChanged -> _state.update {
+                it.copy(name = event.name, failed = false)
+            }
+
             OnboardingEvent.Create -> create()
         }
     }
@@ -53,7 +57,8 @@ class OnboardingViewModel @Inject constructor(private val households: HouseholdR
         if (!current.canCreate) return
         _state.update { it.copy(creating = true, failed = false) }
         viewModelScope.launch {
-            val result = households.createHousehold(current.name, current.currency, current.timezone)
+            val result =
+                households.createHousehold(current.name, current.currency, current.timezone)
             _state.update { it.copy(creating = false, failed = result.isFailure) }
         }
     }

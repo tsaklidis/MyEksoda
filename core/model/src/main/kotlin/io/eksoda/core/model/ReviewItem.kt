@@ -8,6 +8,7 @@ public data class ReviewItem(
     val id: String,
     val receiptId: String,
     val issuedAt: OffsetDateTime,
+    val merchantId: String,
     val merchantName: String,
     val lineNumber: Int,
     val description: String,

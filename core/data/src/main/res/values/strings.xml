@@ -2,4 +2,6 @@
 <resources>
     <string name="import_notification_channel">Imported receipts</string>
     <string name="import_notification_title">Receipt from %1$s imported</string>
+    <string name="import_progress_channel">Importing receipts</string>
+    <string name="import_progress_title">Importing receipt…</string>
 </resources>
