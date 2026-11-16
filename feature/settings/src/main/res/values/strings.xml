@@ -18,5 +18,8 @@
     <string name="settings_timezone">Ζώνη ώρας</string>
     <string name="settings_about">Σχετικά</string>
     <string name="settings_version">Έκδοση</string>
+    <string name="settings_made_by">Δημιουργός</string>
+    <string name="settings_github">GitHub</string>
+    <string name="settings_email">Email</string>
     <string name="settings_privacy">Όλα τα δεδομένα μένουν κρυπτογραφημένα σε αυτό το κινητό. Το Eksoda συνδέεται μόνο με τους ιστότοπους των αποδείξεων και δεν στέλνει στατιστικά χρήσης.</string>
 </resources>

@@ -1,5 +1,6 @@
 package io.eksoda.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -97,14 +98,28 @@ fun MainTabs(
     onSettingsClick: () -> Unit,
 ) {
     var tab by rememberSaveable { mutableStateOf(Tab.HOME) }
+    // The tabs visited before this one, most recent last: Back returns to them in turn, then to
+    // Home, and only leaves the app from Home.
+    var history by rememberSaveable { mutableStateOf(listOf<Tab>()) }
+    val select: (Tab) -> Unit = { entry ->
+        if (entry != tab) {
+            history = (history - entry) + tab
+            tab = entry
+        }
+    }
+    BackHandler(enabled = history.isNotEmpty() || tab != Tab.HOME) {
+        val previous = history.lastOrNull() ?: Tab.HOME
+        history = history.dropLast(1)
+        tab = previous
+    }
     val tabStates = rememberSaveableStateHolder()
     val content = @Composable { modifier: Modifier ->
         Box(modifier = modifier) {
             tabStates.SaveableStateProvider(tab.name) {
                 when (tab) {
                     Tab.HOME -> HomeRoute(
-                        onReceiptsClick = { tab = Tab.RECEIPTS },
-                        onInsightsClick = { tab = Tab.INSIGHTS },
+                        onReceiptsClick = { select(Tab.RECEIPTS) },
+                        onInsightsClick = { select(Tab.INSIGHTS) },
                         onReviewClick = onReviewClick,
                         onImportsClick = onImportsClick,
                         onReceiptClick = onReceiptClick,
@@ -119,7 +134,7 @@ fun MainTabs(
 
                     Tab.INSIGHTS -> InsightsRoute(
                         onProductClick = onProductClick,
-                        onProductsClick = { tab = Tab.PRODUCTS },
+                        onProductsClick = { select(Tab.PRODUCTS) },
                         onMerchantsClick = onMerchantsClick,
                     )
 
@@ -150,11 +165,11 @@ fun MainTabs(
                 )
                 EksodaNavigationBar {
                     TABS_BEFORE_SCAN.forEach { entry ->
-                        TabItem(entry, selected = entry == tab) { tab = entry }
+                        TabItem(entry, selected = entry == tab) { select(entry) }
                     }
                     ScanNavigationBarItem(label = scanLabel, onClick = onScanClick)
                     TABS_AFTER_SCAN.forEach { entry ->
-                        TabItem(entry, selected = entry == tab) { tab = entry }
+                        TabItem(entry, selected = entry == tab) { select(entry) }
                     }
                 }
             }
@@ -168,7 +183,7 @@ fun MainTabs(
                     Tab.entries.forEach { entry ->
                         EksodaNavigationRailItem(
                             selected = entry == tab,
-                            onClick = { tab = entry },
+                            onClick = { select(entry) },
                             icon = if (entry == tab) entry.selectedIcon else entry.icon,
                             label = stringResource(entry.label),
                         )

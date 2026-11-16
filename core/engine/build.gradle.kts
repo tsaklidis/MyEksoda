@@ -13,7 +13,7 @@ dependencies {
 }
 
 tasks.test {
-    // Parity tests read the server's fixtures and vectors from the synced copy (§10.1).
+    // Parser tests read this repository's receipt fixtures (§10; the directory name is historical).
     systemProperty("eksoda.testdata", rootDir.resolve("testdata/server").absolutePath)
     inputs.dir(rootDir.resolve("testdata/server")).withPathSensitivity(PathSensitivity.RELATIVE)
 }

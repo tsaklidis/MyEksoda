@@ -79,7 +79,10 @@
     <string name="chart_title_kg">Price per kilo</string>
     <string name="chart_title_l">Price per liter</string>
     <string name="chart_title_piece">Price per piece</string>
-    <string name="chart_period">last 12 months</string>
+    <plurals name="chart_points">
+        <item quantity="one">%d price</item>
+        <item quantity="other">%d different prices</item>
+    </plurals>
     <string name="chart_legend_average">Average %1$s</string>
     <string name="cheapest_sentence">%1$s is %2$s cheaper than %3$s on average.</string>
     <string name="range_legend">bar = range · dot = average</string>

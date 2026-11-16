@@ -46,7 +46,7 @@ Rules:
   destructive actions only.
 - **No green anywhere**, including category colors (see §4).
 - **Dynamic color is off.** The palette is the brand; wallpaper colors would
-  break the meanings. (Today `EksodaTheme(dynamicColor = true)`.)
+  break the meanings.
 - **Dark first.** Only the dark theme is designed. Until a light theme is
   designed, the app uses the dark scheme in both system modes (open question 1).
 
@@ -60,9 +60,12 @@ Rules:
   use it for digits, separators, €, %, ▲▼ and short Latin units only; Greek text
   stays in Inter.
 - Scale: hero amount 42–46 sp / 500, letter-spacing −1.5; screen title 26 sp /
-  600; section title 15 sp / 600; body 14–15 sp; labels 10–11 sp uppercase with
-  +1.2 tracking in ink-2. The currency or unit follows the number, smaller, in
-  ink-2 ("342,60 €", "1,29 € / l").
+  600; section title 15 sp / 600; body 14–15 sp; labels 12 sp medium in
+  ink-2, **in sentence case** (the mockups show labels in capitals; the owner
+  ruled on 2026-11-16 that text is never put in capitals). When a label does
+  not fit, the layout changes (it wraps or the figures stack); it is never cut
+  or capitalized. The currency or unit follows the number, smaller, in ink-2
+  ("342,60 €", "1,29 € / l").
 
 ## 3. Components (`core:designsystem`)
 
@@ -73,11 +76,13 @@ and buttons 10 dp; badges 6 dp; bars 3 dp top corners.
   tint, ▼; more → terracotta text on the terracotta tint, ▲; null → neutral "—".
 - `HeroAmount`: mono number + smaller unit; terracotta for spending, periwinkle
   for a unit price.
-- `StatRow`: 2–3 stats split by 1 dp vertical dividers, uppercase label above a
-  mono value. Replaces filled `StatTile` boxes.
+- `StatRow`: 2–3 stats split by 1 dp vertical dividers, a label above a mono
+  value, when every text fits its column on one line; otherwise one stat per
+  line (label and supporting text on the left, value on the right). Replaces
+  filled `StatTile` boxes.
 - `MinMaxBar`: a 2 dp track with a periwinkle → terracotta gradient, an ink dot
-  at the average, "MIN 1,15 · avg 1,27 · MAX 1,45" below (after the station
-  page).
+  at the average, "Min 1,15" and "Max 1,45" at its ends and "avg 1,27 · 14
+  buys" on its own line below (after the station page).
 - `RangeDotPlot` (price comparison): one row per merchant on a shared axis,
   bar = min–max range, dot = average; the cheapest row in periwinkle, others
   neutral.
@@ -95,7 +100,9 @@ and buttons 10 dp; badges 6 dp; bars 3 dp top corners.
 Vico (`android-app.md` §3) or Compose `Canvas`, whichever reproduces these
 rules; the mockup shapes are the target.
 
-- Gridlines `#1F242D`; axis labels mono 10–11 sp ink-2.
+- Gridlines `#1F242D`; axis labels mono 10–11 sp ink-2. Month labels use the
+  short name ("Νοε", "Nov"); when 12 do not fit, every other month is labeled
+  (never one-letter capitals).
 - **Bars:** past periods `#2A303A`; the selected one periwinkle; the current
   partial period striped terracotta (`#E2795A`/`#9A4E36`); empty months keep a
   slot; average as a dashed `#6B737D` line. Tapping a bar selects it and shows a
@@ -131,7 +138,8 @@ Bottom bar order: Home · Receipts · (Scan) · Insights · Products.
    (periwinkle); each hidden when 0.
 4. "Last 6 months" bars (avg per month), last month periwinkle, this month
    striped; tap → Insights.
-5. "Where it went": top 3 categories with share bars → Receipts filtered.
+5. "Where it went": top 3 categories with share bars → Insights (built; the
+   mockup's "Receipts filtered" is not done yet).
 6. Recent receipts (3) → detail; "See all".
 
 **Insights** (L6): period chips; summary (hero, change vs the previous equal
@@ -144,23 +152,26 @@ and fail on their own (§6.5).
 **Product detail** (L5): category · brand label, name, package chip; price
 card (last paid in periwinkle with where and when, change vs the previous
 purchase as a badge, `MinMaxBar`, Lowest · Average · Highest with month and
-merchant); price-per-unit line (12 months, average dashed, lowest and highest
-marked); "Where it's cheapest" (a sentence: "Lidl is 0,13 €/l cheaper than AB
+merchant); price-per-unit line (each change of price, oldest to newest, close
+prices merged above 24 points, average dashed, lowest and highest marked, first,
+middle and last dates below); "Where it's cheapest" (a sentence: "Lidl is 0,13 €/l cheaper than AB
 Vasilopoulos on average", then `RangeDotPlot`); purchases list.
 
-## 6. Data the design needs that the plan doesn't have yet
+## 6. Data behind the design (built in L5–L6)
 
-- **Home pace chart and "vs the same day last month"** need running daily
-  totals for this month and last month: `SUM(signed total) GROUP BY
-  issued_local_date` for two months with the §6.6 inclusion rules, cumulated in
-  `core:engine`. Not in the Python analytics, so it is an Android-only
-  addition: keep it a pure function with unit tests. `analytics/summary`'s
-  full-month comparison stays for Insights.
-- **Product detail:** min and max with their month and merchant (from the
-  PRICE_HISTORY rows), and each merchant's min–max range for `RangeDotPlot`
-  (the Python `compare` gives the average and rank only).
-- **Insights trend average:** the average of full months only (the current
-  partial month is excluded).
+- **Home pace chart and "vs the same day last month":** daily totals for this
+  month and last month (`AnalyticsDao.dayTotals`, the §6.6 inclusion rules),
+  cumulated by `runningTotals` / `totalBySameDay` in `core:engine`
+  `analytics/Combine.kt` (unit tests). Insights compares with the period of
+  equal length just before.
+- **Product detail:** min and max with their month and merchant, the price
+  points for the chart (`pricePoints`) and each merchant's min–max range for
+  `RangeDotPlot`, from the price-history rows (`feature:products`
+  `detail/PriceInsights.kt`, `core:engine` `products/History.kt`).
+- **Averages:** Home's 6 months and Insights' trend average the full months
+  with receipts (the current partial month is excluded).
+- **Spending by category:** automatic categories for new products
+  (`products/AutoCategory.kt`) keep Uncategorized small.
 
 ## 7. Open questions for the owner
 

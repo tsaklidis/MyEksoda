@@ -39,6 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
@@ -177,6 +178,9 @@ fun SettingsScreen(
             state.household?.let { household -> HouseholdCard(household) }
             SectionCard(title = stringResource(R.string.settings_about)) {
                 ValueRow(stringResource(R.string.settings_version), version, number = true)
+                HorizontalDivider(color = colors.line)
+                Credits()
+                HorizontalDivider(color = colors.line)
                 Text(
                     text = stringResource(R.string.settings_privacy),
                     style = MaterialTheme.typography.bodySmall,
@@ -187,6 +191,40 @@ fun SettingsScreen(
         }
     }
 }
+
+/** Who made the app, with links to the author's GitHub profile and email. */
+@Composable
+private fun Credits() {
+    val colors = EksodaTheme.colors
+    val uriHandler = LocalUriHandler.current
+    val open = { uri: String -> runCatching { uriHandler.openUri(uri) } }
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+        verticalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+        Text(
+            stringResource(R.string.settings_made_by),
+            style = MaterialTheme.typography.bodySmall,
+            color = colors.ink2,
+        )
+        Text(AUTHOR, style = MaterialTheme.typography.bodyLarge)
+    }
+    LinkRow(
+        label = stringResource(R.string.settings_github),
+        value = GITHUB_LABEL,
+        onClick = { open(GITHUB_URL) },
+    )
+    LinkRow(
+        label = stringResource(R.string.settings_email),
+        value = EMAIL,
+        onClick = { open("mailto:$EMAIL") },
+    )
+}
+
+private const val AUTHOR = "Stefanos I. Tsaklidis"
+private const val GITHUB_URL = "https://github.com/tsaklidis"
+private const val GITHUB_LABEL = "github.com/tsaklidis"
+private const val EMAIL = "stefanos@tsaklidis.gr"
 
 /** The languages offered, as (tag, label); `locales_config.xml` lists the same. */
 private val LANGUAGES = listOf(
@@ -211,7 +249,7 @@ private fun LanguageRow(label: String, selected: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-private fun LinkRow(label: String, onClick: () -> Unit) {
+private fun LinkRow(label: String, onClick: () -> Unit, value: String? = null) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -221,6 +259,14 @@ private fun LinkRow(label: String, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+        if (value != null) {
+            Text(
+                value,
+                style = MaterialTheme.typography.bodyMedium,
+                color = EksodaTheme.colors.compare,
+                modifier = Modifier.padding(end = 4.dp),
+            )
+        }
         Icon(
             Icons.AutoMirrored.Filled.KeyboardArrowRight,
             contentDescription = null,

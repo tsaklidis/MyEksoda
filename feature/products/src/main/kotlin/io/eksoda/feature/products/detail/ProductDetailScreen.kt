@@ -282,7 +282,7 @@ private fun ProductDetailContent(
         if (stats != null && unit != null) {
             item(key = "units") { UnitSwitch(comparison.availableUnits, unit, onUnitSelect) }
             item(key = "price") { PriceCard(stats, priced) }
-            item(key = "trend") { PriceTrendCard(stats, priced, state.thisMonth) }
+            item(key = "trend") { PriceTrendCard(stats, priced) }
         }
         if (comparison.reason != ComparisonReason.NO_PRICES) {
             item(key = "comparison") {

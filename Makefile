@@ -3,11 +3,10 @@
 JAVA_HOME ?= /Applications/Android Studio.app/Contents/jbr/Contents/Home
 export JAVA_HOME
 GRADLE := ./gradlew
-SERVER ?= $(HOME)/eksoda
 # detekt with type resolution: the debug variant of Android modules, main and test of JVM modules.
 DETEKT := detektDebug detektDebugUnitTest :core:engine:detektMain :core:engine:detektTest :core:model:detektMain :core:model:detektTest
 
-.PHONY: build test lint coverage no-telemetry check install sync-testdata format clean codemap
+.PHONY: build test lint coverage no-telemetry check install format clean codemap
 
 build:  ## Debug APK
 	$(GRADLE) assembleDebug
@@ -33,9 +32,6 @@ check:  ## Everything above in one Gradle run. Must pass before a task counts as
 
 install:  ## Install the debug app on the running emulator or device
 	$(GRADLE) installDebug
-
-sync-testdata:  ## Copy fixtures and vectors from the server checkout (§10.1)
-	scripts/sync-server-testdata.sh $(SERVER)
 
 format:  ## Apply ktlint formatting
 	$(GRADLE) spotlessApply

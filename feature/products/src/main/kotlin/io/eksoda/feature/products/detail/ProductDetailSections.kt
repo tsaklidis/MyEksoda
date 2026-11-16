@@ -196,17 +196,18 @@ private fun PriceChangeBadge(stats: PriceStats) {
 }
 
 /**
- * The price per unit over the last 12 months (§5): the monthly average in periwinkle, the
- * average dashed, the lowest and highest month ringed. Hidden with fewer than two months.
+ * The price per unit at each change of price (§5, [pricePoints]): the prices in periwinkle,
+ * the average dashed, the lowest and highest ringed, the first, middle and last purchase dates
+ * below. Hidden with fewer than two points.
  */
 @Composable
-internal fun PriceTrendCard(stats: PriceStats, priced: List<PriceEntry>, thisMonth: YearMonth) {
-    val monthly = remember(priced, thisMonth) { monthlyAverages(priced, thisMonth) }
-    if (monthly.pricedMonths < 2) return
+internal fun PriceTrendCard(stats: PriceStats, priced: List<PriceEntry>) {
+    val points = remember(priced) { pricePoints(priced) }
+    if (points.size < 2) return
     val locale = appLocale()
     val colors = EksodaTheme.colors
-    val monthFormat = dateFormatter("LLL", locale)
-    val present = monthly.averages.filterNotNull()
+    val dateFormat = dateFormatter("MMM yy", locale)
+    val present = points.map { it.price }
     val description = stringResource(
         R.string.chart_description,
         formatMoney(Money(present.min(), stats.currency), locale),
@@ -216,7 +217,7 @@ internal fun PriceTrendCard(stats: PriceStats, priced: List<PriceEntry>, thisMon
         title = stringResource(chartTitle(stats.normalizedUnit)),
         action = {
             Text(
-                text = stringResource(R.string.chart_period),
+                text = pluralStringResource(R.plurals.chart_points, points.size, points.size),
                 style = MaterialTheme.typography.bodySmall,
                 color = colors.ink2,
             )
@@ -227,14 +228,14 @@ internal fun PriceTrendCard(stats: PriceStats, priced: List<PriceEntry>, thisMon
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             LineChart(
-                values = monthly.averages,
+                values = present,
                 contentDescription = description,
                 formatValue = { formatAmount(it, locale) },
                 color = colors.compare,
                 average = stats.average,
                 markExtremes = true,
-                axisLabels = AXIS_MONTHS.map { index ->
-                    monthly.months[index].format(monthFormat)
+                axisLabels = listOf(0, points.lastIndex / 2, points.lastIndex).map { index ->
+                    points[index].entry.issuedAt.format(dateFormat)
                         .replaceFirstChar { it.titlecase(locale) }
                 },
             )
@@ -276,9 +277,6 @@ private fun chartTitle(unit: String): Int = when (unit) {
     "piece" -> R.string.chart_title_piece
     else -> R.string.chart_title
 }
-
-/** The months labeled under the chart: the first, every quarter, and this month. */
-private val AXIS_MONTHS = listOf(0, 3, 6, 9, MONTHS - 1)
 
 @Composable
 private fun LegendDash(color: Color) {

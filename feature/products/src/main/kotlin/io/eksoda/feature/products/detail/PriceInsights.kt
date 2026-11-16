@@ -4,11 +4,10 @@ import io.eksoda.core.model.MerchantPrices
 import io.eksoda.core.model.PriceEntry
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.time.YearMonth
 
 // What Product detail shows beyond the engine's statistics (docs/design/ui-redesign.md §5, §6):
-// the lowest and highest purchase with their month and merchant, the average per month for the
-// line chart, and how much cheaper the cheapest merchant is. Pure functions of the observed rows.
+// the lowest and highest purchase with their month and merchant, the price changes for the line
+// chart, and how much cheaper the cheapest merchant is. Pure functions of the observed rows.
 
 /** The purchases in one normalized unit and currency that have a unit price, newest first. */
 internal fun pricedEntries(
@@ -30,37 +29,42 @@ internal fun priceExtremes(priced: List<PriceEntry>): PriceExtremes? {
     return PriceExtremes(lowest, highest)
 }
 
-/** The [count] months up to [end], oldest first, each with its average unit price or null. */
-internal data class MonthlyPrices(val months: List<YearMonth>, val averages: List<BigDecimal?>) {
-    /** Months with a price. */
-    val pricedMonths: Int get() = averages.count { it != null }
-}
+/** One point of the price chart: a purchase's unit price and when it was bought. */
+internal data class PricePoint(val entry: PriceEntry, val price: BigDecimal)
 
 /**
- * The average unit price per month, weighted by the normalized quantity when every purchase of
- * the month has one (as the engine's statistics are), else the plain mean.
+ * The purchases to draw, oldest first: every change of price, so most distinct prices show. A run
+ * of purchases at the same price is one point (its first purchase). When more than [max] points
+ * remain, prices that differ from the last kept point by no more than a growing share of the
+ * whole range are dropped, until [max] remain; the first, last, lowest and highest always stay.
  */
-internal fun monthlyAverages(
-    priced: List<PriceEntry>,
-    end: YearMonth,
-    count: Int = MONTHS,
-): MonthlyPrices {
-    val months = (count - 1 downTo 0).map { end.minusMonths(it.toLong()) }
-    val byMonth = priced.groupBy { YearMonth.from(it.issuedAt) }
-    return MonthlyPrices(months, months.map { month -> byMonth[month]?.let(::averagePrice) })
-}
-
-private fun averagePrice(entries: List<PriceEntry>): BigDecimal {
-    val weighted = entries.all { (it.normalizedQuantity?.signum() ?: 0) > 0 }
-    var total = BigDecimal.ZERO
-    var weight = BigDecimal.ZERO
-    entries.forEach { entry ->
-        val price = checkNotNull(entry.normalizedUnitPrice)
-        val quantity = if (weighted) checkNotNull(entry.normalizedQuantity) else BigDecimal.ONE
-        total += price.multiply(quantity)
-        weight += quantity
+internal fun pricePoints(priced: List<PriceEntry>, max: Int = MAX_POINTS): List<PricePoint> {
+    val oldestFirst = priced.reversed().map { PricePoint(it, checkNotNull(it.normalizedUnitPrice)) }
+    val changes = oldestFirst.filterIndexed { index, point ->
+        index == 0 || point.price.compareTo(oldestFirst[index - 1].price) != 0
     }
-    return total.divide(weight, SCALE, RoundingMode.HALF_UP)
+    if (changes.size <= max) return changes
+    // The first purchase at the lowest and at the highest price always stays.
+    val lowest = changes.minBy { it.price }
+    val highest = changes.maxBy { it.price }
+    val range = highest.price - lowest.price
+    var share = BigDecimal("0.01")
+    var points = changes
+    // Past a share of 1 only the first, last, lowest and highest are left, so this ends.
+    while (points.size > max && share <= BigDecimal(2)) {
+        val tolerance = range.multiply(share)
+        val kept = mutableListOf(changes.first())
+        changes.drop(1).forEachIndexed { index, point ->
+            val last = index == changes.size - 2
+            val extreme = point === lowest || point === highest
+            if (last || extreme || (point.price - kept.last().price).abs() > tolerance) {
+                kept += point
+            }
+        }
+        points = kept
+        share = share.multiply(BigDecimal(2))
+    }
+    return points
 }
 
 /** "Lidl is 0,13 €/l cheaper than AB Vasilopoulos": the first two ranked merchants. */
@@ -78,6 +82,5 @@ internal fun cheapestGap(merchants: List<MerchantPrices>): CheapestGap? {
     return CheapestGap(cheapest, next, difference.setScale(2, RoundingMode.HALF_UP))
 }
 
-/** The line chart's span: a year. */
-internal const val MONTHS = 12
-private const val SCALE = 4
+/** The most points the price chart draws before close prices are merged. */
+internal const val MAX_POINTS = 24

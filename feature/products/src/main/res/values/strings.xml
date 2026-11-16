@@ -79,7 +79,10 @@
     <string name="chart_title_kg">Τιμή ανά κιλό</string>
     <string name="chart_title_l">Τιμή ανά λίτρο</string>
     <string name="chart_title_piece">Τιμή ανά τεμάχιο</string>
-    <string name="chart_period">τελευταίοι 12 μήνες</string>
+    <plurals name="chart_points">
+        <item quantity="one">%d τιμή</item>
+        <item quantity="other">%d διαφορετικές τιμές</item>
+    </plurals>
     <string name="chart_legend_average">Μέση τιμή %1$s</string>
     <string name="cheapest_sentence">Στο %1$s κοστίζει κατά μέσο όρο %2$s λιγότερο απ’ ό,τι στο %3$s.</string>
     <string name="range_legend">μπάρα = εύρος · κουκκίδα = μέση τιμή</string>

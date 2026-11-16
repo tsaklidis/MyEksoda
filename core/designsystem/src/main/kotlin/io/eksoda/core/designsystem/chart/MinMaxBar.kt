@@ -16,6 +16,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -27,7 +28,8 @@ import java.math.BigDecimal
 /**
  * A price range (docs/design/ui-redesign.md §3, after the station page of logs.tsaklidis.gr): a
  * 2 dp track from periwinkle (lowest) to terracotta (highest), an ink dot at the average, and
- * "MIN 1,15 · avg 1,27 · MAX 1,45" below. The caller formats the texts for the locale.
+ * "Min 1,15" and "Max 1,45" at its ends, and "avg 1,27 · 34 buys" on its own line below, so
+ * the three never crowd one line. The caller formats the texts for the locale.
  */
 @Composable
 fun MinMaxBar(
@@ -75,7 +77,6 @@ fun MinMaxBar(
                 color = colors.ink2,
                 modifier = Modifier.weight(1f),
             )
-            Text(text = middleText, style = ChartLabelStyle, color = colors.ink2)
             Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.End) {
                 Text(
                     text = buildAnnotatedString {
@@ -88,6 +89,13 @@ fun MinMaxBar(
                 )
             }
         }
+        Text(
+            text = middleText,
+            style = ChartLabelStyle,
+            color = colors.ink2,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 
@@ -99,10 +107,10 @@ private fun MinMaxBarPreview() {
             minimum = BigDecimal("1.15"),
             average = BigDecimal("1.27"),
             maximum = BigDecimal("1.45"),
-            lowLabel = "MIN",
+            lowLabel = "Min",
             lowValue = "1,15",
             middleText = "avg 1,27 · 34 buys",
-            highLabel = "MAX",
+            highLabel = "Max",
             highValue = "1,45",
             contentDescription = "Lowest 1,15 €, average 1,27 €, highest 1,45 €",
         )

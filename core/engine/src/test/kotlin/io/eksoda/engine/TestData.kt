@@ -2,7 +2,7 @@ package io.eksoda.engine
 
 import java.io.File
 
-/** The server's fixtures and vectors, synced into testdata/server (§10.1). */
+/** This repository's receipt fixtures in testdata/server (§10; the name is historical). */
 internal object TestData {
     val root: File by lazy {
         val path = checkNotNull(System.getProperty("eksoda.testdata")) {

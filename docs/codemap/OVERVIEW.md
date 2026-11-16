@@ -11,8 +11,11 @@ reading them. It is written by hand; `SYMBOLS.md` next to it is generated
 3. Open only that range: `rtk read <file>` or `sed -n '<from>,<to>p' <file>`.
 4. A guide section, never the whole guide: `scripts/guide.sh 7.4` (standalone guide) or
    `scripts/guide.sh 6.4.2 android-app`. `scripts/guide.sh toc` lists the sections.
-5. The Python oracle (`~/eksoda/backend/apps/...`) only when porting parsing, matching,
-   validation, price or analytics rules (§9.1 maps each Python file to its Kotlin file).
+
+**The app is Android-only and this repository is the only source of truth.** The old
+Python server (`~/eksoda`) is retired: never read, port from or sync from it. Mentions of it
+(`// Port of backend/...` comments, the guide's §2 and §9.1, `docs/android-app.md`) are history
+only (guide §0.0).
 
 Keep this file current: when a change adds a module, a pipeline step, a pattern or a
 milestone result, update the matching section here in the same change, and run
@@ -23,11 +26,11 @@ milestone result, update the matching section here in the same change, and run
 | Milestone | State |
 |---|---|
 | L0 foundation | Done |
-| L1 engine core, L2 providers + fetcher | Ported, **no parity tests yet** (owner's choice). `make check` fails at `:core:engine:koverVerify` until tests exist |
+| L1 engine core, L2 providers + fetcher | Built, **few tests yet** (owner's choice; the planned Python test vectors are cancelled). `make check` fails at `:core:engine:koverVerify` until tests exist |
 | L3 storage + import | Built: schema, SQLCipher, KeyManager, Persister, ImportService/Worker. No tests |
 | L4 capture + receipts UI | **Done** (2026-11-15): onboarding, scan, imports list, share dialog, receipts list/filters/detail, swipe actions, remembered filters |
 | L5 products + review | Built (2026-11-16), awaiting `make check`: `feature:products` (list, detail, edit, merge, review queue, categories, merchants), `core:data/products/ReviewService`, `imports/ProductMatcher`. **UI redesign applied (2026-11-16, owner decision):** dark three-color theme, Plex Mono numbers, new components and charts, Product detail per `docs/design/ui-redesign.md` §5; not yet compiled |
-| L6 analytics + home | In progress (2026-11-16): `AnalyticsDao` + `AnalyticsRepositoryImpl` (server rules), `engine/analytics/Combine.kt`, Home and Insights per the mockups, `feature:settings` (language, notifications, catalog links), automatic categories (`engine/products/AutoCategory.kt`, Android-only) |
+| L6 analytics + home | In progress (2026-11-16): `AnalyticsDao` + `AnalyticsRepositoryImpl`, `engine/analytics/Combine.kt`, Home and Insights per the mockups, `feature:settings` (language, notifications, catalog links, credits), automatic categories (`engine/products/AutoCategory.kt`), tab back history in `MainTabs`, price chart by change of price (`pricePoints`) |
 | L7 | Not started |
 
 The authoritative table is the guide's §16 (`scripts/guide.sh 16`).
@@ -37,7 +40,8 @@ The authoritative table is the guide's §16 (`scripts/guide.sh 16`).
 ```
 app                    Application, MainActivity, AppViewModel, nav graph (ui/EksodaApp.kt,
                        ui/Destinations.kt), Hilt root. Depends on the features it shows.
-core:engine   (JVM)    Pure Kotlin port of the Python backend. NO android.*. Explicit API.
+core:engine   (JVM)    Pure Kotlin rules: parsers, matching, prices, analytics math. NO android.*.
+                       Explicit API. Owned here (first ported from the retired server).
 core:model    (JVM)    Domain types the UI sees (Receipt, Money, ImportJob, Period, filters…)
 core:database          Room + SQLCipher: entities (entity/Entities.kt), DAOs, CategorySeed
 core:data              Repositories (interface + Impl), imports/ pipeline, KeyManager,
@@ -98,7 +102,8 @@ Providers: `engine/providers/{impact,entersoft,aadefhm}/` each with `Urls.kt`
 `maskUrl`), `Registry.kt` (`REGISTRY`), `Html.kt` (`textOf`), `Sanitizing.kt`.
 Fetcher: `engine/fetch/SafeFetcher.kt` (the only OkHttp client), `PublicAddress.kt`.
 
-Python-semantics helpers (use them when porting, don't reinvent):
+Python-compatible text helpers (kept because stored keys depend on them; reuse them in
+parsers, don't reinvent):
 `text/PyStrings.kt` (`pySplit`, `pyStrip`, `pyIsDigit`, `pyRegex` = Unicode-aware regex),
 `text/PyDecimal.kt` (`pyDivide` = 28 digits HALF_EVEN, `pyStr`), `text/PyTime.kt`
 (`pyIsoFormat`, `pyLocalToOffset`), `text/Text.kt` (`normalizeText`, `stripDiacritics`,
@@ -137,9 +142,10 @@ Python-semantics helpers (use them when porting, don't reinvent):
   receipt list's last filters in DataStore, ids only, names re-read from the database),
   Household (+Impl), Product (+Impl), Review (+Impl: queue, link, create, reclassify),
   Catalog (+Impl: categories, merchant rename and default category), Analytics (+Impl:
-  `analytics/queries.py` over `AnalyticsDao`; `changes()` re-emits on table changes),
-  Settings (+Impl: preferences shown in Settings). Write failures the server would refuse
-  are `CatalogException`. `products/AutoCategoryBackfill` categorizes old products once.
+  summary, by category with buckets, by merchant, top products, monthly trend, Home pace,
+  over `AnalyticsDao`; `changes()` re-emits on table changes), Settings (+Impl: preferences
+  shown in Settings). Refused catalog writes are `CatalogException`.
+  `products/AutoCategoryBackfill` categorizes old products once.
 
 ## UI pattern (follow `feature/receipts`, `feature/scan`, `feature/products`, `feature/home`)
 
@@ -165,13 +171,20 @@ Python-semantics helpers (use them when porting, don't reinvent):
   words). Read colors from `MaterialTheme.colorScheme` or `EksodaTheme.colors` (`EksodaColors`:
   spend*/compare* families, panel, inset, tile, line, guide, inks, `rank`), **never a hex in a
   screen**. `outline`/`guide` (#6B737D) is for lines only, never text. Cards are `SectionCard`;
-  labels in caps are `OverlineText`; figures side by side are `StatRow`; charts come from
+  small labels are `OverlineText` (sentence case, wraps to 2 lines); figures are `StatRow`
+  (side by side when they fit, else one per line); charts come from
   `core:designsystem/chart` (BigDecimal in, colors by rank, content description required).
+- **Never put text in capitals** (no `uppercase()` on UI text, no caps styles). When text does
+  not fit, rearrange: wrap, stack (as `StatRow` does), or use a shorter word.
+- Screens without a `Scaffold` (Home, Insights) set `LocalContentColor` to `colors.ink`
+  themselves, or plain `Text` draws black.
 - **Numbers in IBM Plex Mono:** amounts use `MoneyText`/`HeroMoney`, other figures
   `style.tabular()`, mixed sentences `monoNumbers(text)`. Plex Mono has no Greek, ▲ or ▼: never
   set it on words.
-- Strings: per module `src/main/res/values/strings.xml` **and** `values-el/strings.xml`.
-  Plurals for counts. Error codes → `importErrorRes(code)`; money → `MoneyText` /
+- Strings: per module `values/strings.xml` (Greek, the default), `values-el/` (Greek) and
+  `values-en/` (English); every string in all three (lint fails otherwise). Plurals for
+  counts. The Greek must read naturally. The app's language is chosen in Settings
+  (`core:ui` `AppLanguage`: `LocaleManager` on 13+, `wrap()` in `attachBaseContext` before). Error codes → `importErrorRes(code)`; money → `MoneyText` /
   `formatMoney(money, appLocale())`; category names → `categoryNameRes(slug)`.
 - Receipt text (descriptions, merchant names) is shown as printed, never translated.
 - Speed and polish helpers in `core:ui`: `dateFormatter(pattern, locale)` (cached; never
@@ -194,4 +207,7 @@ Python-semantics helpers (use them when porting, don't reinvent):
   `fingerprint(url).take(12)` only.
 - OkHttp only in `core:engine` (configuration fails elsewhere). No Firebase/ML Kit/GMS
   (`:app:checkNoTelemetry`).
-- `testdata/server/` is synced, never edited. Never commit, push or `git init`.
+- `testdata/server/fixtures/` belongs to this repository (historical name): edit fixtures
+  with the parser they test; there is nothing to sync. Never commit, push or `git init`.
+- Back on a tab other than Home returns to the previous tab (`MainTabs` history); only Back
+  on Home leaves the app.

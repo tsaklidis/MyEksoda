@@ -633,16 +633,16 @@ private fun TrendCard(trend: MonthlyTrend, today: LocalDate) {
             BarChart(
                 // Short month names on every other bar (counted back from this month) fit
                 // the width; the callout names the selected month in full.
-                bars = months.mapIndexed { index, it ->
+                bars = months.mapIndexed { index, month ->
                     BarDatum(
                         label = if ((months.lastIndex - index) % 2 == 0) {
-                            it.month.format(dateFormatter("LLL", locale))
+                            month.month.format(dateFormatter("LLL", locale))
                                 .replaceFirstChar { char -> char.titlecase(locale) }
                         } else {
                             ""
                         },
-                        value = it.total,
-                        partial = it.month == thisMonth,
+                        value = month.total,
+                        partial = month.month == thisMonth,
                     )
                 },
                 contentDescription = stringResource(R.string.insights_trend_description),
