@@ -75,6 +75,17 @@ interface ProductDao {
     @Query("SELECT * FROM product WHERE id IN (:ids)")
     suspend fun getAll(ids: List<String>): List<ProductEntity>
 
+    /** Products without a category: id and name. */
+    @Query("SELECT id, name FROM product WHERE category_id IS NULL")
+    suspend fun uncategorized(): List<OptionRow>
+
+    /** Sets the category only if the product still has none. */
+    @Query(
+        """UPDATE product SET category_id = :categoryId, updated_at = :now
+           WHERE id = :id AND category_id IS NULL""",
+    )
+    suspend fun setCategoryIfNone(id: String, categoryId: String, now: Long): Int
+
     @Query("DELETE FROM product WHERE id IN (:ids)")
     suspend fun delete(ids: List<String>): Int
 

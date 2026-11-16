@@ -14,6 +14,9 @@ interface ReceiptRepository {
 
     fun getReceipt(id: String): Flow<ReceiptDetail?>
 
+    /** The [limit] newest receipts (Home). */
+    fun getRecentReceipts(limit: Int): Flow<List<Receipt>>
+
     /**
      * Saves an import job for a receipt link and queues it (§7.2). A link Eksoda cannot read
      * gives [ImportSubmission.Rejected] and stores nothing.

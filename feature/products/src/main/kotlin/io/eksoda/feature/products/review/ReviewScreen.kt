@@ -1,5 +1,6 @@
 package io.eksoda.feature.products.review
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,6 +52,8 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
+import io.eksoda.core.designsystem.theme.CardShape
+import io.eksoda.core.designsystem.theme.EksodaTheme
 import io.eksoda.core.model.LineType
 import io.eksoda.core.model.ProductDraft
 import io.eksoda.core.model.ReviewItem
@@ -227,10 +230,12 @@ private fun ReviewCard(
     Card(
         onClick = onReceiptClick,
         modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
+        shape = CardShape,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            containerColor = EksodaTheme.colors.panel,
+            contentColor = EksodaTheme.colors.ink,
         ),
+        border = BorderStroke(1.dp, EksodaTheme.colors.line),
     ) {
         Column(
             modifier = Modifier.padding(16.dp),

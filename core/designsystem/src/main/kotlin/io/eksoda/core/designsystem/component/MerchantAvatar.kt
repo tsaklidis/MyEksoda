@@ -1,6 +1,7 @@
 package io.eksoda.core.designsystem.component
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -10,29 +11,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import io.eksoda.core.designsystem.theme.EksodaTheme
 
 /**
- * Avatar backgrounds. Each keeps white initials at 4.5:1 contrast or more (WCAG AA for text),
- * in light and dark themes alike.
+ * The merchant's initials on a neutral tile with a line border (android-app.md §6.4.1). The
+ * redesign allows three colors only (docs/design/ui-redesign.md §1), each with a meaning, so
+ * merchants are told apart by name and initials, not by color. [id] is kept for callers and
+ * future use.
  */
-private val AVATAR_COLORS = listOf(
-    Color(0xFF3949AB),
-    Color(0xFF00796B),
-    Color(0xFFBF360C),
-    Color(0xFF6D4C41),
-    Color(0xFF8E24AA),
-    Color(0xFF1565C0),
-    Color(0xFF2E7D32),
-    Color(0xFFC2185B),
-)
-
-/** Initials on a color derived from the merchant id (android-app.md §6.4.1, §7.4). */
+@Suppress("UnusedParameter")
 @Composable
 fun MerchantAvatar(id: String, name: String, modifier: Modifier = Modifier, size: Dp = 40.dp) {
-    val color = remember(id) { AVATAR_COLORS[Math.floorMod(id.hashCode(), AVATAR_COLORS.size)] }
+    val colors = EksodaTheme.colors
     val initials = remember(name) {
         name.split(' ', '.', '-')
             .filter { word -> word.firstOrNull()?.isLetterOrDigit() == true }
@@ -40,12 +33,15 @@ fun MerchantAvatar(id: String, name: String, modifier: Modifier = Modifier, size
             .joinToString("") { it.first().uppercase() }
     }
     Box(
-        modifier = modifier.size(size).background(color, CircleShape),
+        modifier = modifier
+            .size(size)
+            .background(colors.tile, CircleShape)
+            .border(1.dp, colors.line, CircleShape),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = initials,
-            color = Color.White,
+            color = colors.ink,
             style = if (size >= 56.dp) {
                 MaterialTheme.typography.titleLarge
             } else {
@@ -53,4 +49,10 @@ fun MerchantAvatar(id: String, name: String, modifier: Modifier = Modifier, size
             },
         )
     }
+}
+
+@Preview
+@Composable
+private fun MerchantAvatarPreview() {
+    EksodaTheme { MerchantAvatar(id = "1", name = "AB Vasilopoulos") }
 }

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">Settings</string>
+    <string name="settings_back">Back</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_language_greek">Ελληνικά</string>
+    <string name="settings_language_english">English</string>
+    <string name="settings_language_system">System language</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_notify_imports">Finished imports</string>
+    <string name="settings_notify_imports_hint">Notify me when a receipt finishes importing while the app is closed. The receipt link is never shown.</string>
+    <string name="settings_catalog">Organize</string>
+    <string name="settings_categories">Categories</string>
+    <string name="settings_merchants">Shops</string>
+    <string name="settings_household">Household</string>
+    <string name="settings_household_name">Name</string>
+    <string name="settings_currency">Currency</string>
+    <string name="settings_timezone">Time zone</string>
+    <string name="settings_about">About</string>
+    <string name="settings_version">Version</string>
+    <string name="settings_privacy">All data stays encrypted on this phone. Eksoda connects only to the receipt websites and sends no usage statistics.</string>
+</resources>

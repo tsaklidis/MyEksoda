@@ -82,6 +82,12 @@ class ReceiptRepositoryImpl @Inject constructor(
             }
     }
 
+    override fun getRecentReceipts(limit: Int): Flow<List<Receipt>> =
+        receipts.observeRecent(limit).map { rows ->
+            val zone = householdZone.current()
+            rows.map { it.toModel(zone) }
+        }
+
     /** Parsing `source_data` and mapping the lines run off the main thread. */
     override fun getReceipt(id: String): Flow<ReceiptDetail?> = combine(
         receipts.observeRow(ReceiptQuery.one(id)),

@@ -1,5 +1,6 @@
 package io.eksoda.feature.receipts.list
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -7,13 +8,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -21,6 +23,9 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.eksoda.core.designsystem.component.MerchantAvatar
+import io.eksoda.core.designsystem.component.OverlineText
+import io.eksoda.core.designsystem.theme.BadgeShape
+import io.eksoda.core.designsystem.theme.EksodaTheme
 import io.eksoda.core.model.DocumentKind
 import io.eksoda.core.model.Money
 import io.eksoda.core.model.PaymentMethod
@@ -94,7 +99,7 @@ private fun ReceiptBadges(receipt: Receipt) {
     val badges = buildList {
         if (receipt.needsReview) add(R.string.badge_review to BadgeTone.ATTENTION)
         if (receipt.hasWarnings) add(R.string.badge_warnings to BadgeTone.ATTENTION)
-        if (receipt.cancelled) add(R.string.badge_cancelled to BadgeTone.ERROR)
+        if (receipt.cancelled) add(R.string.badge_cancelled to BadgeTone.NEUTRAL)
         if (receipt.documentKind == DocumentKind.CREDIT_NOTE) {
             add(R.string.badge_refund to BadgeTone.NEUTRAL)
         }
@@ -109,18 +114,27 @@ private fun ReceiptBadges(receipt: Receipt) {
     }
 }
 
-internal enum class BadgeTone { ATTENTION, ERROR, NEUTRAL, MUTED }
+/**
+ * Status tags (docs/design/ui-redesign.md §1): attention items in terracotta on its tint;
+ * neutral facts (cancelled, refund) in ink-2 on the inset color; muted ones (not in stats)
+ * outlined only. Red is kept for errors and destructive actions.
+ */
+internal enum class BadgeTone { ATTENTION, NEUTRAL, MUTED }
 
 @Composable
 internal fun StatusTag(text: String, tone: BadgeTone) {
-    val colors = MaterialTheme.colorScheme
-    val (background, content) = when (tone) {
-        BadgeTone.ATTENTION -> colors.tertiaryContainer to colors.onTertiaryContainer
-        BadgeTone.ERROR -> colors.errorContainer to colors.onErrorContainer
-        BadgeTone.NEUTRAL -> colors.secondaryContainer to colors.onSecondaryContainer
-        BadgeTone.MUTED -> colors.surfaceVariant to colors.onSurfaceVariant
+    val colors = EksodaTheme.colors
+    val (background, content, border) = when (tone) {
+        BadgeTone.ATTENTION -> Triple(colors.spendTint, colors.spendText, colors.spendBorder)
+        BadgeTone.NEUTRAL -> Triple(colors.inset, colors.ink2, colors.line)
+        BadgeTone.MUTED -> Triple(Color.Transparent, colors.ink2, colors.line)
     }
-    Surface(shape = RoundedCornerShape(6.dp), color = background, contentColor = content) {
+    Surface(
+        shape = BadgeShape,
+        color = background,
+        contentColor = content,
+        border = BorderStroke(1.dp, border),
+    ) {
         Text(
             text = text,
             style = MaterialTheme.typography.labelSmall,
@@ -135,20 +149,18 @@ internal fun DayHeader(date: LocalDate, today: LocalDate, total: Money?) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surfaceContainer)
-            .padding(horizontal = 16.dp, vertical = 6.dp),
+            .background(MaterialTheme.colorScheme.background)
+            .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 6.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = dayLabel(date, today).uppercase(),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        OverlineText(dayLabel(date, today))
         if (total != null) {
             MoneyText(
                 money = total,
                 negative = total.amount.signum() < 0,
                 style = MaterialTheme.typography.labelMedium,
+                color = EksodaTheme.colors.ink2,
             )
         }
     }

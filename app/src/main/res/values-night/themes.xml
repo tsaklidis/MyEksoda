@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- The same dark theme as values/themes.xml: only the dark theme is designed. -->
     <style name="Theme.Eksoda" parent="android:Theme.Material.NoActionBar">
         <item name="android:colorPrimary">@color/eksoda_primary</item>
         <item name="android:windowBackground">@color/eksoda_window_background</item>
     </style>
 
-    <color name="eksoda_primary">#80CBC4</color>
+    <color name="eksoda_primary">#E2795A</color>
 </resources>

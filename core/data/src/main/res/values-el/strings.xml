@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="import_notification_channel">Εισηγμένες αποδείξεις</string>
+    <string name="import_notification_channel">Ολοκληρωμένες εισαγωγές</string>
     <string name="import_notification_title">Εισήχθη απόδειξη από %1$s</string>
     <string name="import_progress_channel">Εισαγωγή αποδείξεων</string>
     <string name="import_progress_title">Εισαγωγή απόδειξης…</string>

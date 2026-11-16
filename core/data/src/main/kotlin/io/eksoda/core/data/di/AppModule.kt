@@ -12,6 +12,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import io.eksoda.core.data.repository.AnalyticsRepository
+import io.eksoda.core.data.repository.AnalyticsRepositoryImpl
 import io.eksoda.core.data.repository.CatalogRepository
 import io.eksoda.core.data.repository.CatalogRepositoryImpl
 import io.eksoda.core.data.repository.HouseholdRepository
@@ -26,6 +28,8 @@ import io.eksoda.core.data.repository.ReceiptRepository
 import io.eksoda.core.data.repository.ReceiptRepositoryImpl
 import io.eksoda.core.data.repository.ReviewRepository
 import io.eksoda.core.data.repository.ReviewRepositoryImpl
+import io.eksoda.core.data.repository.SettingsRepository
+import io.eksoda.core.data.repository.SettingsRepositoryImpl
 import io.eksoda.engine.Engine
 import io.eksoda.engine.fetch.SafeFetcher
 import kotlinx.coroutines.CoroutineDispatcher
@@ -90,4 +94,10 @@ interface RepositoryModule {
 
     @Binds
     fun bindCatalogRepository(implementation: CatalogRepositoryImpl): CatalogRepository
+
+    @Binds
+    fun bindAnalyticsRepository(implementation: AnalyticsRepositoryImpl): AnalyticsRepository
+
+    @Binds
+    fun bindSettingsRepository(implementation: SettingsRepositoryImpl): SettingsRepository
 }

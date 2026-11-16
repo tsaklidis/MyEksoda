@@ -55,7 +55,7 @@
     <string name="amount_range">Σύνολο %1$s – %2$s</string>
     <string name="amount_min">Σύνολο από %1$s</string>
     <string name="amount_max">Σύνολο έως %1$s</string>
-    <string name="filter_type">Είδος</string>
+    <string name="filter_type">Τύπος</string>
     <string name="type_all">Όλες</string>
     <string name="type_purchases">Αγορές</string>
     <string name="type_refunds">Επιστροφές</string>
@@ -114,9 +114,9 @@
     <string name="detail_parser_version">Έκδοση ανάγνωσης</string>
     <string name="detail_open_original">Άνοιγμα πρωτότυπης απόδειξης</string>
     <string name="detail_open_original_title">Άνοιγμα της πρωτότυπης απόδειξης;</string>
-    <string name="detail_open_original_body">Ο σύνδεσμος της απόδειξης λειτουργεί σαν κωδικός: όποιος τον έχει μπορεί να δει αυτή την απόδειξη. Το Eksoda τον ανοίγει στον περιηγητή σας και δεν τον αντιγράφει ούτε τον μοιράζεται ποτέ.</string>
+    <string name="detail_open_original_body">Ο σύνδεσμος της απόδειξης λειτουργεί σαν κωδικός: όποιος τον έχει μπορεί να δει αυτή την απόδειξη. Το Eksoda τον ανοίγει στο πρόγραμμα περιήγησης και δεν τον αντιγράφει ούτε τον μοιράζεται ποτέ.</string>
     <string name="detail_open_original_confirm">Άνοιγμα</string>
-    <string name="detail_no_browser">Δεν υπάρχει διαθέσιμος περιηγητής για να ανοίξει η απόδειξη.</string>
+    <string name="detail_no_browser">Δεν βρέθηκε πρόγραμμα περιήγησης για να ανοίξει η απόδειξη.</string>
     <string name="detail_delete">Διαγραφή απόδειξης</string>
     <string name="detail_delete_title">Διαγραφή αυτής της απόδειξης;</string>
     <string name="detail_delete_body">Τα είδη της θα αφαιρεθούν από το ιστορικό τιμών σας. Μπορείτε να την εισαγάγετε ξανά σαρώνοντας τον κωδικό QR.</string>

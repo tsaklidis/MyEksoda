@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">Ρυθμίσεις</string>
+    <string name="settings_back">Πίσω</string>
+    <string name="settings_language">Γλώσσα</string>
+    <string name="settings_language_greek">Ελληνικά</string>
+    <string name="settings_language_english">English</string>
+    <string name="settings_language_system">Γλώσσα συστήματος</string>
+    <string name="settings_notifications">Ειδοποιήσεις</string>
+    <string name="settings_notify_imports">Ολοκληρωμένες εισαγωγές</string>
+    <string name="settings_notify_imports_hint">Ειδοποίηση όταν ολοκληρώνεται η εισαγωγή μιας απόδειξης ενώ η εφαρμογή είναι κλειστή. Ο σύνδεσμος της απόδειξης δεν εμφανίζεται ποτέ.</string>
+    <string name="settings_catalog">Οργάνωση</string>
+    <string name="settings_categories">Κατηγορίες</string>
+    <string name="settings_merchants">Καταστήματα</string>
+    <string name="settings_household">Νοικοκυριό</string>
+    <string name="settings_household_name">Όνομα</string>
+    <string name="settings_currency">Νόμισμα</string>
+    <string name="settings_timezone">Ζώνη ώρας</string>
+    <string name="settings_about">Σχετικά</string>
+    <string name="settings_version">Έκδοση</string>
+    <string name="settings_privacy">Όλα τα δεδομένα μένουν κρυπτογραφημένα σε αυτό το κινητό. Το Eksoda συνδέεται μόνο με τους ιστότοπους των αποδείξεων και δεν στέλνει στατιστικά χρήσης.</string>
+</resources>

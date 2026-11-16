@@ -19,7 +19,6 @@ import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
@@ -29,7 +28,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -48,7 +46,6 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -66,6 +63,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import io.eksoda.core.designsystem.theme.EksodaTheme
 import io.eksoda.core.model.DocumentKind
 import io.eksoda.core.model.Money
 import io.eksoda.core.model.ReceiptOrdering
@@ -123,7 +121,10 @@ fun ReceiptListRoute(
     )
 }
 
-/** Receipts with search and filters (android-app.md §6.4.1–6.4.2). */
+/**
+ * Receipts with search and filters (android-app.md §6.4.1–6.4.2). Scan is the raised button in
+ * the app's bottom bar (docs/design/ui-redesign.md §3), so the list has no Scan button of its own.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReceiptListScreen(
@@ -148,7 +149,6 @@ fun ReceiptListScreen(
         onPauseOrDispose { }
     }
     val listState = rememberLazyListState()
-    val fabExpanded by remember { derivedStateOf { listState.firstVisibleItemIndex == 0 } }
     val filter = state.filter
     // A large title that collapses as the list scrolls up.
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -161,8 +161,9 @@ fun ReceiptListScreen(
                 scrollBehavior = scrollBehavior,
                 actions = {
                     SortMenu(filter.ordering) { onEvent(ReceiptListEvent.OrderingChanged(it)) }
+                    val dot = EksodaTheme.colors.spend
                     IconButton(onClick = { sheetOpen = true }) {
-                        BadgedBox(badge = { if (filter.hasFilters) Badge() }) {
+                        BadgedBox(badge = { if (filter.hasFilters) Badge(containerColor = dot) }) {
                             Icon(Icons.Default.FilterList, stringResource(R.string.filter_title))
                         }
                     }
@@ -170,24 +171,6 @@ fun ReceiptListScreen(
                         Icon(Icons.Default.History, stringResource(R.string.receipts_imports))
                     }
                 },
-            )
-        },
-        floatingActionButton = {
-            // Collapses to the icon once the list scrolls, so it covers less of the rows.
-            ExtendedFloatingActionButton(
-                onClick = onScanClick,
-                expanded = fabExpanded,
-                icon = {
-                    Icon(
-                        Icons.Default.QrCodeScanner,
-                        contentDescription = if (fabExpanded) {
-                            null
-                        } else {
-                            stringResource(R.string.receipts_scan)
-                        },
-                    )
-                },
-                text = { Text(stringResource(R.string.receipts_scan)) },
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -350,7 +333,7 @@ private fun ReceiptLazyList(
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 88.dp),
+        contentPadding = PaddingValues(bottom = 16.dp),
     ) {
         // One item per row, so day headers can stick (§6.4.1). `peek` decides the kind without
         // loading; `items[index]` inside each item tells Paging which rows are on screen.

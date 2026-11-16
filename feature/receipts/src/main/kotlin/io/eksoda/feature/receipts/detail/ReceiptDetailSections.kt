@@ -1,5 +1,6 @@
 package io.eksoda.feature.receipts.detail
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -31,6 +32,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import io.eksoda.core.designsystem.text.monoNumbers
+import io.eksoda.core.designsystem.theme.CardShape
+import io.eksoda.core.designsystem.theme.EksodaTheme
+import io.eksoda.core.designsystem.theme.HeroNumberStyle
 import io.eksoda.core.model.DocumentKind
 import io.eksoda.core.model.IssueTime
 import io.eksoda.core.model.ReceiptDetail
@@ -62,10 +67,13 @@ internal fun DetailHeader(detail: ReceiptDetail) {
             )
         }
         Text(issuedText(detail), color = MaterialTheme.colorScheme.onSurfaceVariant)
+        // The hero amount: terracotta for spending, periwinkle for a refund (ui-redesign.md §1).
+        val refund = receipt.documentKind == DocumentKind.CREDIT_NOTE
         MoneyText(
             money = receipt.totalAmount,
-            negative = receipt.documentKind == DocumentKind.CREDIT_NOTE,
-            style = MaterialTheme.typography.displaySmall,
+            negative = refund,
+            style = HeroNumberStyle,
+            color = if (refund) EksodaTheme.colors.compare else EksodaTheme.colors.spend,
             textDecoration = if (receipt.cancelled) TextDecoration.LineThrough else null,
             modifier = Modifier
                 .padding(top = 8.dp)
@@ -94,18 +102,21 @@ private fun issuedText(detail: ReceiptDetail): String {
     }
 }
 
-/** A banner: cancelled by the shop, or a totals-only receipt. */
+/**
+ * A banner: cancelled by the shop ([attention]: terracotta, an item that needs attention), or a
+ * totals-only receipt (neutral).
+ */
 @Composable
-internal fun Notice(text: String, error: Boolean = false) {
+internal fun Notice(text: String, attention: Boolean = false) {
+    val colors = EksodaTheme.colors
     Card(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+        shape = CardShape,
         colors = CardDefaults.cardColors(
-            containerColor = if (error) {
-                MaterialTheme.colorScheme.errorContainer
-            } else {
-                MaterialTheme.colorScheme.surfaceContainerHigh
-            },
+            containerColor = if (attention) colors.spendTint else colors.inset,
+            contentColor = if (attention) colors.spendText else colors.ink,
         ),
+        border = BorderStroke(1.dp, if (attention) colors.spendBorder else colors.line),
     ) {
         Text(text, modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.bodyMedium)
     }
@@ -121,9 +132,12 @@ internal fun WarningsCard(warnings: List<ReceiptWarning>) {
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp)
             .clickable(enabled = warnings.size > 1) { expanded = !expanded },
+        shape = CardShape,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+            containerColor = EksodaTheme.colors.spendTint,
+            contentColor = EksodaTheme.colors.spendText,
         ),
+        border = BorderStroke(1.dp, EksodaTheme.colors.spendBorder),
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -224,7 +238,7 @@ internal fun LabeledValue(label: String, value: String) {
             modifier = Modifier.weight(0.4f),
         )
         Text(
-            text = value,
+            text = monoNumbers(value),
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.weight(0.6f),
         )

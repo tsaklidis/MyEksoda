@@ -18,7 +18,7 @@ Keep this file current: when a change adds a module, a pipeline step, a pattern 
 milestone result, update the matching section here in the same change, and run
 `make codemap`.
 
-## Status (2026-11-15)
+## Status (2026-11-16)
 
 | Milestone | State |
 |---|---|
@@ -26,8 +26,9 @@ milestone result, update the matching section here in the same change, and run
 | L1 engine core, L2 providers + fetcher | Ported, **no parity tests yet** (owner's choice). `make check` fails at `:core:engine:koverVerify` until tests exist |
 | L3 storage + import | Built: schema, SQLCipher, KeyManager, Persister, ImportService/Worker. No tests |
 | L4 capture + receipts UI | **Done** (2026-11-15): onboarding, scan, imports list, share dialog, receipts list/filters/detail, swipe actions, remembered filters |
-| L5 products + review | Built (2026-11-16), awaiting `make check`: `feature:products` (list, detail with Canvas price chart, edit, merge, review queue, categories, merchants), `core:data/products/ReviewService`, `imports/ProductMatcher` |
-| L6–L7 | Not started. `feature:home` and `insights` hold old pre-L0 screens: they compile, are **not** in the nav graph, use `mutableStateOf` and hard-coded English. Redo them per the patterns below |
+| L5 products + review | Built (2026-11-16), awaiting `make check`: `feature:products` (list, detail, edit, merge, review queue, categories, merchants), `core:data/products/ReviewService`, `imports/ProductMatcher`. **UI redesign applied (2026-11-16, owner decision):** dark three-color theme, Plex Mono numbers, new components and charts, Product detail per `docs/design/ui-redesign.md` §5; not yet compiled |
+| L6 analytics + home | In progress (2026-11-16): `AnalyticsDao` + `AnalyticsRepositoryImpl` (server rules), `engine/analytics/Combine.kt`, Home and Insights per the mockups, `feature:settings` (language, notifications, catalog links), automatic categories (`engine/products/AutoCategory.kt`, Android-only) |
+| L7 | Not started |
 
 The authoritative table is the guide's §16 (`scripts/guide.sh 16`).
 
@@ -41,10 +42,15 @@ core:model    (JVM)    Domain types the UI sees (Receipt, Money, ImportJob, Peri
 core:database          Room + SQLCipher: entities (entity/Entities.kt), DAOs, CategorySeed
 core:data              Repositories (interface + Impl), imports/ pipeline, KeyManager,
                        WriteCoordinator, Fixed, DI modules (di/)
-core:designsystem      Theme (generated teal scheme, Inter type scale, shapes), MerchantAvatar,
-                       SectionCard, StatTile, ChangeBadge, groupedItem, Button, CategoryIcon
-core:ui                Shared composables (EmptyState, MoneyText, PeriodSelector) and text
-                       helpers (formatMoney, dayLabel, importErrorRes, categoryNameRes)
+core:designsystem      Theme (the redesign's dark scheme + EksodaColors, Inter + IBM Plex Mono,
+                       shapes), components (SectionCard, ChangeBadge, HeroAmount, StatRow,
+                       OverlineText, PeriodSelector, SegmentedToggle, navigation bar/rail +
+                       ScanButton, CategoryTile/Icon, MerchantAvatar, groupedItem, Button),
+                       chart/ (MinMaxBar, RangeDotPlot, BarChart, LineChart, DonutChart,
+                       ShareBar), text/monoNumbers
+core:ui                Shared composables (EmptyState, MoneyText, HeroMoney) and text helpers
+                       (formatMoney, formatAmount, currencySymbol, dayLabel, importErrorRes,
+                       categoryNameRes)
 feature:*              Screens. See only core:data interfaces, core:model, core:ui,
                        core:designsystem (wired by the eksoda.android.feature plugin)
 build-logic            Convention plugins: eksoda.android.{application,library,compose,
@@ -130,10 +136,12 @@ Python-semantics helpers (use them when porting, don't reinvent):
 - Repositories: Receipt (+Impl), ReceiptOptions (+Impl), ReceiptFilterStore (+Impl: the
   receipt list's last filters in DataStore, ids only, names re-read from the database),
   Household (+Impl), Product (+Impl), Review (+Impl: queue, link, create, reclassify),
-  Catalog (+Impl: categories, merchant rename and default category). Analytics is an
-  **interface only** (L6). Write failures the server would refuse are `CatalogException`.
+  Catalog (+Impl: categories, merchant rename and default category), Analytics (+Impl:
+  `analytics/queries.py` over `AnalyticsDao`; `changes()` re-emits on table changes),
+  Settings (+Impl: preferences shown in Settings). Write failures the server would refuse
+  are `CatalogException`. `products/AutoCategoryBackfill` categorizes old products once.
 
-## UI pattern (follow `feature/receipts`, `feature/scan` and `feature/products`, not home/insights)
+## UI pattern (follow `feature/receipts`, `feature/scan`, `feature/products`, `feature/home`)
 
 - ViewModel: `@HiltViewModel class XViewModel @Inject constructor(repo…)`,
   `val state: StateFlow<XUiState>` (immutable data class or sealed Loading/Loaded/Missing),
@@ -146,10 +154,22 @@ Python-semantics helpers (use them when porting, don't reinvent):
   composables (big screens split into `XSections.kt`).
 - Navigation: `@Serializable` destinations in `app/ui/Destinations.kt` (ids only, **never a
   receipt URL**), wired in `MainNavHost` in `app/ui/EksodaApp.kt`; top-level sections are tabs
-  in `app/ui/MainTabs.kt` (`NavigationSuiteScaffold`); add the feature to
+  in `app/ui/MainTabs.kt` (`EksodaNavigationBar` under 600 dp, `EksodaNavigationRail` wider,
+  Scan as the raised button); add the feature to
   `app/build.gradle.kts` dependencies. Elements that travel between screens use
   `Modifier.sharedBoundsIfAvailable(SharedKeys…)` (`core:ui` `motion/`).
-- Amounts always use tabular figures (`MoneyText` does; elsewhere `style.tabular()`).
+- **Look: `docs/design/ui-redesign.md`** (mockups linked there). Dark base, two accents with one
+  meaning each: terracotta = this period, spending, "more", "pricier", attention, Scan;
+  periwinkle = previous period, selection, "less", "cheaper", links, active tab. No green; red
+  (`colorScheme.error`) only for errors and destructive actions; color never alone (arrows and
+  words). Read colors from `MaterialTheme.colorScheme` or `EksodaTheme.colors` (`EksodaColors`:
+  spend*/compare* families, panel, inset, tile, line, guide, inks, `rank`), **never a hex in a
+  screen**. `outline`/`guide` (#6B737D) is for lines only, never text. Cards are `SectionCard`;
+  labels in caps are `OverlineText`; figures side by side are `StatRow`; charts come from
+  `core:designsystem/chart` (BigDecimal in, colors by rank, content description required).
+- **Numbers in IBM Plex Mono:** amounts use `MoneyText`/`HeroMoney`, other figures
+  `style.tabular()`, mixed sentences `monoNumbers(text)`. Plex Mono has no Greek, ▲ or ▼: never
+  set it on words.
 - Strings: per module `src/main/res/values/strings.xml` **and** `values-el/strings.xml`.
   Plurals for counts. Error codes → `importErrorRes(code)`; money → `MoneyText` /
   `formatMoney(money, appLocale())`; category names → `categoryNameRes(slug)`.
@@ -160,9 +180,9 @@ Python-semantics helpers (use them when porting, don't reinvent):
   `EmptyState` with a one-line description. Text fields keep their text in the screen
   (`rememberSaveable`) and send changes to the ViewModel; never feed a `TextField` from a
   Flow. Lazy rows use `Modifier.animateItem()`.
-- `CategoryIcon` picks a light or dark color by the surface; the caution (tertiary) colors stay
-  fixed under dynamic color (`theme/Theme.kt`). The splash screen stays up while `AppState` is
-  `LOADING` (`MainActivity`).
+- Categories have no colors: `CategoryTile`/`CategoryIcon` are neutral (icon + name). Dynamic
+  color is off and only the dark scheme exists (`theme/Theme.kt`). The splash screen stays up
+  while `AppState` is `LOADING` (`MainActivity`).
 
 ## Hard rules that are easy to break
 

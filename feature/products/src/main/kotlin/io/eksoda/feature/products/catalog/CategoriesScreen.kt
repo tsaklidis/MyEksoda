@@ -48,6 +48,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.eksoda.core.designsystem.component.OverlineText
 import io.eksoda.core.model.CategorySummary
 import io.eksoda.core.ui.component.DelayedProgressIndicator
 import io.eksoda.core.ui.text.categoryName
@@ -143,12 +144,10 @@ private fun CategoryList(categories: List<CategorySummary>, onEdit: (CategorySum
 
 @Composable
 private fun SectionTitle(text: Int) {
-    Text(
+    OverlineText(
         text = stringResource(text),
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.primary,
         modifier = Modifier
-            .padding(start = 16.dp, top = 16.dp, bottom = 4.dp)
+            .padding(start = 16.dp, top = 20.dp, bottom = 6.dp)
             .semantics { heading() },
     )
 }

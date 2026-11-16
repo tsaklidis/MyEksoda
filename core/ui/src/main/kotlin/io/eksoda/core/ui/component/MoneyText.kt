@@ -15,8 +15,9 @@ import io.eksoda.core.ui.text.appLocale
 import io.eksoda.core.ui.text.formatMoney
 
 /**
- * An amount in the app locale with tabular figures (android-app.md §7.4). [negative]: credit
- * notes and discounts, shown with a true minus sign.
+ * An amount in the app locale in IBM Plex Mono (docs/design/ui-redesign.md §2). [negative]:
+ * credit notes and discounts, shown with a true minus sign. Plex Mono is bundled in 400 and 500,
+ * so the weight is at most Medium.
  */
 @Composable
 fun MoneyText(
@@ -35,7 +36,7 @@ fun MoneyText(
         modifier = modifier,
         color = color,
         style = style.tabular(),
-        fontWeight = fontWeight ?: FontWeight.Bold,
+        fontWeight = minOf(fontWeight ?: FontWeight.Medium, FontWeight.Medium),
         textDecoration = textDecoration,
         maxLines = 1,
     )

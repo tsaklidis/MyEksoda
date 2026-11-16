@@ -66,7 +66,24 @@
         <item quantity="one">%1$d αγορά</item>
         <item quantity="other">%1$d αγορές</item>
     </plurals>
-    <string name="chart_title">Τιμή στον χρόνο</string>
+    <!-- Product detail, redesign (docs/design/ui-redesign.md §5) -->
+    <string name="last_paid">Τελευταία αγορά · %1$s στο %2$s</string>
+    <string name="price_change_more">%1$s ακριβότερο από την προηγούμενη αγορά</string>
+    <string name="price_change_less">%1$s φθηνότερο από την προηγούμενη αγορά</string>
+    <string name="price_change_same">Ίδια τιμή με την προηγούμενη αγορά</string>
+    <string name="price_change_first">Πρώτη αγορά</string>
+    <string name="stats_min_short">Ελάχ.</string>
+    <string name="stats_max_short">Μέγ.</string>
+    <string name="stats_avg_purchases">μ.ό. %1$s · %2$s</string>
+    <string name="price_range_description">Χαμηλότερη %1$s, μέση %2$s, υψηλότερη %3$s</string>
+    <string name="chart_title_kg">Τιμή ανά κιλό</string>
+    <string name="chart_title_l">Τιμή ανά λίτρο</string>
+    <string name="chart_title_piece">Τιμή ανά τεμάχιο</string>
+    <string name="chart_period">τελευταίοι 12 μήνες</string>
+    <string name="chart_legend_average">Μέση τιμή %1$s</string>
+    <string name="cheapest_sentence">Στο %1$s κοστίζει κατά μέσο όρο %2$s λιγότερο απ’ ό,τι στο %3$s.</string>
+    <string name="range_legend">μπάρα = εύρος · κουκκίδα = μέση τιμή</string>
+    <string name="chart_title">Εξέλιξη τιμής</string>
     <string name="chart_description">Γράφημα τιμής, από %1$s έως %2$s</string>
     <string name="comparison_title">Πού είναι φθηνότερο</string>
     <string name="comparison_one_merchant">Έχει αγοραστεί μόνο από %1$s μέχρι τώρα.</string>
@@ -88,7 +105,7 @@
 
     <!-- Review -->
     <string name="review_title">Βοηθήστε μας να αντιστοιχίσουμε αυτά τα είδη</string>
-    <string name="review_intro">Αυτές οι γραμμές δεν αντιστοιχίστηκαν σε προϊόν. Αντιστοιχίστε καθεμία μία φορά και οι επόμενες αποδείξεις ακολουθούν.</string>
+    <string name="review_intro">Αυτά τα είδη δεν αντιστοιχίστηκαν σε προϊόν. Αντιστοιχίστε το καθένα μία φορά και οι επόμενες αποδείξεις θα αντιστοιχίζονται αυτόματα.</string>
     <string name="review_match">Αντιστοίχιση με προϊόν</string>
     <string name="review_match_hint">Οι επόμενες αποδείξεις από αυτό το κατάστημα θα αντιστοιχίζονται αυτόματα.</string>
     <string name="review_new">Νέο προϊόν</string>
@@ -99,7 +116,7 @@
     <string name="review_done_title">Όλα εντάξει ✓</string>
     <string name="review_done_body">Κάθε γραμμή έχει αντιστοιχιστεί σε προϊόν.</string>
     <string name="line_discount">Έκπτωση</string>
-    <string name="line_fee">Χρέωση</string>
+    <string name="line_fee">Τέλος ή εγγύηση</string>
     <string name="line_other">Άλλο</string>
 
     <!-- Categories -->
@@ -133,12 +150,12 @@
     <string name="merchant_address">Διεύθυνση</string>
     <string name="merchant_open_maps">Άνοιγμα στους Χάρτες</string>
     <string name="merchant_default_category">Προεπιλεγμένη κατηγορία</string>
-    <string name="merchant_default_category_hint">Χρησιμοποιείται για τις αποδείξεις αυτού του καταστήματος στο φίλτρο κατηγορίας και στα Στατιστικά.</string>
+    <string name="merchant_default_category_hint">Ισχύει για όσα είδη αυτού του καταστήματος δεν έχουν δική τους κατηγορία, στο φίλτρο κατηγορίας και στα Στατιστικά.</string>
     <string name="merchant_stores">Υποκαταστήματα</string>
     <string name="merchant_store_unnamed">Υποκατάστημα χωρίς διεύθυνση</string>
     <string name="merchant_rename">Μετονομασία</string>
     <string name="merchant_name">Όνομα</string>
-    <string name="merchant_rename_hint">Αδειάστε το για να ξαναχρησιμοποιηθεί το όνομα από τις αποδείξεις.</string>
+    <string name="merchant_rename_hint">Αφήστε το κενό για να χρησιμοποιείται το όνομα από τις αποδείξεις.</string>
 
     <!-- Errors -->
     <string name="error_blank_name">Πληκτρολογήστε ένα όνομα.</string>

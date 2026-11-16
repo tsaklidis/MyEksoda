@@ -38,6 +38,7 @@ import io.eksoda.feature.receipts.detail.ReceiptDetailRoute
 import io.eksoda.feature.scan.ScanRoute
 import io.eksoda.feature.scan.imports.ImportListRoute
 import io.eksoda.feature.scan.share.ShareImportDialog
+import io.eksoda.feature.settings.SettingsRoute
 
 /**
  * Onboarding until the household exists, then the app's navigation graph: the tabs
@@ -84,8 +85,16 @@ private fun MainNavHost(launch: AppLaunch?, onLaunchHandled: () -> Unit) {
                             onReviewClick = { navController.navigate(ReviewDestination) },
                             onCategoriesClick = { navController.navigate(CategoriesDestination) },
                             onMerchantsClick = { navController.navigate(MerchantsDestination) },
+                            onSettingsClick = { navController.navigate(SettingsDestination) },
                         )
                     }
+                }
+                composable<SettingsDestination> {
+                    SettingsRoute(
+                        onBack = back,
+                        onCategoriesClick = { navController.navigate(CategoriesDestination) },
+                        onMerchantsClick = { navController.navigate(MerchantsDestination) },
+                    )
                 }
                 composable<ReceiptDetailDestination> {
                     WithNavAnimation {

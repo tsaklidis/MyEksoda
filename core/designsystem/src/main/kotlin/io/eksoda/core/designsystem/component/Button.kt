@@ -10,8 +10,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.eksoda.core.designsystem.theme.ButtonShape
 
-/** The main action of a screen: full width, pill shaped, with a progress state. */
+/**
+ * The main action of a screen: full width, terracotta with dark text, 10 dp corners
+ * (docs/design/ui-redesign.md §3), with a progress state.
+ */
 @Composable
 fun EksodaButton(
     onClick: () -> Unit,
@@ -24,6 +28,7 @@ fun EksodaButton(
         onClick = onClick,
         modifier = modifier.fillMaxWidth().heightIn(min = 56.dp),
         enabled = enabled && !isLoading,
+        shape = ButtonShape,
     ) {
         if (isLoading) {
             CircularProgressIndicator(

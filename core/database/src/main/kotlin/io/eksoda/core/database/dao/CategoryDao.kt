@@ -26,6 +26,9 @@ interface CategoryDao {
     @Query("SELECT * FROM category WHERE id = :id")
     suspend fun get(id: String): CategoryEntity?
 
+    @Query("SELECT * FROM category")
+    suspend fun all(): List<CategoryEntity>
+
     /** Names are unique by slug among every category, the system ones included. */
     @Query("SELECT EXISTS (SELECT 1 FROM category WHERE slug = :slug AND id != :exceptId)")
     suspend fun slugTaken(slug: String, exceptId: String): Boolean

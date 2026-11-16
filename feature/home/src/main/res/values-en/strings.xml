@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="home_greeting_morning">Good morning</string>
+    <string name="home_greeting_day">Good afternoon</string>
+    <string name="home_greeting_evening">Good evening</string>
+    <string name="home_settings">Settings</string>
+
+    <string name="home_spent_so_far">Spent in %1$s so far</string>
+    <string name="home_change_less">%1$s less</string>
+    <string name="home_change_more">%1$s more</string>
+    <string name="home_change_same">The same</string>
+    <string name="home_change_than">than by %1$s (%2$s)</string>
+    <string name="home_change_first">First month with receipts</string>
+    <string name="home_change_nothing_before">Nothing spent by %1$s last month</string>
+    <string name="home_pace_description">Running total this month compared with last month</string>
+    <string name="home_pace_today">today</string>
+    <string name="home_pace_last_month">%1$s, total %2$s</string>
+    <string name="home_stat_receipts">Receipts</string>
+    <string name="home_stat_average">Avg receipt</string>
+    <string name="home_stat_per_day">Per day</string>
+
+    <plurals name="home_to_match">
+        <item quantity="one">%d item to match</item>
+        <item quantity="other">%d items to match</item>
+    </plurals>
+    <string name="home_to_match_body">Help sharpen your price history</string>
+    <plurals name="home_importing">
+        <item quantity="one">%d receipt importing…</item>
+        <item quantity="other">%d receipts importing…</item>
+    </plurals>
+    <string name="home_importing_body">They\'ll show up here when done</string>
+
+    <string name="home_last_6_months">Last 6 months</string>
+    <string name="home_average_per_month">avg %1$s / month</string>
+    <string name="home_months_description">Spending per month for the last 6 months</string>
+    <string name="home_legend_so_far">So far</string>
+    <string name="home_legend_last_month">Last month</string>
+    <string name="home_legend_average">Average</string>
+
+    <string name="home_where_it_went">Where it went</string>
+    <string name="home_all_categories">All categories</string>
+    <string name="home_recent">Recent receipts</string>
+    <string name="home_see_all">See all</string>
+
+    <string name="home_empty_title">No receipts yet</string>
+    <string name="home_empty_body">Scan the QR code at the bottom of a receipt to start.</string>
+    <string name="home_failed">Some figures could not be loaded.</string>
+    <string name="home_retry">Try again</string>
+</resources>

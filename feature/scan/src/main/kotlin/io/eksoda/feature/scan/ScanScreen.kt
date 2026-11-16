@@ -71,6 +71,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.eksoda.core.designsystem.theme.EksodaTheme
 import kotlinx.coroutines.delay
 import zxingcpp.BarcodeReader
 import java.util.concurrent.Executors
@@ -363,14 +364,23 @@ private fun FeedbackChip(
         modifier = modifier,
     ) {
         val current = shown ?: return@AnimatedVisibility
+        // Errors in Material's error colors; everything else on the neutral inset color.
         Surface(
             shape = RoundedCornerShape(24.dp),
             color = if (current.isError) {
                 MaterialTheme.colorScheme.errorContainer
             } else {
-                MaterialTheme.colorScheme.primaryContainer
+                EksodaTheme.colors.inset
             },
-            tonalElevation = 4.dp,
+            contentColor = if (current.isError) {
+                MaterialTheme.colorScheme.onErrorContainer
+            } else {
+                EksodaTheme.colors.ink
+            },
+            border = BorderStroke(
+                1.dp,
+                if (current.isError) Color.Transparent else EksodaTheme.colors.line,
+            ),
         ) {
             Row(
                 modifier = Modifier.padding(start = 16.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),

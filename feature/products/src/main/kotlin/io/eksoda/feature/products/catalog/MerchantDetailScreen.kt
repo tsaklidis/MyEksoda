@@ -52,6 +52,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.eksoda.core.designsystem.component.MerchantAvatar
 import io.eksoda.core.designsystem.component.SectionCard
+import io.eksoda.core.designsystem.theme.EksodaTheme
 import io.eksoda.core.model.Category
 import io.eksoda.core.model.MerchantSummary
 import io.eksoda.core.model.Store
@@ -231,7 +232,7 @@ private fun MerchantDetailContent(
                 Text(categoryLabel(merchant.defaultCategory), modifier = Modifier.weight(1f))
                 Text(
                     stringResource(R.string.change),
-                    color = MaterialTheme.colorScheme.primary,
+                    color = EksodaTheme.colors.compare,
                     style = MaterialTheme.typography.labelLarge,
                 )
             }

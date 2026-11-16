@@ -64,6 +64,7 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
+import io.eksoda.core.designsystem.theme.EksodaTheme
 import io.eksoda.core.model.Category
 import io.eksoda.core.model.Merchant
 import io.eksoda.core.model.Product
@@ -157,10 +158,16 @@ fun ProductListScreen(
                 title = { Text(stringResource(R.string.products_title)) },
                 scrollBehavior = scrollBehavior,
                 actions = {
+                    // Items to match are attention items: terracotta, never red (ui-redesign.md §1).
+                    val badgeColor = EksodaTheme.colors.spend
                     IconButton(onClick = onReviewClick) {
                         BadgedBox(
                             badge = {
-                                if (state.reviewCount > 0) Badge { Text("${state.reviewCount}") }
+                                if (state.reviewCount > 0) {
+                                    Badge(containerColor = badgeColor) {
+                                        Text("${state.reviewCount}")
+                                    }
+                                }
                             },
                         ) {
                             Icon(Icons.Outlined.RateReview, stringResource(R.string.review_title))

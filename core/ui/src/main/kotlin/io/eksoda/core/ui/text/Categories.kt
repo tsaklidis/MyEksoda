@@ -4,6 +4,8 @@ import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import io.eksoda.core.model.Category
+import io.eksoda.core.model.SpendingBucket
+import io.eksoda.core.model.SpendingBucketKind
 import io.eksoda.core.ui.R
 
 /** The translated name of a system category, by slug (the 19 seeded categories, §6.3). */
@@ -22,6 +24,32 @@ fun categoryName(category: Category): String =
  */
 @Composable
 fun categoryName(key: String): String = systemCategoryRes(key)?.let { stringResource(it) } ?: key
+
+/** A spending bucket's name: its category's, or the translated name of a remainder bucket. */
+@Composable
+fun bucketName(bucket: SpendingBucket): String {
+    val category = bucket.category
+    return when (bucket.kind) {
+        SpendingBucketKind.CATEGORY ->
+            if (category !=
+                null
+            ) {
+                categoryName(category)
+            } else {
+                stringResource(R.string.category_other)
+            }
+
+        SpendingBucketKind.UNCATEGORIZED -> stringResource(R.string.bucket_uncategorized)
+
+        SpendingBucketKind.DISCOUNTS -> stringResource(R.string.bucket_discounts)
+
+        SpendingBucketKind.FEES -> stringResource(R.string.bucket_fees)
+
+        SpendingBucketKind.OTHER_ADJUSTMENTS -> stringResource(R.string.bucket_other_adjustments)
+
+        SpendingBucketKind.UNALLOCATED -> stringResource(R.string.bucket_unallocated)
+    }
+}
 
 @StringRes
 private fun systemCategoryRes(slug: String): Int? = when (slug) {

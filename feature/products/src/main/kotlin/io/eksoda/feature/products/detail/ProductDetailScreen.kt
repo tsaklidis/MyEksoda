@@ -1,5 +1,6 @@
 package io.eksoda.feature.products.detail
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,7 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
@@ -39,19 +40,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.collectAsLazyPagingItems
+import io.eksoda.core.designsystem.component.OverlineText
 import io.eksoda.core.designsystem.component.SectionCard
+import io.eksoda.core.designsystem.component.groupedItem
+import io.eksoda.core.designsystem.text.monoNumbers
+import io.eksoda.core.designsystem.theme.BadgeShape
+import io.eksoda.core.designsystem.theme.EksodaTheme
 import io.eksoda.core.model.ComparisonReason
 import io.eksoda.core.model.ProductDraft
 import io.eksoda.core.ui.component.DelayedProgressIndicator
 import io.eksoda.core.ui.component.EmptyState
 import io.eksoda.core.ui.text.categoryName
 import io.eksoda.feature.products.R
-import io.eksoda.feature.products.common.CategoryBadge
 import io.eksoda.feature.products.common.ProductFormSheet
 import io.eksoda.feature.products.common.ProductPickerSheet
 import io.eksoda.feature.products.common.catalogErrorRes
@@ -191,7 +197,7 @@ fun ProductDetailRoute(
     }
 }
 
-/** Product detail (`android-app.md` §6.6.2). */
+/** Product detail (`android-app.md` §6.6.2), in the redesign's layout (ui-redesign.md §5). */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductDetailScreen(
@@ -207,13 +213,8 @@ fun ProductDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Text(
-                        text = loaded?.product?.name.orEmpty(),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                },
+                // The name is the header of the content (ui-redesign.md §5), not the bar's title.
+                title = {},
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
@@ -265,21 +266,23 @@ private fun ProductDetailContent(
     val comparison = state.comparison
     val stats = state.stats
     val unit = state.unit
+    val entries = state.history.entries
+    val priced = remember(entries, unit, stats?.currency) {
+        if (unit != null && stats != null) {
+            pricedEntries(entries, unit, stats.currency)
+        } else {
+            emptyList()
+        }
+    }
     LazyColumn(
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         item(key = "header") { Header(state) }
         if (stats != null && unit != null) {
             item(key = "units") { UnitSwitch(comparison.availableUnits, unit, onUnitSelect) }
-            item(key = "stats") { StatsGrid(stats) }
-            item(key = "chart") {
-                SectionCard(title = stringResource(R.string.chart_title)) {
-                    Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-                        PriceChart(state.history.entries, unit, stats.currency)
-                    }
-                }
-            }
+            item(key = "price") { PriceCard(stats, priced) }
+            item(key = "trend") { PriceTrendCard(stats, priced, state.thisMonth) }
         }
         if (comparison.reason != ComparisonReason.NO_PRICES) {
             item(key = "comparison") {
@@ -288,16 +291,24 @@ private fun ProductDetailContent(
                 }
             }
         }
-        if (state.history.entries.isNotEmpty()) {
+        if (entries.isNotEmpty()) {
             item(key = "history-title") {
                 Text(
                     text = stringResource(R.string.history_title),
                     style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(top = 8.dp),
+                    modifier = Modifier
+                        .padding(top = 8.dp, start = 4.dp)
+                        .semantics { heading() },
                 )
             }
-            items(state.history.entries, key = { it.itemId }) { entry ->
-                PurchaseRow(entry, onClick = { onReceiptClick(entry.receiptId) })
+            // The purchases as one grouped panel, still one lazy row each.
+            itemsIndexed(entries, key = { _, entry -> entry.itemId }) { index, entry ->
+                PurchaseRow(
+                    entry = entry,
+                    thisMonth = state.thisMonth,
+                    onClick = { onReceiptClick(entry.receiptId) },
+                    modifier = Modifier.groupedItem(index, entries.size),
+                )
             }
         } else {
             item(key = "no-history") {
@@ -311,30 +322,37 @@ private fun ProductDetailContent(
     }
 }
 
-/** "Delta · Dairy and eggs · 1 l". */
+/** "DAIRY AND EGGS · DELTA", then the name with its package size (§5). */
 @Composable
 private fun Header(state: ProductDetailUiState.Loaded) {
     val product = state.product
-    val parts = listOfNotNull(
-        product.brand,
-        product.category?.let { categoryName(it) },
-        product.packageQuantity?.let { quantity ->
-            product.packageUnit?.let { packageLabel(quantity, it) }
-        },
-    )
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        modifier = Modifier.padding(vertical = 8.dp),
+    val kicker = listOfNotNull(product.category?.let { categoryName(it) }, product.brand)
+    val packageText = product.packageQuantity?.let { quantity ->
+        product.packageUnit?.let { packageLabel(quantity, it) }
+    }
+    val colors = EksodaTheme.colors
+    Column(
+        modifier = Modifier.padding(top = 4.dp, bottom = 4.dp, start = 4.dp, end = 4.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        CategoryBadge(product.category?.slug, size = 56.dp)
-        Column {
-            Text(product.name, style = MaterialTheme.typography.headlineSmall)
-            if (parts.isNotEmpty()) {
+        if (kicker.isNotEmpty()) OverlineText(kicker.joinToString(" · "))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text(
+                text = product.name,
+                style = MaterialTheme.typography.headlineMedium,
+                modifier = Modifier.weight(1f, fill = false).semantics { heading() },
+            )
+            if (packageText != null) {
                 Text(
-                    text = parts.joinToString(" · "),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    text = monoNumbers(packageText),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = colors.ink2,
+                    modifier = Modifier
+                        .border(1.dp, colors.line, BadgeShape)
+                        .padding(horizontal = 6.dp, vertical = 2.dp),
                 )
             }
         }

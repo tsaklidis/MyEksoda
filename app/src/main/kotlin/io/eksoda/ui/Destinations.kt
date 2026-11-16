@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 // is shown instead of the graph until the household exists. Never put a receipt link in a
 // destination: arguments are saved with the back stack, and the link is a credential (§8.1).
 
-/** The tabs: Receipts and Products (Home and Insights join in L6). */
+/** The tabs: Home, Receipts, Insights and Products. */
 @Serializable
 data object MainDestination
 
@@ -33,3 +33,6 @@ data object MerchantsDestination
 
 @Serializable
 data class MerchantDetailDestination(val merchantId: String)
+
+@Serializable
+data object SettingsDestination

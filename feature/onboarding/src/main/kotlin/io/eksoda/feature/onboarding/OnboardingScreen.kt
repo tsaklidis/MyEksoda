@@ -1,6 +1,5 @@
 package io.eksoda.feature.onboarding
 
-import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,7 +13,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -34,6 +32,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.eksoda.core.designsystem.component.EksodaButton
 import io.eksoda.core.designsystem.theme.EksodaTheme
 
 @Composable
@@ -68,7 +67,7 @@ fun OnboardingScreen(
             Icon(
                 imageVector = Icons.Outlined.Lock,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
+                tint = EksodaTheme.colors.compare,
                 modifier = Modifier.padding(top = 8.dp).size(48.dp),
             )
             Text(
@@ -112,23 +111,20 @@ fun OnboardingScreen(
                     color = MaterialTheme.colorScheme.error,
                 )
             }
-            Button(
+            EksodaButton(
                 onClick = { onEvent(OnboardingEvent.Create) },
+                text = stringResource(R.string.onboarding_create),
                 enabled = state.canCreate,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(stringResource(R.string.onboarding_create))
-            }
+            )
         }
     }
 }
 
-@Preview(name = "Light")
-@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "English")
 @Preview(name = "Greek", locale = "el")
 @Composable
 private fun OnboardingScreenPreview() {
-    EksodaTheme(dynamicColor = false) {
+    EksodaTheme {
         OnboardingScreen(state = OnboardingUiState(name = "Home"), onEvent = {})
     }
 }

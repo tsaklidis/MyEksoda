@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="data_unavailable">Eksoda can\'t open its data on this phone. Restoring from a backup will be possible in a later version.</string>
+    <string name="tab_home">Home</string>
+    <string name="tab_receipts">Receipts</string>
+    <string name="tab_insights">Insights</string>
+    <string name="tab_products">Products</string>
+    <string name="tab_scan">Scan</string>
+</resources>

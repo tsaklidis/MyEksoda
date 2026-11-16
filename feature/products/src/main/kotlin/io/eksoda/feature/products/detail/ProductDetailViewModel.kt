@@ -31,6 +31,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.Clock
+import java.time.YearMonth
 import javax.inject.Inject
 
 sealed interface ProductDetailUiState {
@@ -45,6 +47,8 @@ sealed interface ProductDetailUiState {
         val comparison: PriceComparison,
         val categories: List<Category>,
         val form: FormState,
+        /** The month the price chart ends with: this month. */
+        val thisMonth: YearMonth,
     ) : ProductDetailUiState {
         /** The unit the statistics and chart show: the comparison's, else the first one. */
         val unit: String?
@@ -94,6 +98,7 @@ sealed interface ProductDetailEffect {
 class ProductDetailViewModel @Inject constructor(
     private val products: ProductRepository,
     catalog: CatalogRepository,
+    private val clock: Clock,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val productId: String = checkNotNull(savedStateHandle[PRODUCT_ID])
@@ -111,7 +116,14 @@ class ProductDetailViewModel @Inject constructor(
         if (product == null) {
             ProductDetailUiState.Missing
         } else {
-            ProductDetailUiState.Loaded(product, history, comparison, categories, formState)
+            ProductDetailUiState.Loaded(
+                product = product,
+                history = history,
+                comparison = comparison,
+                categories = categories,
+                form = formState,
+                thisMonth = YearMonth.now(clock),
+            )
         }
     }
         .catch { emit(ProductDetailUiState.Missing) }

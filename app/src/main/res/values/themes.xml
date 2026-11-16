@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- The window behind Compose. Day and night (values-night) use the theme's background, so
-         there is no white flash in dark mode. Primary is the brand teal (android-app.md §7.2). -->
-    <style name="Theme.Eksoda" parent="android:Theme.Material.Light.NoActionBar">
+    <!-- The window behind Compose: the redesign's dark base in both system modes until a light
+         theme is designed (docs/design/ui-redesign.md §1), so there is no white flash. Primary
+         is terracotta. values-night repeats this theme. -->
+    <style name="Theme.Eksoda" parent="android:Theme.Material.NoActionBar">
         <item name="android:colorPrimary">@color/eksoda_primary</item>
         <item name="android:windowBackground">@color/eksoda_window_background</item>
     </style>
@@ -14,5 +15,5 @@
         <item name="postSplashScreenTheme">@style/Theme.Eksoda</item>
     </style>
 
-    <color name="eksoda_primary">#00897B</color>
+    <color name="eksoda_primary">#E2795A</color>
 </resources>

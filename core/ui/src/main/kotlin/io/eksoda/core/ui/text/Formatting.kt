@@ -32,6 +32,8 @@ private val currencyFormats: ThreadLocal<HashMap<Pair<Locale, String>, NumberFor
     ThreadLocal.withInitial { HashMap() }
 private val quantityFormats: ThreadLocal<HashMap<Locale, NumberFormat>> =
     ThreadLocal.withInitial { HashMap() }
+private val amountFormats: ThreadLocal<HashMap<Locale, NumberFormat>> =
+    ThreadLocal.withInitial { HashMap() }
 
 /** Date formatters are immutable and thread-safe: one per pattern and locale. */
 private val dateFormatters = ConcurrentHashMap<Pair<String, Locale>, DateTimeFormatter>()
@@ -54,6 +56,37 @@ fun formatMoney(money: Money, locale: Locale, negative: Boolean = false): String
     val amount = if (negative) money.amount.abs().negate() else money.amount
     return format.format(amount).replace('-', MINUS_SIGN)
 }
+
+/**
+ * An amount without its currency sign, "342,60" in Greek and "342.60" in English, for a hero
+ * number with the currency beside it (docs/design/ui-redesign.md §2). A true minus sign.
+ */
+fun formatAmount(amount: BigDecimal, locale: Locale): String {
+    val format = amountFormats.get().getOrPut(locale) {
+        NumberFormat.getNumberInstance(locale).apply {
+            minimumFractionDigits = 2
+            maximumFractionDigits = 2
+        }
+    }
+    return format.format(amount).replace('-', MINUS_SIGN)
+}
+
+/**
+ * A percentage for the locale with [decimals] places, without a sign: "18,7%" in Greek, "18.7%"
+ * in English. The caller says "more" or "less" in words.
+ */
+fun formatPercent(percent: BigDecimal, locale: Locale, decimals: Int = 1): String {
+    val format = NumberFormat.getNumberInstance(locale).apply {
+        minimumFractionDigits = decimals
+        maximumFractionDigits = decimals
+        roundingMode = java.math.RoundingMode.HALF_UP
+    }
+    return format.format(percent.abs()) + "%"
+}
+
+/** The currency's sign in the locale: "€" for EUR. */
+fun currencySymbol(currency: String, locale: Locale): String =
+    runCatching { Currency.getInstance(currency).getSymbol(locale) }.getOrDefault(currency)
 
 /** Up to 3 decimals for kg and l, none for whole pieces (android-app.md §8). */
 fun formatQuantity(quantity: BigDecimal, locale: Locale): String {

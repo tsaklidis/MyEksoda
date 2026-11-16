@@ -224,7 +224,7 @@ private fun DetailContent(
     LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 32.dp)) {
         item { DetailHeader(detail) }
         if (receipt.cancelled) {
-            item { Notice(stringResource(R.string.detail_cancelled), error = true) }
+            item { Notice(stringResource(R.string.detail_cancelled), attention = true) }
         }
         item { WarningsCard(detail.warnings) }
         item { SectionHeading(stringResource(R.string.detail_items)) }

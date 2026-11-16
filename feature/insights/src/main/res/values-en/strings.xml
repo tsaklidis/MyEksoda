@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="insights_title">Insights</string>
+    <string name="insights_period_this_month">This month</string>
+    <string name="insights_period_last_month">Last month</string>
+    <string name="insights_period_3_months">3 months</string>
+    <string name="insights_period_year">Year</string>
+
+    <string name="insights_help_title">How these numbers are calculated</string>
+    <string name="insights_help_body">Active receipts in the household\'s currency count. Refunds count as negative. Cancelled receipts, receipts you excluded from stats and receipts in other currencies are left out.\n\nThe comparison is with the period of the same length just before.\n\nEach item counts in its product\'s category, else in the shop\'s default category. Discounts, fees and receipts without items have groups of their own.</string>
+    <string name="insights_ok">OK</string>
+    <string name="insights_card_failed">These figures could not be loaded.</string>
+    <string name="insights_retry">Try again</string>
+
+    <string name="insights_spending">Spending</string>
+    <string name="insights_change_less">%1$s less</string>
+    <string name="insights_change_more">%1$s more</string>
+    <string name="insights_change_same">The same</string>
+    <string name="insights_change_than">vs %1$s (%2$s)</string>
+    <string name="insights_no_previous">Nothing spent in %1$s</string>
+    <string name="insights_receipts">Receipts</string>
+    <string name="insights_average">Average</string>
+    <string name="insights_refunds">Refunds</string>
+    <string name="insights_note">Refunds count as negative. Excluded and cancelled receipts, and receipts in other currencies, are left out.</string>
+    <plurals name="insights_other_currency">
+        <item quantity="one">%d receipt in another currency.</item>
+        <item quantity="other">%d receipts in other currencies.</item>
+    </plurals>
+
+    <string name="insights_by_category">By category</string>
+    <string name="insights_donut_description">Spending by category. Largest: %1$s</string>
+    <plurals name="insights_groups">
+        <item quantity="one">%d group</item>
+        <item quantity="other">%d groups</item>
+    </plurals>
+    <string name="insights_grouped">Smaller, grouped in the chart</string>
+    <string name="insights_assign_categories">Assign categories</string>
+
+    <string name="insights_by_shop">By shop</string>
+    <string name="insights_show_all">Show all %1$d</string>
+
+    <string name="insights_monthly_trend">Monthly trend</string>
+    <string name="insights_average_short">avg %1$s</string>
+    <string name="insights_trend_description">Spending per month for the last 12 months. Tap a bar for details.</string>
+    <string name="insights_so_far_days">so far · %1$d of %2$d days</string>
+    <string name="insights_above_average">%1$s above average</string>
+    <string name="insights_below_average">%1$s below average</string>
+    <string name="insights_about_average">about average</string>
+    <string name="insights_legend_selected">Selected</string>
+    <string name="insights_legend_so_far">%1$s so far</string>
+    <string name="insights_legend_average">Average</string>
+
+    <string name="insights_top_products">Top products</string>
+    <string name="insights_most_spent">Most spent</string>
+    <string name="insights_most_bought">Most bought</string>
+    <plurals name="insights_buys">
+        <item quantity="one">%d buy</item>
+        <item quantity="other">%d buys</item>
+    </plurals>
+</resources>

@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import io.eksoda.core.designsystem.text.monoNumbers
 import io.eksoda.core.model.LineType
 import io.eksoda.core.model.MatchStatus
 import io.eksoda.core.model.ReceiptItem
@@ -60,7 +61,7 @@ internal fun LineRow(item: ReceiptItem, onClick: (() -> Unit)? = null) {
             )
             quantityText(item)?.let {
                 Text(
-                    text = it,
+                    text = monoNumbers(it),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(end = 12.dp),
@@ -118,7 +119,7 @@ private fun LineDetails(item: ReceiptItem) {
     ) {
         if (parts.isNotEmpty()) {
             Text(
-                text = parts.joinToString(" · "),
+                text = monoNumbers(parts.joinToString(" · ")),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.weight(1f, fill = false),

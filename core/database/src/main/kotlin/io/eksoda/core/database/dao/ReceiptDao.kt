@@ -111,6 +111,10 @@ interface ReceiptDao {
     )
     fun observeRow(query: SimpleSQLiteQuery): Flow<ReceiptRow?>
 
+    /** The newest receipts (Home's "Recent receipts"). */
+    @Query("$LIST_SELECT ORDER BY receipt.issued_at DESC, receipt.id DESC LIMIT :limit")
+    fun observeRecent(limit: Int): Flow<List<ReceiptListRow>>
+
     @Query(
         """SELECT receipt_item.*, product.name AS product_name, $CATEGORY_KEY AS category_slug
            FROM receipt_item LEFT JOIN product ON product.id = receipt_item.product_id

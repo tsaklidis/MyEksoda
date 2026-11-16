@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="insights_title">Στατιστικά</string>
+    <string name="insights_period_this_month">Αυτός ο μήνας</string>
+    <string name="insights_period_last_month">Προηγούμενος μήνας</string>
+    <string name="insights_period_3_months">3 μήνες</string>
+    <string name="insights_period_year">Φέτος</string>
+
+    <string name="insights_help_title">Πώς υπολογίζονται</string>
+    <string name="insights_help_body">Μετράνε οι ενεργές αποδείξεις στο νόμισμα του νοικοκυριού. Οι επιστροφές αφαιρούνται. Οι ακυρωμένες αποδείξεις, όσες έχετε βγάλει από τα στατιστικά και όσες είναι σε άλλο νόμισμα δεν μετράνε.\n\nΗ σύγκριση γίνεται με το αμέσως προηγούμενο διάστημα ίδιας διάρκειας.\n\nΚάθε είδος μετράει στην κατηγορία του προϊόντος του, αλλιώς στην προεπιλεγμένη κατηγορία του καταστήματος. Οι εκπτώσεις, τα τέλη και οι αποδείξεις χωρίς είδη έχουν δικές τους ομάδες.</string>
+    <string name="insights_ok">Εντάξει</string>
+    <string name="insights_card_failed">Αυτά τα στοιχεία δεν φόρτωσαν.</string>
+    <string name="insights_retry">Δοκιμάστε ξανά</string>
+
+    <string name="insights_spending">Δαπάνες</string>
+    <string name="insights_change_less">%1$s λιγότερα</string>
+    <string name="insights_change_more">%1$s περισσότερα</string>
+    <string name="insights_change_same">Ίδια ποσά</string>
+    <!-- %1$s: the previous period, "17–31 Οκτ"; %2$s: its spending. -->
+    <string name="insights_change_than">σε σχέση με το διάστημα %1$s (%2$s)</string>
+    <string name="insights_no_previous">Καμία δαπάνη στο διάστημα %1$s</string>
+    <string name="insights_receipts">Αποδείξεις</string>
+    <string name="insights_average">Μέση απόδειξη</string>
+    <string name="insights_refunds">Επιστροφές</string>
+    <string name="insights_note">Οι επιστροφές αφαιρούνται. Δεν μετράνε οι ακυρωμένες αποδείξεις, όσες έχετε βγάλει από τα στατιστικά και όσες είναι σε άλλο νόμισμα.</string>
+    <plurals name="insights_other_currency">
+        <item quantity="one">Σε άλλο νόμισμα: %d απόδειξη.</item>
+        <item quantity="other">Σε άλλο νόμισμα: %d αποδείξεις.</item>
+    </plurals>
+
+    <string name="insights_by_category">Ανά κατηγορία</string>
+    <string name="insights_donut_description">Δαπάνες ανά κατηγορία. Μεγαλύτερες: %1$s</string>
+    <plurals name="insights_groups">
+        <item quantity="one">%d ομάδα</item>
+        <item quantity="other">%d ομάδες</item>
+    </plurals>
+    <string name="insights_grouped">Μικρότερες, μαζί στο γράφημα</string>
+    <string name="insights_assign_categories">Ορίστε κατηγορίες</string>
+
+    <string name="insights_by_shop">Ανά κατάστημα</string>
+    <string name="insights_show_all">Όλα (%1$d)</string>
+
+    <string name="insights_monthly_trend">Μηνιαία εξέλιξη</string>
+    <string name="insights_average_short">μ.ό. %1$s</string>
+    <string name="insights_trend_description">Δαπάνες ανά μήνα για τους τελευταίους 12 μήνες. Πατήστε μια στήλη για λεπτομέρειες.</string>
+    <string name="insights_so_far_days">μέχρι σήμερα · %1$d από %2$d ημέρες</string>
+    <string name="insights_above_average">%1$s πάνω από τον μέσο όρο</string>
+    <string name="insights_below_average">%1$s κάτω από τον μέσο όρο</string>
+    <string name="insights_about_average">κοντά στον μέσο όρο</string>
+    <string name="insights_legend_selected">Επιλεγμένος</string>
+    <string name="insights_legend_so_far">%1$s μέχρι σήμερα</string>
+    <string name="insights_legend_average">Μέσος όρος</string>
+
+    <string name="insights_top_products">Κορυφαία προϊόντα</string>
+    <string name="insights_most_spent">Περισσότερα χρήματα</string>
+    <string name="insights_most_bought">Συχνότερες αγορές</string>
+    <plurals name="insights_buys">
+        <item quantity="one">%d αγορά</item>
+        <item quantity="other">%d αγορές</item>
+    </plurals>
+</resources>

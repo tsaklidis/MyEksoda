@@ -14,8 +14,8 @@
     <string name="scan_camera_denied">Μπορείτε επίσης να επικολλήσετε έναν σύνδεσμο απόδειξης ή να εισαγάγετε μια φωτογραφία του κωδικού QR.</string>
     <string name="scan_camera_allow">Να επιτρέπεται η κάμερα</string>
 
-    <string name="feedback_importing">✓ Αποθηκεύτηκε: απόδειξη %1$d. Γίνεται εισαγωγή…</string>
-    <string name="feedback_saved_offline">✓ Αποθηκεύτηκε: απόδειξη %1$d. Η εισαγωγή θα γίνει όταν συνδεθείτε στο διαδίκτυο.</string>
+    <string name="feedback_importing">✓ Η απόδειξη %1$d αποθηκεύτηκε. Γίνεται εισαγωγή…</string>
+    <string name="feedback_saved_offline">✓ Η απόδειξη %1$d αποθηκεύτηκε. Θα εισαχθεί μόλις συνδεθείτε στο διαδίκτυο.</string>
     <string name="feedback_already_imported">Έχει ήδη εισαχθεί</string>
     <string name="feedback_already_pending">Έχει ήδη αποθηκευτεί. Γίνεται εισαγωγή.</string>
     <string name="feedback_not_a_receipt">Αυτός ο κωδικός QR δεν είναι απόδειξη.</string>

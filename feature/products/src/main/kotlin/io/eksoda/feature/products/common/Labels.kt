@@ -1,18 +1,12 @@
 package io.eksoda.feature.products.common
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import io.eksoda.core.designsystem.component.CategoryIcon
+import io.eksoda.core.designsystem.component.CategoryTile
 import io.eksoda.core.model.CatalogError
 import io.eksoda.core.model.CatalogException
 import io.eksoda.core.model.Category
@@ -77,15 +71,8 @@ internal fun packageLabel(quantity: BigDecimal, unit: String): String = stringRe
 internal fun categoryLabel(category: Category?): String =
     category?.let { categoryName(it) } ?: stringResource(R.string.category_none)
 
-/** The category icon in a tinted circle, as product rows show it. */
+/** The category icon in a neutral tile, as product rows show it (ui-redesign.md §3). */
 @Composable
 internal fun CategoryBadge(slug: String?, modifier: Modifier = Modifier, size: Dp = 40.dp) {
-    Box(
-        modifier = modifier
-            .size(size)
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh, CircleShape),
-        contentAlignment = Alignment.Center,
-    ) {
-        CategoryIcon(slug, modifier = Modifier.size(size / 2))
-    }
+    CategoryTile(slug = slug, modifier = modifier, size = size)
 }

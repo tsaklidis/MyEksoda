@@ -1,6 +1,7 @@
 package io.eksoda.core.data.imports
 
 import io.eksoda.core.data.util.Fixed
+import io.eksoda.core.database.CategorySeed
 import io.eksoda.core.database.dao.ProductDao
 import io.eksoda.core.database.entity.MerchantProductMappingEntity
 import io.eksoda.core.database.entity.ProductEntity
@@ -14,6 +15,7 @@ import io.eksoda.engine.products.isReusedCode
 import io.eksoda.engine.products.mappingKey
 import io.eksoda.engine.products.newProduct
 import io.eksoda.engine.products.normalize
+import io.eksoda.engine.products.suggestCategorySlug
 import io.eksoda.engine.text.normalizeText
 import java.time.Clock
 import java.util.UUID
@@ -76,6 +78,8 @@ class ProductMatcher @Inject constructor(
             normalizedName = normalizeText(proposal.name).take(FieldSize.PRODUCT_NAME),
             packageQuantityE4 = Fixed.toLongOrNull(proposal.packageQuantity, Fixed.E4),
             packageUnit = proposal.packageUnit,
+            // Android-only: a system category guessed from the name (AutoCategory.kt).
+            categoryId = suggestCategorySlug(description)?.let(CategorySeed::categoryId),
             createdAt = now,
             updatedAt = now,
         )

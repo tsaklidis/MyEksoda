@@ -41,6 +41,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.eksoda.core.designsystem.theme.EksodaTheme
 import io.eksoda.core.model.ImportJob
 import io.eksoda.core.model.ImportOutcome
 import io.eksoda.core.model.ImportStatus
@@ -234,13 +235,13 @@ private fun StatusIcon(status: ImportStatus, deleted: Boolean) {
         status == ImportStatus.PENDING -> Icon(
             Icons.Default.HourglassTop,
             contentDescription = stringResource(R.string.imports_filter_importing),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            tint = EksodaTheme.colors.compare,
         )
 
         status == ImportStatus.COMPLETED -> Icon(
             Icons.Default.CheckCircle,
             contentDescription = stringResource(R.string.imports_filter_done),
-            tint = MaterialTheme.colorScheme.primary,
+            tint = EksodaTheme.colors.ink2,
         )
 
         else -> Icon(

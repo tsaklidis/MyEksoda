@@ -1,41 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Import errors, by engine code (docs/android-standalone.md §5.4). -->
-    <string name="import_error_invalid_url">That isn\'t a receipt link.</string>
-    <string name="import_error_unsupported_provider">Eksoda can\'t read receipts from this company yet.</string>
-    <string name="import_error_unsupported_url_format">Eksoda doesn\'t recognize this receipt link.</string>
-    <string name="import_error_provider_unreachable">The receipt\'s website can\'t be reached right now.</string>
-    <string name="import_error_provider_timeout">The receipt\'s website took too long to answer.</string>
-    <string name="import_error_provider_error">The receipt\'s website had a problem.</string>
-    <string name="import_error_receipt_not_found">The receipt isn\'t published yet.</string>
-    <string name="import_error_blocked_destination">This link points somewhere Eksoda won\'t connect to.</string>
-    <string name="import_error_response_too_large">The receipt page is too large to read.</string>
-    <string name="import_error_unexpected_content_type">The link didn\'t open a receipt page.</string>
-    <string name="import_error_provider_format_changed">The company changed its receipt page. An app update will fix this.</string>
-    <string name="import_error_inconsistent_source">The receipt page has conflicting information.</string>
-    <string name="import_error_internal_error">Something went wrong while reading the receipt.</string>
+    <string name="import_error_invalid_url">Αυτός δεν είναι σύνδεσμος απόδειξης.</string>
+    <string name="import_error_unsupported_provider">Το Eksoda δεν διαβάζει ακόμη αποδείξεις από αυτή την εταιρεία.</string>
+    <string name="import_error_unsupported_url_format">Το Eksoda δεν αναγνωρίζει αυτόν τον σύνδεσμο απόδειξης.</string>
+    <string name="import_error_provider_unreachable">Ο ιστότοπος της απόδειξης δεν είναι διαθέσιμος αυτή τη στιγμή.</string>
+    <string name="import_error_provider_timeout">Ο ιστότοπος της απόδειξης άργησε να απαντήσει.</string>
+    <string name="import_error_provider_error">Ο ιστότοπος της απόδειξης είχε πρόβλημα.</string>
+    <string name="import_error_receipt_not_found">Η απόδειξη δεν έχει δημοσιευτεί ακόμη.</string>
+    <string name="import_error_blocked_destination">Ο σύνδεσμος οδηγεί σε διεύθυνση με την οποία το Eksoda δεν συνδέεται.</string>
+    <string name="import_error_response_too_large">Η σελίδα της απόδειξης είναι πολύ μεγάλη για να διαβαστεί.</string>
+    <string name="import_error_unexpected_content_type">Ο σύνδεσμος δεν άνοιξε σελίδα απόδειξης.</string>
+    <string name="import_error_provider_format_changed">Η εταιρεία άλλαξε τη σελίδα των αποδείξεών της. Θα διορθωθεί με ενημέρωση της εφαρμογής.</string>
+    <string name="import_error_inconsistent_source">Η σελίδα της απόδειξης έχει αντιφατικά στοιχεία.</string>
+    <string name="import_error_internal_error">Κάτι πήγε στραβά κατά την ανάγνωση της απόδειξης.</string>
 
     <!-- System categories, by slug (§6.3). -->
-    <string name="category_groceries">Groceries</string>
-    <string name="category_dairy_and_eggs">Dairy and eggs</string>
-    <string name="category_meat_and_fish">Meat and fish</string>
-    <string name="category_fruits_and_vegetables">Fruits and vegetables</string>
-    <string name="category_bakery">Bakery</string>
-    <string name="category_beverages">Beverages</string>
-    <string name="category_frozen_food">Frozen food</string>
-    <string name="category_snacks_and_sweets">Snacks and sweets</string>
-    <string name="category_cleaning_products">Cleaning products</string>
-    <string name="category_personal_care">Personal care</string>
-    <string name="category_household_items">Household items</string>
-    <string name="category_pet_supplies">Pet supplies</string>
-    <string name="category_restaurants_and_cafes">Restaurants and cafés</string>
-    <string name="category_pharmacy_and_health">Pharmacy and health</string>
-    <string name="category_fuel_and_transport">Fuel and transport</string>
-    <string name="category_clothing_and_footwear">Clothing and footwear</string>
-    <string name="category_electronics_and_appliances">Electronics and appliances</string>
-    <string name="category_services">Services</string>
-    <string name="category_other">Other</string>
+    <string name="category_groceries">Παντοπωλείο</string>
+    <string name="category_dairy_and_eggs">Γαλακτοκομικά και αυγά</string>
+    <string name="category_meat_and_fish">Κρέας και ψάρι</string>
+    <string name="category_fruits_and_vegetables">Φρούτα και λαχανικά</string>
+    <string name="category_bakery">Ψωμί και αρτοσκευάσματα</string>
+    <string name="category_beverages">Ποτά και ροφήματα</string>
+    <string name="category_frozen_food">Κατεψυγμένα</string>
+    <string name="category_snacks_and_sweets">Σνακ και γλυκά</string>
+    <string name="category_cleaning_products">Καθαριστικά</string>
+    <string name="category_personal_care">Προσωπική φροντίδα</string>
+    <string name="category_household_items">Είδη σπιτιού</string>
+    <string name="category_pet_supplies">Είδη κατοικιδίων</string>
+    <string name="category_restaurants_and_cafes">Εστιατόρια και καφετέριες</string>
+    <string name="category_pharmacy_and_health">Φαρμακείο και υγεία</string>
+    <string name="category_fuel_and_transport">Καύσιμα και μετακινήσεις</string>
+    <string name="category_clothing_and_footwear">Ρούχα και παπούτσια</string>
+    <string name="category_electronics_and_appliances">Ηλεκτρονικά και συσκευές</string>
+    <string name="category_services">Υπηρεσίες</string>
+    <string name="category_other">Άλλα</string>
 
-    <string name="day_today">Today</string>
-    <string name="day_yesterday">Yesterday</string>
+    <!-- Spending buckets that are not categories (requirements §13). -->
+    <string name="bucket_uncategorized">Χωρίς κατηγορία</string>
+    <string name="bucket_discounts">Εκπτώσεις</string>
+    <string name="bucket_fees">Τέλη και εγγυήσεις</string>
+    <string name="bucket_other_adjustments">Λοιπές διορθώσεις</string>
+    <string name="bucket_unallocated">Αποδείξεις χωρίς είδη</string>
+
+    <string name="day_today">Σήμερα</string>
+    <string name="day_yesterday">Χθες</string>
 </resources>
