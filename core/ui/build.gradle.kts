@@ -6,5 +6,6 @@ plugins {
 dependencies {
     api(project(":core:model"))
     implementation(project(":core:designsystem"))
+    implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.compose.material.icons.extended)
 }

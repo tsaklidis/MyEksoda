@@ -21,7 +21,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.outlined.ReceiptLong
-import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Sync
 import androidx.compose.material.icons.outlined.WarningAmber
 import androidx.compose.material3.HorizontalDivider
@@ -214,7 +214,7 @@ private fun Header(greeting: Greeting, today: LocalDate?, onSettingsClick: () ->
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
-                    Icons.Outlined.Home,
+                    Icons.Outlined.Settings,
                     contentDescription = stringResource(R.string.home_settings),
                     tint = colors.ink2,
                     modifier = Modifier.size(20.dp),

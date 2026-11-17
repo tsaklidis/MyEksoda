@@ -48,8 +48,8 @@ import io.eksoda.feature.products.list.ProductListRoute
 import io.eksoda.feature.receipts.list.ReceiptListRoute
 
 /**
- * The top-level sections (android-app.md §4.1) in the redesign's order: Home · Receipts · (Scan)
- * · Insights · Products (docs/design/ui-redesign.md §5).
+ * The top-level sections (android-app.md §4.1) in the redesign's order: Home · Insights · (Scan)
+ * · Receipts · Products (docs/design/ui-redesign.md §5).
  */
 private enum class Tab(val label: Int, val icon: ImageVector, val selectedIcon: ImageVector) {
     HOME(
@@ -57,15 +57,15 @@ private enum class Tab(val label: Int, val icon: ImageVector, val selectedIcon: 
         Icons.Outlined.Home,
         Icons.Filled.Home,
     ),
-    RECEIPTS(
-        R.string.tab_receipts,
-        Icons.AutoMirrored.Outlined.ReceiptLong,
-        Icons.AutoMirrored.Filled.ReceiptLong,
-    ),
     INSIGHTS(
         R.string.tab_insights,
         Icons.Outlined.Insights,
         Icons.Filled.Insights,
+    ),
+    RECEIPTS(
+        R.string.tab_receipts,
+        Icons.AutoMirrored.Outlined.ReceiptLong,
+        Icons.AutoMirrored.Filled.ReceiptLong,
     ),
     PRODUCTS(
         R.string.tab_products,
@@ -75,8 +75,8 @@ private enum class Tab(val label: Int, val icon: ImageVector, val selectedIcon: 
 }
 
 /** The tabs before and after the Scan button in the bar. */
-private val TABS_BEFORE_SCAN = listOf(Tab.HOME, Tab.RECEIPTS)
-private val TABS_AFTER_SCAN = listOf(Tab.INSIGHTS, Tab.PRODUCTS)
+private val TABS_BEFORE_SCAN = listOf(Tab.HOME, Tab.INSIGHTS)
+private val TABS_AFTER_SCAN = listOf(Tab.RECEIPTS, Tab.PRODUCTS)
 
 /** Wider than this, the tabs move to a rail on the side (Material's medium width class). */
 private val RAIL_WIDTH = 600.dp

@@ -23,4 +23,57 @@
     <string name="settings_github">GitHub</string>
     <string name="settings_email">Email</string>
     <string name="settings_privacy">All data stays encrypted on this phone. Eksoda connects only to the receipt websites and sends no usage statistics.</string>
+
+    <string name="backup_exported_title">Backup created</string>
+    <string name="backup_exported_text">The backup was created and saved successfully.</string>
+    <string name="backup_restored_title">Restore complete</string>
+    <string name="backup_restored_text">Your data was restored successfully.</string>
+    <string name="backup_failed_export">Export failed</string>
+    <string name="backup_failed_import">Import failed</string>
+    <string name="backup_error_not_a_backup">File is not a valid Eksoda backup.</string>
+    <string name="backup_error_passphrase">Incorrect passphrase.</string>
+    <string name="backup_error_newer">Backup was created by a newer version of the app.</string>
+    <string name="backup_error_export">Failed to create backup.</string>
+    <string name="backup_error_damaged">Backup file is damaged or corrupted.</string>
+    <string name="backup_error_file">Could not read the file.</string>
+    <string name="backup_export_title">Create backup</string>
+    <string name="backup_export_text">Set a passphrase to protect your backup file.</string>
+    <string name="backup_passphrase">Passphrase</string>
+    <string name="backup_passphrase_repeat">Repeat passphrase</string>
+    <string name="backup_passphrase_mismatch">Passphrases do not match.</string>
+    <string name="backup_choose_file">Choose file</string>
+    <string name="backup_cancel">Cancel</string>
+    <string name="backup_import_title">Import backup</string>
+    <string name="backup_import_text">Enter the passphrase for this backup file.</string>
+    <string name="backup_open">Open</string>
+    <string name="backup_show_passphrase">Show passphrase</string>
+    <string name="backup_strength_weak">Weak</string>
+    <string name="backup_strength_fair">Fair</string>
+    <string name="backup_strength_strong">Strong</string>
+    <string name="backup_working_export">Creating backup…</string>
+    <string name="backup_working_open">Opening backup…</string>
+    <string name="backup_working_restore">Restoring data…</string>
+    <string name="backup_restore_title">Restore backup</string>
+    <string name="backup_restore_made">Created on %1$s</string>
+    <string name="backup_restore_range">From %1$s to %2$s</string>
+    <string name="backup_restore_warning">Restoring will replace your current data.</string>
+    <string name="backup_restore_confirm">Restore</string>
+    <string name="backup_ok">OK</string>
+
+    <plurals name="backup_passphrase_min">
+        <item quantity="one">At least %1$d character</item>
+        <item quantity="other">At least %1$d characters</item>
+    </plurals>
+    <plurals name="backup_receipts">
+        <item quantity="one">%1$d receipt</item>
+        <item quantity="other">%1$d receipts</item>
+    </plurals>
+    <plurals name="backup_products">
+        <item quantity="one">%1$d product</item>
+        <item quantity="other">%1$d products</item>
+    </plurals>
+    <plurals name="backup_merchants">
+        <item quantity="one">%1$d merchant</item>
+        <item quantity="other">%1$d merchants</item>
+    </plurals>
 </resources>
