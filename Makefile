@@ -33,6 +33,9 @@ check:  ## Everything above in one Gradle run. Must pass before a task counts as
 install:  ## Install the debug app on the running emulator or device
 	$(GRADLE) installDebug
 
+install_rc:
+	$(GRADLE) installRelease
+
 format:  ## Apply ktlint formatting
 	$(GRADLE) spotlessApply
 
