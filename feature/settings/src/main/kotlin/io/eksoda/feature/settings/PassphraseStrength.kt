@@ -2,7 +2,7 @@ package io.eksoda.feature.settings
 
 import io.eksoda.core.data.repository.BackupRepository
 
-/** A rough strength hint for a backup passphrase (§12.1), shown in words. */
+/** A rough strength hint for a backup passphrase, shown in words. */
 internal enum class PassphraseStrength { WEAK, FAIR, STRONG }
 
 internal fun passphraseStrength(text: String): PassphraseStrength {

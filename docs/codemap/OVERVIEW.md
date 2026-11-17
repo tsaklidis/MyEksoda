@@ -2,14 +2,14 @@
 
 How the app is built, so a session can find the right files without reading them. Written by
 hand; `SYMBOLS.md` beside it is generated (`make codemap`) and lists every declaration with its
-line. The look is in `docs/design/ui-redesign.md`. Nothing else is needed.
+line. UI rules are in `docs/design/ui-redesign.md`.
 
 **Lookup order:** this file → `rtk grep -n '<Name>' docs/codemap/SYMBOLS.md` → open only that
 line range. Keep this file current when a change adds a module, a pipeline step or a pattern.
 
 ## What the app promises
 
-Your receipts never leave the phone: no server, no account, no analytics, no crash reporting.
+Your receipts never leave the phone: no account, no analytics, no crash reporting.
 The only network traffic is HTTPS GETs to the receipt providers (Impact, Entersoft, AADE,
 Epsilon Digital).
 Data is in a SQLCipher database; Android cloud backup is off (`allowBackup=false`,

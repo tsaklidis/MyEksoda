@@ -18,10 +18,10 @@ lint:  ## ktlint (Spotless), detekt with type resolution, Android Lint
 	$(GRADLE) spotlessCheck $(DETEKT) lintDebug
 
 # core:data (>= 80%) joins in L3, when it has code to cover. Kover reads 0 of 0 lines as 0%.
-coverage:  ## Kover thresholds: core:engine >= 90% (§10.3)
+coverage:  ## Kover thresholds: core:engine >= 90%
 	$(GRADLE) :core:engine:koverVerify
 
-no-telemetry:  ## Fails if a telemetry, analytics or crash SDK is on the app's classpath (§8.1)
+no-telemetry:  ## Fails if a telemetry, analytics or crash SDK is on the app's classpath
 	$(GRADLE) :app:checkNoTelemetry
 
 check:  ## Everything above in one Gradle run. Must pass before a task counts as done.

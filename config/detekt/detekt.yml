@@ -1,5 +1,4 @@
 # Built on detekt's default configuration (buildUponDefaultConfig). Only differences are listed.
-# docs/android-standalone.md §5 and §12.2.
 
 naming:
   FunctionNaming:
@@ -9,8 +8,8 @@ naming:
     constantPattern: '[A-Z][A-Za-z0-9_]*'
 
 complexity:
-  # The provider parsers mirror the Python parsers method by method and check by check
-  # (§0.3 "port, don't redesign"), so these structure rules do not apply to them.
+  # The provider parsers are long check-by-check sequences, so these structure rules do not
+  # apply to them.
   CyclomaticComplexMethod:
     ignoreSimpleWhenEntries: true
     # Room DAOs: one function per query.
@@ -24,7 +23,7 @@ complexity:
     ignoreAnnotated: ['Composable', 'Inject', 'AssistedInject']
     ignoreDefaultParameters: true
   TooManyFunctions:
-    # Engine files mirror one Python file each (§5.1), with one private helper per rule.
+    # Engine files have one private helper per rule.
     ignorePrivate: true
     ignoreOverridden: true
     # Room DAOs: one function per query.
@@ -32,7 +31,7 @@ complexity:
 
 style:
   ReturnCount:
-    # Early returns for missing values are the norm in the ported rules.
+    # Early returns for missing values are the norm in the engine rules.
     excludeGuardClauses: true
   ThrowsCount:
     excludeGuardClauses: true
@@ -49,17 +48,17 @@ style:
     active: true
     forbiddenImports:
       - value: 'android.util.Log'
-        reason: 'Log through the Logger wrapper in core:data, never android.util.Log (§5.5).'
+        reason: 'Log through the Logger wrapper in core:data, never android.util.Log.'
       - value: 'kotlinx.coroutines.GlobalScope'
-        reason: 'No GlobalScope. Work that outlives a screen goes to WorkManager (§4.3).'
+        reason: 'No GlobalScope. Work that outlives a screen goes to WorkManager.'
       - value: 'java.util.Date'
-        reason: 'Use java.time only (§5.3).'
+        reason: 'Use java.time only.'
       - value: 'java.util.Calendar'
-        reason: 'Use java.time only (§5.3).'
+        reason: 'Use java.time only.'
     excludes: ['**/core/data/**/log/Logger.kt']
   ForbiddenMethodCall:
     active: true
-    # Never Double or Float for money, quantities, prices or rates (§5.2). Charts convert to
+    # Never Double or Float for money, quantities, prices or rates. Charts convert to
     # Float for drawing only, in core:designsystem's chart package.
     methods:
       - value: 'kotlin.io.print'
@@ -67,11 +66,11 @@ style:
       - value: 'kotlin.io.println'
         reason: 'No console output.'
       - value: 'java.math.BigDecimal.<init>(kotlin.Double)'
-        reason: 'Create BigDecimal from a String or a Long with a scale (§5.2).'
+        reason: 'Create BigDecimal from a String or a Long with a scale.'
       - value: 'java.math.BigDecimal.valueOf(kotlin.Double)'
-        reason: 'Create BigDecimal from a String or a Long with a scale (§5.2).'
+        reason: 'Create BigDecimal from a String or a Long with a scale.'
       - value: 'java.math.BigDecimal.toDouble'
-        reason: 'Never Double for money or quantities (§5.2).'
+        reason: 'Never Double for money or quantities.'
       - value: 'java.math.BigDecimal.toFloat'
-        reason: 'Never Float for money or quantities (§5.2).'
+        reason: 'Never Float for money or quantities.'
     excludes: ['**/core/designsystem/**/chart/**', '**/test/**', '**/androidTest/**']

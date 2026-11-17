@@ -3,7 +3,7 @@ package io.eksoda.core.model
 import java.time.Instant
 import java.time.LocalDate
 
-/** What a backup file holds, shown before it replaces the data (docs/android-standalone.md §12.1). */
+/** What a backup file holds, shown before it replaces the data. */
 public data class BackupSummary(
     /** When the backup was made. */
     val createdAt: Instant,

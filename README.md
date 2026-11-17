@@ -81,7 +81,7 @@ python3 decrypt_bu.py your_backup.eksoda [output_archive.zip]
 | Document | Description |
 |---|---|
 | [`docs/codemap/OVERVIEW.md`](docs/codemap/OVERVIEW.md) | Architecture, modules, import pipeline, data layer, backup, and rules |
-| [`docs/design/ui-redesign.md`](docs/design/ui-redesign.md) | UI design tokens, colors, typography, and components |
+| [`docs/design/ui-redesign.md`](docs/design/ui-redesign.md) | UI rules: color meanings, type, components, charts |
 
 ## License
 
