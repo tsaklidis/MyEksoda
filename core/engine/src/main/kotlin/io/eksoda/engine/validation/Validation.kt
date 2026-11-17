@@ -18,7 +18,7 @@ import java.math.RoundingMode
 //
 // R4  line composition          net + VAT + fees + … − withheld − deductions = gross
 // R5  unit price                qty × unit price = gross before discount (or gross)
-// R6  VAT rate                  net × rate = VAT
+// R6  VAT rate                  net × rate = VAT, allowing a rate's rounding remainder on a line
 // R7  totals vs lines           Σ line values = receipt totals (only fully provided values)
 // R8  receipt composition       net + VAT + fees + … − withheld − deductions = gross
 // R9  VAT breakdown             Σ breakdown net/VAT = net/VAT totals
@@ -69,7 +69,7 @@ public fun validate(receipt: CanonicalReceipt): List<ValidationIssue> {
     for (line in receipt.lines) {
         issues += lineComposition(line)
         issues += unitPrice(line)
-        issues += vatRate(line)
+        issues += vatRate(line, receipt.lines)
         issues += lineDiscount(line)
     }
     issues += totalsMatchLines(receipt)
@@ -133,12 +133,12 @@ private fun unitPrice(line: Line): List<ValidationIssue> { // R5
     )
 }
 
-private fun vatRate(line: Line): List<ValidationIssue> { // R6
+private fun vatRate(line: Line, lines: List<Line>): List<ValidationIssue> { // R6
     val rate = line.vatRate ?: return emptyList()
     val net = line.net ?: return emptyList()
     val vat = line.vat ?: return emptyList()
     val expected = money((net * rate).pyDivide(HUNDRED))
-    if (!off(expected, vat, LINE_TOLERANCE)) return emptyList()
+    if (!off(expected, vat, remainderTolerance(lines, rate))) return emptyList()
     return listOf(
         issue(
             "vat_rate_mismatch",
@@ -148,6 +148,24 @@ private fun vatRate(line: Line): List<ValidationIssue> { // R6
             vat,
         ),
     )
+}
+
+/**
+ * How far a line's VAT may be from `net × rate`. Some retailers compute the VAT of each rate on
+ * the rate's summed net and put the rounding remainder on one line (Sklavenitis: net 14.63 at 13%
+ * reports 1.92, not 1.90, so that the 13% lines add up to 32.45 × 13% = 4.22). That is allowed
+ * only when the lines at this rate add up (Σ VAT = Σ net × rate, to the cent), and only as far as
+ * the rounding of that many lines can reach (half a cent × (1 + rate) each); otherwise a line
+ * may be one cent off.
+ */
+private fun remainderTolerance(lines: List<Line>, rate: BigDecimal): BigDecimal {
+    val sameRate = lines.filter { it.vatRate?.compareTo(rate) == 0 }
+    if (sameRate.any { it.net == null || it.vat == null }) return LINE_TOLERANCE
+    val net = sameRate.fold(ZERO) { sum, line -> sum + checkNotNull(line.net) }
+    val vat = sameRate.fold(ZERO) { sum, line -> sum + checkNotNull(line.vat) }
+    if (off(money((net * rate).pyDivide(HUNDRED)), vat, LINE_TOLERANCE)) return LINE_TOLERANCE
+    val perLine = HALF_CENT * (BigDecimal.ONE + rate.pyDivide(HUNDRED))
+    return LINE_TOLERANCE.max(perLine * BigDecimal(sameRate.size))
 }
 
 private fun lineDiscount(line: Line): List<ValidationIssue> { // R13

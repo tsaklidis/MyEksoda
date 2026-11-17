@@ -15,17 +15,8 @@ Epsilon Digital).
 Data is in a SQLCipher database; Android cloud backup is off (`allowBackup=false`,
 `dataExtractionRules`); the user's own encrypted export is the only backup.
 
-## Status (2026-11-17)
-
-Built: scan/paste/share/photo import with retries, receipts (list, filters, detail, edits),
-products (list, detail with price history, edit, merge, review queue), categories, shops,
-automatic categories, Home (short: total, attention, top categories, recent), Insights (presets
-from Today to Year plus a custom range, pace chart for this month), Settings, encrypted backup
-and restore.
-Not built: backup reminder, restore from onboarding, app lock (`BiometricPrompt`), hide content
+Not built yet: backup reminder, restore from onboarding, app lock, hide content
 (`FLAG_SECURE`), delete all data, light theme, release build (R8, baseline profile).
-Tests are few outside the engine rules (validation, automatic categories), price points and
-backup.
 
 ## Modules and dependency rules
 
@@ -190,16 +181,9 @@ Text helpers (stored keys depend on their exact behavior; reuse them, don't rein
   that travel between screens use `Modifier.sharedBoundsIfAvailable(SharedKeys…)` (`core:ui`
   `motion/`). Back on a tab other than Home returns to the previous tab; only Back on Home
   leaves the app.
-- **Look: `docs/design/ui-redesign.md`.** Dark base, two accents with one meaning each:
-  terracotta = this period, spending, "more", "pricier", attention, Scan; periwinkle =
-  previous period, selection, "less", "cheaper", links, active tab. No green; red
-  (`colorScheme.error`) only for errors and destructive actions; color never alone (arrows and
-  words). Read colors from `MaterialTheme.colorScheme` or `EksodaTheme.colors` (`EksodaColors`:
-  spend*/compare* families, panel, inset, tile, line, guide, inks, `rank`), **never a hex in a
-  screen**. `outline`/`guide` (#6B737D) is for lines only, never text. Cards are `SectionCard`;
-  small labels are `OverlineText` (sentence case, wraps to 2 lines); figures are `StatRow`
-  (side by side when they fit, else one per line); charts come from
-  `core:designsystem/chart` (BigDecimal in, colors by rank, content description required).
+- **Look: `docs/design/ui-redesign.md`** (color meanings, type, charts). Colors from
+  `MaterialTheme.colorScheme` or `EksodaTheme.colors`, never a hex in a screen. Cards are
+  `SectionCard`, small labels `OverlineText`, figures `StatRow`.
 - **Compose stability:** `compose-stability.conf` (root, applied by `eksoda.android.compose`)
   marks every `core:model` type stable, so list rows skip redrawing when their data is equal.
   Keep `core:model` immutable (no `var`, no mutable collections). List rows are plain
@@ -207,16 +191,10 @@ Text helpers (stored keys depend on their exact behavior; reuse them, don't rein
 - **Periods:** `core:model` `PeriodPreset` (Today, This week from Monday, This month, Last month,
   3 months, This year) serves Insights (`soFar(today)`) and the receipt filter (`range(today)`,
   the whole calendar period). Custom ranges use `core:ui` `DateRangeDialog`.
-- **Never put text in capitals** (no `uppercase()` on UI text, no caps styles). When text does
-  not fit, rearrange: wrap, stack (as `StatRow` does), or use a shorter word.
 - Screens without a `Scaffold` (Home, Insights) set `LocalContentColor` to `colors.ink`
   themselves, or plain `Text` draws black.
-- **Numbers in IBM Plex Mono:** amounts use `MoneyText`/`HeroMoney`, other figures
-  `style.tabular()`, mixed sentences `monoNumbers(text)`. Plex Mono has no Greek, ▲ or ▼: never
-  set it on words.
-- Strings: per module `values/strings.xml` (Greek, the default), `values-el/` (Greek) and
-  `values-en/` (English); every string in all three (lint fails otherwise). Plurals for
-  counts. The Greek must read naturally. The app's language is chosen in Settings
+- Strings: per module, every string in `values/`, `values-el/` and `values-en/` (lint fails
+  otherwise). Plurals for counts. The app's language is chosen in Settings
   (`core:ui` `AppLanguage`: `LocaleManager` on 13+, `wrap()` in `attachBaseContext` before).
   Error codes → `importErrorRes(code)`; money → `MoneyText` / `formatMoney(money, appLocale())`;
   category names → `categoryNameRes(slug)`.
@@ -227,21 +205,17 @@ Text helpers (stored keys depend on their exact behavior; reuse them, don't rein
   `EmptyState` with a one-line description. Text fields keep their text in the screen
   (`rememberSaveable`) and send changes to the ViewModel; never feed a `TextField` from a
   Flow. Lazy rows use `Modifier.animateItem()`.
-- Categories have no colors: `CategoryTile`/`CategoryIcon` are neutral (icon + name). Dynamic
-  color is off and only the dark scheme exists (`theme/Theme.kt`). The splash screen stays up
-  while `AppState` is `LOADING` (`MainActivity`).
+- The splash screen stays up while `AppState` is `LOADING` (`MainActivity`).
 
-## Hard rules that are easy to break
+## Hard rules that are easy to break (beyond CLAUDE.md)
 
-- `BigDecimal` from `String`/`Long` only; no `Double`/`Float` (detekt bans `toDouble`,
-  `BigDecimal(Double)`; only `core:designsystem/chart` converts to Float, for drawing).
-  Compare with `compareTo`.
+- `BigDecimal` from `String`/`Long` only (detekt enforces; only `core:designsystem/chart`
+  converts to Float, for drawing). Compare with `compareTo`.
 - No `android.util.Log`, `println`, `GlobalScope`, `java.util.Date`/`Calendar` (detekt).
   Inject `Clock` and dispatchers.
-- Receipt URLs are secrets: stored only in `receipt.source_url` and
-  `import_job.submitted_url`; no logs, notifications, nav args, clipboard. Log host +
-  `fingerprint(url).take(12)` only.
+- Receipt URLs are stored only in `receipt.source_url` and `import_job.submitted_url`; never
+  in nav args or the clipboard. Log host + `fingerprint(url).take(12)` only.
 - OkHttp only in `core:engine` (configuration fails elsewhere). No Firebase/ML Kit/GMS
   (`:app:checkNoTelemetry`).
 - Tests: JUnit 5 + AssertK in `core:engine` (fixtures in `testdata/fixtures/`); JUnit 4 +
-  Robolectric in Android modules (in-memory Room). No live network except tests tagged `live`.
+  Robolectric in Android modules (in-memory Room).
