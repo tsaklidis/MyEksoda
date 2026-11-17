@@ -45,9 +45,10 @@ Eksoda is a standalone, privacy-first Android household expense app built around
 
 ## 📸 Screenshots
 
-| Home | Insights | Insights | Insights |
-|---|---|---|---|
-| ![Home Screen](docs/screenshots/home.png) | ![Insights](docs/screenshots/stats.png) | ![Insights](docs/screenshots/stats1.png) | ![Insights](docs/screenshots/insights.png) |
+[Home Screen](docs/screenshots/home.png)
+[Insights](docs/screenshots/stats.png)
+[Insights](docs/screenshots/stats1.png)
+[Insights](docs/screenshots/insights.png)
 
 ---
 
