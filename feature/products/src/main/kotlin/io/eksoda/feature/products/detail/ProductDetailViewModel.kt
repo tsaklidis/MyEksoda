@@ -89,7 +89,7 @@ sealed interface ProductDetailEffect {
 }
 
 /**
- * Product detail (`android-app.md` §6.6.2): statistics, the price chart, where it is cheapest,
+ * Product detail: statistics, the price chart, where it is cheapest,
  * the purchase history, Edit and Merge. Everything follows the database, so an edit or a merge
  * shows by itself.
  */

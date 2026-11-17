@@ -9,7 +9,7 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
 
 /**
- * Shared-element transitions between screens (android-app.md §7.5): the app provides both
+ * Shared-element transitions between screens: the app provides both
  * scopes around its nav graph, and screens mark the elements that travel. Without the scopes
  * (previews, tests) the modifiers do nothing.
  */

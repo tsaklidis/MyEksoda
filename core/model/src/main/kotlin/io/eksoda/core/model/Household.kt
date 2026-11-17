@@ -1,6 +1,6 @@
 package io.eksoda.core.model
 
-/** The one household in this database (docs/android-standalone.md §6.1, §6.3). */
+/** The one household in this database. */
 public data class Household(
     val id: String,
     val name: String,

@@ -35,7 +35,7 @@ import io.eksoda.feature.receipts.list.StatusTag
 import java.math.BigDecimal
 
 /**
- * A receipt line (android-app.md §6.4.3): description as printed, quantity × unit price, the
+ * A receipt line: description as printed, quantity × unit price, the
  * amount, and a second line with the normalized price and the product. Discounts are muted.
  */
 @Composable
@@ -141,7 +141,7 @@ private fun unitLabel(unit: String?): String = stringResource(
 private const val UNIT_KG = "kg"
 private const val UNIT_L = "l"
 
-/** Note, store and "Include in stats" (android-app.md §6.4.3). */
+/** Note, store and "Include in stats". */
 @Composable
 internal fun EditSection(
     note: String,

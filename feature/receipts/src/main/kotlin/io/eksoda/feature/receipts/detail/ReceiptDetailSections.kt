@@ -50,7 +50,7 @@ import io.eksoda.feature.receipts.list.paymentLabel
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
-/** Merchant, store, date, total, payment and item count (android-app.md §6.4.3). */
+/** Merchant, store, date, total, payment and item count. */
 @Composable
 internal fun DetailHeader(detail: ReceiptDetail) {
     val receipt = detail.receipt
@@ -122,7 +122,7 @@ internal fun Notice(text: String, attention: Boolean = false) {
     }
 }
 
-/** The validation warnings, collapsed to the first one (android-app.md §6.4.3). */
+/** The validation warnings, collapsed to the first one. */
 @Composable
 internal fun WarningsCard(warnings: List<ReceiptWarning>) {
     if (warnings.isEmpty()) return
@@ -168,7 +168,7 @@ private fun WarningLine(warning: ReceiptWarning) {
     }
 }
 
-/** Validation issue codes (the engine's `validation`), as local strings (§5.4). */
+/** Validation issue codes (the engine's `validation`), as local strings. */
 private fun warningRes(code: String): Int = when (code) {
     "line_amount_mismatch" -> R.string.warning_line_amount
     "unit_price_mismatch" -> R.string.warning_unit_price

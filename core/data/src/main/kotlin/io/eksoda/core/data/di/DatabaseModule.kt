@@ -30,7 +30,7 @@ import javax.inject.Singleton
 object DatabaseModule {
     private const val DATABASE_NAME = "eksoda.db"
 
-    /** The SQLCipher-encrypted database (§8.2). Opening throws if the key cannot be unwrapped. */
+    /** The SQLCipher-encrypted database. Opening throws if the key cannot be unwrapped. */
     @Provides
     @Singleton
     fun provideDatabase(

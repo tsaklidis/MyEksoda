@@ -71,7 +71,7 @@ class ReviewRepositoryImpl @Inject constructor(
     private companion object {
         const val PAGE_SIZE = 30
 
-        /** The server's `USER_NOTE_MAX_LENGTH`. */
+        /** A line note is up to 2000 characters. */
         const val MAX_NOTE_LENGTH = 2000
     }
 }

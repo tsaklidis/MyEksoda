@@ -7,8 +7,8 @@ import assertk.assertions.isTrue
 import org.junit.jupiter.api.Test
 
 /**
- * Checks that the synced server fixtures are where the parity tests (L2) will read them. Each
- * receipt source has pages with meta files and golden output (§10.1).
+ * Checks that the receipt fixtures are where the parser tests read them. Each receipt source has
+ * pages with meta files and golden output.
  */
 class TestDataTest {
     @Test

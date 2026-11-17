@@ -1,4 +1,3 @@
-// Port of backend/apps/receipts/providers/aade_fhm/urls.py.
 package io.eksoda.engine.providers.aadefhm
 
 import io.eksoda.engine.providers.UrlIdentity
@@ -7,7 +6,7 @@ import io.eksoda.engine.text.pyStrip
 import io.eksoda.engine.url.ParsedUrl
 import io.eksoda.engine.url.parseQs
 
-// AADE cash-register (ΦΗΜ) receipt check URL recognition (docs/providers/aade.md §1).
+// AADE cash-register (ΦΗΜ) receipt check URL recognition.
 
 public const val PROVIDER_CODE: String = "aade_fhm"
 public const val HOST: String = "www1.aade.gr"

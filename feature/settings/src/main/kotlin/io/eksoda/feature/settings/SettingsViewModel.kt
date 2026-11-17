@@ -82,7 +82,7 @@ sealed interface SettingsEffect {
     data object ChooseImportFile : SettingsEffect
 }
 
-/** Settings (`android-app.md` §6.10): language, notifications, backup, the household, catalog links. */
+/** Settings: language, notifications, backup and restore, the household, catalog links. */
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     households: HouseholdRepository,
@@ -108,20 +108,28 @@ class SettingsViewModel @Inject constructor(
         when (event) {
             is SettingsEvent.NotifyImportsChanged ->
                 viewModelScope.launch { settings.setNotifyImports(event.enabled) }
+
             SettingsEvent.ExportClicked -> backup.value = BackupDialog.ExportPassphrase
+
             is SettingsEvent.ExportPassphraseSet -> {
                 exportPassphrase = event.passphrase
                 backup.value = BackupDialog.None
                 _effects.trySend(SettingsEffect.ChooseExportFile(fileName()))
             }
+
             is SettingsEvent.ExportFileChosen -> export(event.uri)
+
             SettingsEvent.ImportClicked -> _effects.trySend(SettingsEffect.ChooseImportFile)
+
             is SettingsEvent.ImportFileChosen -> {
                 importSource = event.uri
                 if (event.uri != null) backup.value = BackupDialog.ImportPassphrase()
             }
+
             is SettingsEvent.ImportPassphraseEntered -> open(event.passphrase)
+
             SettingsEvent.RestoreConfirmed -> restore()
+
             SettingsEvent.BackupDialogDismissed -> dismiss()
         }
     }
@@ -134,7 +142,9 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             backups.export(uri, passphrase)
                 .onSuccess { backup.value = BackupDialog.Exported }
-                .onFailure { backup.value = BackupDialog.Failed(BackupStep.EXPORT, it.backupError()) }
+                .onFailure {
+                    backup.value = BackupDialog.Failed(BackupStep.EXPORT, it.backupError())
+                }
         }
     }
 

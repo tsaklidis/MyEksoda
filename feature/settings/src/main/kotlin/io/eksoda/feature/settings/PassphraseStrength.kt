@@ -13,11 +13,14 @@ internal fun passphraseStrength(text: String): PassphraseStrength {
         text.any { !it.isLetterOrDigit() },
     ).count { it }
     val varied = text.toSet().size >= MIN_DISTINCT
+    val minLen = BackupRepository.MIN_PASSPHRASE_LENGTH
+    val strongLen = text.length >= STRONG_LENGTH
+    val mixedStrong = text.length >= MIXED_STRONG_LENGTH && kinds >= MIXED_KINDS
+    val fairLen = text.length >= MIXED_STRONG_LENGTH
     return when {
-        text.length < BackupRepository.MIN_PASSPHRASE_LENGTH || !varied -> PassphraseStrength.WEAK
-        text.length >= STRONG_LENGTH || (text.length >= MIXED_STRONG_LENGTH && kinds >= MIXED_KINDS) ->
-            PassphraseStrength.STRONG
-        kinds >= 2 || text.length >= MIXED_STRONG_LENGTH -> PassphraseStrength.FAIR
+        text.length < minLen || !varied -> PassphraseStrength.WEAK
+        strongLen || mixedStrong -> PassphraseStrength.STRONG
+        kinds >= 2 || fairLen -> PassphraseStrength.FAIR
         else -> PassphraseStrength.WEAK
     }
 }

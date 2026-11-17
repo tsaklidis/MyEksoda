@@ -1,7 +1,6 @@
 package io.eksoda.core.data.repository
 
 import androidx.paging.Pager
-import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
 import io.eksoda.core.data.db.WriteCoordinator
@@ -58,16 +57,22 @@ class ProductRepositoryImpl @Inject constructor(
 
     override fun getProducts(filter: ProductFilter): Flow<PagingData<Product>> {
         val key = normalizeText(filter.query)
-        val byLineCount = filter.ordering == ProductOrdering.MOST_BOUGHT
-        return Pager(PagingConfig(pageSize = PAGE_SIZE)) {
-            products.pagingRows(key, filter.category?.id, filter.merchant?.id, byLineCount)
+        val categoryId = filter.category?.id
+        val merchantId = filter.merchant?.id
+        return Pager(listPagingConfig(PAGE_SIZE)) {
+            when (filter.ordering) {
+                ProductOrdering.NAME -> products.pagingByName(key, categoryId, merchantId)
+
+                ProductOrdering.MOST_BOUGHT ->
+                    products.pagingByLineCount(key, categoryId, merchantId)
+            }
         }.flow.map { page -> page.map { it.toModel() } }
     }
 
     override fun getProduct(id: String): Flow<Product?> =
         products.observeRow(id).map { it?.toModel() }
 
-    /** Statistics are computed over every entry, as on the server, off the main thread. */
+    /** Statistics are computed over every entry, off the main thread. */
     override fun getPriceHistory(id: String): Flow<PriceHistory> = products.observePrices(id)
         .map { rows ->
             val zone = householdZone.current()

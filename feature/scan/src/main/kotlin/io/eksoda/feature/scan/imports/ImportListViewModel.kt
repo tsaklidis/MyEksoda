@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/** All · Importing · Failed · Done (android-app.md §6.3.5). */
+/** All · Importing · Failed · Done. */
 enum class ImportFilter(val status: ImportStatus?) {
     ALL(null),
     IMPORTING(ImportStatus.PENDING),
@@ -41,7 +41,7 @@ sealed interface ImportListEffect {
     data object RetryFailed : ImportListEffect
 }
 
-/** The local import jobs. Room updates the list when a job changes, so nothing polls (§7.2). */
+/** The local import jobs. Room updates the list when a job changes, so nothing polls. */
 @HiltViewModel
 class ImportListViewModel @Inject constructor(private val receipts: ReceiptRepository) :
     ViewModel() {

@@ -3,7 +3,7 @@ package io.eksoda.core.model
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 
-// Price history and comparison (backend/apps/products/prices.py and history.py).
+// Price history and comparison.
 
 /** One receipt line of a product, as shown in its price history. */
 public data class PriceEntry(

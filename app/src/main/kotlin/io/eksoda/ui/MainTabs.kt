@@ -48,8 +48,8 @@ import io.eksoda.feature.products.list.ProductListRoute
 import io.eksoda.feature.receipts.list.ReceiptListRoute
 
 /**
- * The top-level sections (android-app.md §4.1) in the redesign's order: Home · Insights · (Scan)
- * · Receipts · Products (docs/design/ui-redesign.md §5).
+ * The top-level sections in the design's order: Home · Insights · (Scan) · Receipts · Products
+ * (docs/design/ui-redesign.md §5).
  */
 private enum class Tab(val label: Int, val icon: ImageVector, val selectedIcon: ImageVector) {
     HOME(

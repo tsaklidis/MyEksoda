@@ -1,5 +1,5 @@
 # Builds run on the host with the Gradle wrapper and Android Studio's JBR, not in Docker
-# (docs/android-standalone.md §12.2).
+# (aapt2 and the emulator are unreliable in Linux arm64 containers).
 JAVA_HOME ?= /Applications/Android Studio.app/Contents/jbr/Contents/Home
 export JAVA_HOME
 GRADLE := ./gradlew

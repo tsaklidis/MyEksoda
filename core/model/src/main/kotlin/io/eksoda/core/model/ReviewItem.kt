@@ -3,7 +3,7 @@ package io.eksoda.core.model
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 
-/** A receipt line waiting in the review queue (backend/apps/products/review.py). */
+/** A receipt line waiting in the review queue. */
 public data class ReviewItem(
     val id: String,
     val receiptId: String,

@@ -1,4 +1,3 @@
-// Port of SafeFetcher in backend/apps/receipts/fetching.py, on OkHttp (docs/android-standalone.md §7.4).
 package io.eksoda.engine.fetch
 
 import io.eksoda.engine.BlockedDestination
@@ -33,13 +32,13 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLException
 
-// SSRF-safe HTTPS fetcher for receipt pages (requirements §15.1, TD §10).
+// SSRF-safe HTTPS fetcher for receipt pages, on OkHttp.
 //
 // Only reachable through a registered provider. Rules:
 //
 // 1. https, port 443, host exactly in the provider's allowlist.
 // 2. Every DNS answer must be a public (globally routable) address. OkHttp then connects to an
-//    address from that vetted list, so the server's separate IP pinning is not needed (§7.4).
+//    address from that vetted list, so no separate IP pinning is needed.
 // 3. No redirects; unexpected statuses fail.
 // 4. Connect/read timeouts plus an overall deadline (OkHttp's call timeout).
 // 5. Body capped *after* decompression; only text/html accepted.

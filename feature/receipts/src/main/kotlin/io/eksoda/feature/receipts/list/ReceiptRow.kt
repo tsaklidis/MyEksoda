@@ -7,8 +7,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -37,51 +37,71 @@ import io.eksoda.core.ui.text.dayLabel
 import io.eksoda.feature.receipts.R
 import java.time.LocalDate
 
-/** A receipt in the list (android-app.md §6.4.1). Merchant names are shown as printed. */
+/**
+ * A receipt in the list. Merchant names are shown as printed. A plain row with the look of a
+ * Material list item: `ListItem` measures its slots in a generic layout, which costs more than
+ * this on every row of a fast scroll.
+ */
 @Composable
 internal fun ReceiptRow(receipt: Receipt, onClick: () -> Unit) {
-    ListItem(
-        modifier = Modifier.clickable(onClick = onClick),
-        leadingContent = { MerchantAvatar(receipt.merchant.id, receipt.merchant.name) },
-        headlineContent = {
+    val colors = MaterialTheme.colorScheme
+    val typography = MaterialTheme.typography
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(colors.surface)
+            .clickable(onClick = onClick)
+            .heightIn(min = 72.dp)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        MerchantAvatar(receipt.merchant.id, receipt.merchant.name)
+        Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = receipt.merchant.name,
+                style = typography.bodyLarge,
+                color = colors.onSurface,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.sharedBoundsIfAvailable(SharedKeys.receiptMerchant(receipt.id)),
             )
-        },
-        supportingContent = {
-            Column {
-                Text(
-                    text = summaryLine(receipt),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                ReceiptBadges(receipt)
-            }
-        },
-        trailingContent = {
-            MoneyText(
-                money = receipt.totalAmount,
-                negative = receipt.documentKind == DocumentKind.CREDIT_NOTE,
-                textDecoration = if (receipt.cancelled) TextDecoration.LineThrough else null,
-                modifier = Modifier.sharedBoundsIfAvailable(SharedKeys.receiptTotal(receipt.id)),
+            Text(
+                text = summaryLine(receipt),
+                style = typography.bodyMedium,
+                color = colors.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
-        },
-    )
+            ReceiptBadges(receipt)
+        }
+        MoneyText(
+            money = receipt.totalAmount,
+            negative = receipt.documentKind == DocumentKind.CREDIT_NOTE,
+            textDecoration = if (receipt.cancelled) TextDecoration.LineThrough else null,
+            style = typography.labelSmall,
+            color = colors.onSurfaceVariant,
+            modifier = Modifier.sharedBoundsIfAvailable(SharedKeys.receiptTotal(receipt.id)),
+        )
+    }
 }
 
 /** "Kifisias 12 · 14 items · Card". */
 @Composable
 private fun summaryLine(receipt: Receipt): String {
-    val parts = buildList {
-        receipt.store?.label?.takeIf { it.isNotEmpty() }?.let { add(it) }
-        add(pluralStringResource(R.plurals.item_count, receipt.itemCount, receipt.itemCount))
-        paymentLabel(receipt.paymentMethod)?.let { add(stringResource(it)) }
+    val storeLabel = receipt.store?.label?.takeIf { it.isNotEmpty() }
+    val itemCountStr =
+        pluralStringResource(R.plurals.item_count, receipt.itemCount, receipt.itemCount)
+    val paymentRes = paymentLabel(receipt.paymentMethod)
+    val paymentStr = if (paymentRes != null) stringResource(paymentRes) else null
+
+    return when {
+        storeLabel != null && paymentStr != null -> "$storeLabel · $itemCountStr · $paymentStr"
+        storeLabel != null -> "$storeLabel · $itemCountStr"
+        paymentStr != null -> "$itemCountStr · $paymentStr"
+        else -> itemCountStr
     }
-    return parts.joinToString(" · ")
 }
 
 /** The label of a payment method; none when unknown. */
@@ -96,21 +116,44 @@ internal fun paymentLabel(method: PaymentMethod): Int? = when (method) {
 
 @Composable
 private fun ReceiptBadges(receipt: Receipt) {
-    val badges = buildList {
-        if (receipt.needsReview) add(R.string.badge_review to BadgeTone.ATTENTION)
-        if (receipt.hasWarnings) add(R.string.badge_warnings to BadgeTone.ATTENTION)
-        if (receipt.cancelled) add(R.string.badge_cancelled to BadgeTone.NEUTRAL)
-        if (receipt.documentKind == DocumentKind.CREDIT_NOTE) {
-            add(R.string.badge_refund to BadgeTone.NEUTRAL)
-        }
-        if (receipt.excludedFromAnalytics) add(R.string.badge_not_in_stats to BadgeTone.MUTED)
+    val hasAttention = receipt.needsReview || receipt.hasWarnings
+    val hasStatus = receipt.cancelled ||
+        receipt.documentKind == DocumentKind.CREDIT_NOTE ||
+        receipt.excludedFromAnalytics
+    if (!hasAttention && !hasStatus) {
+        return
     }
-    if (badges.isEmpty()) return
     Row(
         modifier = Modifier.padding(top = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        badges.forEach { (label, tone) -> StatusTag(stringResource(label), tone) }
+        if (receipt.needsReview) {
+            StatusTag(
+                stringResource(R.string.badge_review),
+                BadgeTone.ATTENTION,
+            )
+        }
+        if (receipt.hasWarnings) {
+            StatusTag(
+                stringResource(R.string.badge_warnings),
+                BadgeTone.ATTENTION,
+            )
+        }
+        if (receipt.cancelled) {
+            StatusTag(
+                stringResource(R.string.badge_cancelled),
+                BadgeTone.NEUTRAL,
+            )
+        }
+        if (receipt.documentKind == DocumentKind.CREDIT_NOTE) {
+            StatusTag(stringResource(R.string.badge_refund), BadgeTone.NEUTRAL)
+        }
+        if (receipt.excludedFromAnalytics) {
+            StatusTag(
+                stringResource(R.string.badge_not_in_stats),
+                BadgeTone.MUTED,
+            )
+        }
     }
 }
 
@@ -143,7 +186,7 @@ internal fun StatusTag(text: String, tone: BadgeTone) {
     }
 }
 
-/** A day header with that day's total of the loaded rows (a convenience, §6.4.1). */
+/** A day header with that day's total of the loaded rows (a convenience). */
 @Composable
 internal fun DayHeader(date: LocalDate, today: LocalDate, total: Money?) {
     Row(

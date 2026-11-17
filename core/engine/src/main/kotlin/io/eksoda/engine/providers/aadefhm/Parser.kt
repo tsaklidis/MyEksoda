@@ -1,4 +1,3 @@
-// Port of backend/apps/receipts/providers/aade_fhm/parser.py.
 package io.eksoda.engine.providers.aadefhm
 
 import io.eksoda.engine.FormatChanged
@@ -133,7 +132,7 @@ public fun parseHtml(html: String, identity: UrlIdentity): CanonicalReceipt {
 
 private fun num(text: String?, where: String): BigDecimal? = amount(text, CULTURE, where)
 
-/** Python's `_num(...) or Decimal("0")`: a missing or zero amount becomes "0". */
+/** A missing or zero amount becomes "0". */
 private fun numOrZero(text: String?, where: String): BigDecimal =
     num(text, where)?.takeIf { it.signum() != 0 } ?: BigDecimal("0")
 

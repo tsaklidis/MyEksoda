@@ -30,7 +30,7 @@ sealed interface CategoriesEffect {
     data class Failed(val error: CatalogError?) : CategoriesEffect
 }
 
-/** Categories (`android-app.md` §6.9): system ones are read-only, the household's are not. */
+/** Categories: system ones are read-only, the household's are not. */
 @HiltViewModel
 class CategoriesViewModel @Inject constructor(private val catalog: CatalogRepository) :
     ViewModel() {

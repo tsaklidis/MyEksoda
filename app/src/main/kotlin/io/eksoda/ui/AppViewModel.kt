@@ -23,17 +23,17 @@ enum class AppState {
     /** The database is opening. */
     LOADING,
 
-    /** No household yet: onboarding (docs/android-standalone.md §11). */
+    /** No household yet: onboarding. */
     ONBOARDING,
     READY,
 
-    /** The database key cannot be unwrapped (§8.2). Restore or start over comes in L7. */
+    /** The database key cannot be unwrapped. Restore or start over is not built yet. */
     UNAVAILABLE,
 }
 
-/** Something the app was opened with: a shared link (§7.1) or a notification (§7.6). */
+/** Something the app was opened with: a shared link or a notification. */
 sealed interface AppLaunch {
-    /** Shared text that may hold a receipt link. Kept in memory only (§8.1). */
+    /** Shared text that may hold a receipt link. Kept in memory only. */
     data class Share(val text: String) : AppLaunch
 
     data class OpenReceipt(val receiptId: String) : AppLaunch

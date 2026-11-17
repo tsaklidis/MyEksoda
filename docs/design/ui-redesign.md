@@ -1,9 +1,7 @@
-# UI redesign: stats-first, three colors (accepted 2026-11-16)
+# UI design: stats-first, three colors
 
-The owner accepted this design on 2026-11-16. It replaces the visual design of
-`android-app.md` §7.1–7.4 (teal theme; green = less, amber = more) for the
-Home (L6), Insights (L6) and Product detail (L5) screens, and for the shared
-theme. Screens already built in L4 move to the new tokens; their layout stays.
+The look of every screen. Home, Insights and Product detail follow the mockups; the other
+screens use the same tokens.
 
 - **Mockups (source of truth for look and layout):**
   (private design file)
@@ -47,22 +45,22 @@ Rules:
 - **No green anywhere**, including category colors (see §4).
 - **Dynamic color is off.** The palette is the brand; wallpaper colors would
   break the meanings.
-- **Dark first.** Only the dark theme is designed. Until a light theme is
-  designed, the app uses the dark scheme in both system modes (open question 1).
+- **Dark only.** No light theme is designed yet; the dark scheme is used in both
+  system modes.
 
 ## 2. Type
 
 - **Inter** (already bundled, `core/designsystem/res/font/inter_variable.ttf`)
   for all words.
 - **IBM Plex Mono** for every number (amounts, counts, percents, dates in
-  charts, axis labels). Bundle it like Inter (OFL, `assets/licenses/`, no
-  downloadable fonts, §8.1). Weights 400, 500. Plex Mono has no Greek glyphs:
+  charts, axis labels), bundled like Inter (OFL in `assets/licenses/`; no
+  downloadable fonts, they need Play services). Weights 400, 500. Plex Mono has no Greek glyphs:
   use it for digits, separators, €, %, ▲▼ and short Latin units only; Greek text
   stays in Inter.
 - Scale: hero amount 42–46 sp / 500, letter-spacing −1.5; screen title 26 sp /
   600; section title 15 sp / 600; body 14–15 sp; labels 12 sp medium in
-  ink-2, **in sentence case** (the mockups show labels in capitals; the owner
-  ruled on 2026-11-16 that text is never put in capitals). When a label does
+  ink-2, **in sentence case** (the mockups show labels in capitals; text is
+  never put in capitals). When a label does
   not fit, the layout changes (it wraps or the figures stack); it is never cut
   or capitalized. The currency or unit follows the number, smaller, in ink-2
   ("342,60 €", "1,29 € / l").
@@ -78,8 +76,7 @@ and buttons 10 dp; badges 6 dp; bars 3 dp top corners.
   for a unit price.
 - `StatRow`: 2–3 stats split by 1 dp vertical dividers, a label above a mono
   value, when every text fits its column on one line; otherwise one stat per
-  line (label and supporting text on the left, value on the right). Replaces
-  filled `StatTile` boxes.
+  line (label and supporting text on the left, value on the right).
 - `MinMaxBar`: a 2 dp track with a periwinkle → terracotta gradient, an ink dot
   at the average, "Min 1,15" and "Max 1,45" at its ends and "avg 1,27 · 14
   buys" on its own line below (after the station page).
@@ -97,8 +94,8 @@ and buttons 10 dp; badges 6 dp; bars 3 dp top corners.
 
 ## 4. Charts
 
-Vico (`android-app.md` §3) or Compose `Canvas`, whichever reproduces these
-rules; the mockup shapes are the target.
+Drawn with Compose `Canvas` in `core:designsystem/chart`; the mockup shapes are
+the target.
 
 - Gridlines `#1F242D`; axis labels mono 10–11 sp ink-2. Month labels use the
   short name ("Νοε", "Nov"); when 12 do not fit, every other month is labeled
@@ -115,9 +112,8 @@ rules; the mockup shapes are the target.
   by category**: 1 `#E2795A`, 2 `#8F8FD0`, 3 `#F2B8A3`, 4 `#5F5FA8`,
   5 `#A24B30`; the remaining categories grouped in one `#6B737D` slice
   ("Smaller, grouped in the chart" in the list); non-category buckets
-  (uncategorized and the others in §6.5) `#363C46`. The ranked list under the
-  chart names every row with its swatch. This replaces the per-slug colors of
-  §7.3 for charts; `CategoryStyle` keeps only the icon.
+  (Uncategorized, Unallocated, discounts, fees, other) `#363C46`. The ranked
+  list under the chart names every row with its swatch.
 - **Horizontal bars** (by shop, top categories, top products): 4–6 dp, track
   `#1F242D`; spend amounts terracotta, counts periwinkle.
 - Charts animate in once per load and respect "Remove animations".
@@ -126,30 +122,32 @@ rules; the mockup shapes are the target.
 
 Bottom bar order: Home · Receipts · (Scan) · Insights · Products.
 
-**Home** (L6), top to bottom:
+**Home** is short on purpose (2026-11-17): one figure and what needs doing. The
+details live in Insights, which the cards open. Top to bottom:
 
 1. Greeting label + month title; household menu button.
 2. Hero card: "Spent in November so far", hero amount (terracotta), change
    badge **against the same day of last month** ("8% less than by 15 Oct
-   (371,20 €)"), then a **pace chart**: running total this month (terracotta,
-   up to today) over last month's running total (dashed periwinkle, whole
-   month, its total in the legend). Below: Receipts · Avg receipt · Per day.
+   (371,20 €)"); tap → Insights.
 3. Attention list: "n items to match" (terracotta), "n receipts importing…"
    (periwinkle); each hidden when 0.
-4. "Last 6 months" bars (avg per month), last month periwinkle, this month
-   striped; tap → Insights.
-5. "Where it went": top 3 categories with share bars → Insights (built; the
-   mockup's "Receipts filtered" is not done yet).
-6. Recent receipts (3) → detail; "See all".
+4. "Where it went": top 3 categories, name and amount → Insights.
+5. Recent receipts (3) → detail; "See all".
 
-**Insights** (L6): period chips; summary (hero, change vs the previous equal
-period, Receipts · Average · Refunds, the plain-words note); By category
+**Insights**: period chips (Today · This week · This month · Last month ·
+3 months · Year · Custom range, a date range picker; the presets are
+`core:model` `PeriodPreset`, shared with the receipt filter, weeks start on
+Monday); summary (hero, change vs the previous equal period, Receipts · Per
+day · Average · Refunds, the plain-words note); for "This month" a "Day by
+day" **pace chart**: running total this month (terracotta, up to today) over
+last month's running total (dashed periwinkle, whole month, its total in the
+legend); By category
 (donut + full ranked list, "Assign categories" on Uncategorized); By shop (top
 5 bars with share %, "Show all n"); Monthly trend (12 tappable bars + callout);
 Top products (Most spent / Most bought toggle, top 5 with bars). Cards load
-and fail on their own (§6.5).
+and fail on their own.
 
-**Product detail** (L5): category · brand label, name, package chip; price
+**Product detail**: category · brand label, name, package chip; price
 card (last paid in periwinkle with where and when, change vs the previous
 purchase as a badge, `MinMaxBar`, Lowest · Average · Highest with month and
 merchant); price-per-unit line (each change of price, oldest to newest, close
@@ -157,24 +155,14 @@ prices merged above 24 points, average dashed, lowest and highest marked, first,
 middle and last dates below); "Where it's cheapest" (a sentence: "Lidl is 0,13 €/l cheaper than AB
 Vasilopoulos on average", then `RangeDotPlot`); purchases list.
 
-## 6. Data behind the design (built in L5–L6)
+## 6. Where the numbers come from
 
-- **Home pace chart and "vs the same day last month":** daily totals for this
-  month and last month (`AnalyticsDao.dayTotals`, the §6.6 inclusion rules),
-  cumulated by `runningTotals` / `totalBySameDay` in `core:engine`
-  `analytics/Combine.kt` (unit tests). Insights compares with the period of
-  equal length just before.
-- **Product detail:** min and max with their month and merchant, the price
-  points for the chart (`pricePoints`) and each merchant's min–max range for
-  `RangeDotPlot`, from the price-history rows (`feature:products`
-  `detail/PriceInsights.kt`, `core:engine` `products/History.kt`).
-- **Averages:** Home's 6 months and Insights' trend average the full months
-  with receipts (the current partial month is excluded).
-- **Spending by category:** automatic categories for new products
-  (`products/AutoCategory.kt`) keep Uncategorized small.
-
-## 7. Open questions for the owner
-
-1. Light theme: design one later, or ship dark only for v1?
-2. Category colors elsewhere (receipt lines, filter chips) are neutral now.
-   Is that fine for the receipts screens built in L4?
+- Insights' pace chart and Home's "vs the same day last month": `AnalyticsDao.dayTotals`,
+  cumulated by `runningTotals` / `totalBySameDay` (`core:engine`
+  `analytics/Combine.kt`). Insights compares with the period of equal length
+  just before.
+- Product detail: `feature:products` `detail/PriceInsights.kt` (min/max with
+  month and merchant, `pricePoints`) and `core:engine` `products/History.kt`
+  (per-merchant ranges).
+- Averages (Insights' trend) cover full months with receipts;
+  the current partial month is excluded.

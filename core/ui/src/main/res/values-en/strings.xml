@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Import errors, by engine code (docs/android-standalone.md §5.4). -->
+    <!-- Import errors, by engine code. -->
     <string name="import_error_invalid_url">That isn\'t a receipt link.</string>
     <string name="import_error_unsupported_provider">Eksoda can\'t read receipts from this company yet.</string>
     <string name="import_error_unsupported_url_format">Eksoda doesn\'t recognize this receipt link.</string>
@@ -15,7 +15,7 @@
     <string name="import_error_inconsistent_source">The receipt page has conflicting information.</string>
     <string name="import_error_internal_error">Something went wrong while reading the receipt.</string>
 
-    <!-- System categories, by slug (§6.3). -->
+    <!-- System categories, by slug. -->
     <string name="category_groceries">Groceries</string>
     <string name="category_dairy_and_eggs">Dairy and eggs</string>
     <string name="category_meat_and_fish">Meat and fish</string>
@@ -36,7 +36,7 @@
     <string name="category_services">Services</string>
     <string name="category_other">Other</string>
 
-    <!-- Spending buckets that are not categories (requirements §13). -->
+    <!-- Spending buckets that are not categories. -->
     <string name="bucket_uncategorized">Uncategorized</string>
     <string name="bucket_discounts">Discounts</string>
     <string name="bucket_fees">Fees and deposits</string>
@@ -45,4 +45,10 @@
 
     <string name="day_today">Today</string>
     <string name="day_yesterday">Yesterday</string>
+
+    <string name="date_range_ok">OK</string>
+    <string name="date_range_cancel">Cancel</string>
+    <string name="date_range_title">Choose dates</string>
+    <string name="date_range_from">From</string>
+    <string name="date_range_to">To</string>
 </resources>

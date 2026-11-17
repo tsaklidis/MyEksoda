@@ -1,4 +1,3 @@
-// Port of backend/apps/receipts/providers/impact/parser.py.
 package io.eksoda.engine.providers.impact
 
 import io.eksoda.engine.FormatChanged
@@ -45,7 +44,7 @@ import io.eksoda.engine.mydata.paymentMethod as mydataPaymentMethod
 import io.eksoda.engine.vocabulary.paymentMethod as labelPaymentMethod
 import org.jsoup.nodes.Document as HtmlDocument
 
-// Impact receipt page → CanonicalReceipt (docs/providers/impact.md §6, TD §9.5).
+// Impact receipt page → CanonicalReceipt.
 //
 // Both views of the page are read and cross-checked. Identifiers, codes and amounts come from
 // the tax (myDATA) view; unit price, unit label, VAT %, names, addresses and the time of day come
@@ -118,7 +117,7 @@ private class Builder(
     // --- helpers --------------------------------------------------------------------------------
     fun num(text: String?, where: String): BigDecimal? = amount(text, culture, where)
 
-    /** Python returns None for a value that is only a currency marker; that is a missing field here. */
+    /** A value that is only a currency marker is a missing field. */
     fun requiredNum(mapping: Map<String, String>, key: String, where: String): BigDecimal =
         num(required(mapping, key, where), where)
             ?: throw FormatChanged("missing required field $where")
@@ -366,7 +365,7 @@ private class Builder(
     }
 
     fun vatBreakdown(lines: List<Line>): List<VatEntry> {
-        // Python's dict keys compare decimals by value ("24" and "24.00" are one key).
+        // Rates are keyed by value ("24" and "24.00" are one key).
         val codeByRate = lines.associate { it.vatRate?.stripTrailingZeros() to it.vatCategoryCode }
         return c.vatBreakdown.map { row ->
             val rate = num(row["Percentage"], "VAT breakdown")
@@ -396,7 +395,7 @@ private class Builder(
             return t.payments.zip(commercialRows).map { (row, commercial) ->
                 val paid = requiredNum(row, "amount", "payment amount")
                 agree(num(commercial["Amount"], "payment"), paid, "payment amount")
-                // Python's `tip or Decimal("0")`: a zero tip ("0,00") also becomes "0".
+                // A missing or zero tip ("0,00") becomes "0".
                 val tip =
                     num(row["tip"], "payment tip")?.takeIf { it.signum() != 0 } ?: BigDecimal("0")
                 Payment(
@@ -418,8 +417,8 @@ private class Builder(
     }
 
     /**
-     * Allowlisted, personal-data-free extraction kept with the receipt (D9). Only known fields
-     * are kept (requirements §15.3: an allowlist): an unknown field is reported by name in
+     * Allowlisted, personal-data-free extraction kept with the receipt. Only known fields
+     * are kept: an unknown field is reported by name in
      * `unknownFields`, never stored with its value. The free-text miscellaneous section is not kept.
      */
     fun payload(): JsonObject {

@@ -16,7 +16,7 @@ import org.gradle.kotlin.dsl.register
 
 /**
  * Fails the build when the app's runtime classpath contains a library that sends data off the
- * phone (docs/android-standalone.md §1.3 and §8.1), or a leftover of the server client.
+ * phone, or an HTTP client library the app does not use.
  */
 @CacheableTask
 internal abstract class NoTelemetryCheckTask : DefaultTask() {
@@ -40,7 +40,7 @@ internal abstract class NoTelemetryCheckTask : DefaultTask() {
         if (banned.isNotEmpty()) {
             throw GradleException(
                 "The app's runtime classpath contains libraries that break the no-telemetry " +
-                    "promise (docs/android-standalone.md §8.1):\n" +
+                    "promise:\n" +
                     banned.joinToString("\n") { "  - $it" },
             )
         }
@@ -76,7 +76,7 @@ private val BANNED_GROUP_PREFIXES = listOf(
     "com.appsflyer",
     "com.adjust.sdk",
     "com.facebook.android",
-    // The server client is gone (D22): no Retrofit.
+    // The app has no API client: no Retrofit.
     "com.squareup.retrofit2",
 )
 

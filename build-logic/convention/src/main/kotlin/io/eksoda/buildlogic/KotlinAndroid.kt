@@ -10,8 +10,8 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 /**
- * SDK levels (docs/android-standalone.md §3). compileSdk is 37 because the current AndroidX
- * releases require it; the target stays 36, so runtime behavior is unchanged (§16, L0).
+ * SDK levels. compileSdk is 37 because the current AndroidX releases require it; the target
+ * stays 36, so runtime behavior is unchanged.
  */
 internal object Sdk {
     const val COMPILE = 37

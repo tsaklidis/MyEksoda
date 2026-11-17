@@ -29,7 +29,7 @@ data class ReceiptRow(
 
 /**
  * A receipt as the list shows it: only the columns a row needs. The list never loads
- * `source_data`, `validation_warnings` or the `source_url` credential (§8.1), so pages stay
+ * `source_data`, `validation_warnings` or the `source_url` credential, so pages stay
  * small and the link is not held in list memory.
  */
 data class ReceiptListRow(

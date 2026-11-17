@@ -4,9 +4,9 @@ import io.eksoda.core.database.entity.CategoryEntity
 import java.util.UUID
 
 /**
- * The 19 system categories of `products/migrations/0002_seed_categories.py`, with fixed
- * name-based UUIDs so every phone has the same ids (§6.3). The app shows their names through
- * string resources keyed by slug; the English name is stored for completeness.
+ * The 19 system categories, with fixed name-based UUIDs so every phone has the same ids. The
+ * app shows their names through string resources keyed by slug; the English name is stored for
+ * completeness.
  */
 object CategorySeed {
     val SYSTEM_CATEGORIES: List<Pair<String, String>> = listOf(

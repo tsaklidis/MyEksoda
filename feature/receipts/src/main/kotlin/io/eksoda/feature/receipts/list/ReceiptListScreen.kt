@@ -66,6 +66,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import io.eksoda.core.designsystem.theme.EksodaTheme
 import io.eksoda.core.model.DocumentKind
 import io.eksoda.core.model.Money
+import io.eksoda.core.model.Receipt
 import io.eksoda.core.model.ReceiptOrdering
 import io.eksoda.core.ui.component.DelayedProgressIndicator
 import io.eksoda.core.ui.component.EmptyState
@@ -122,7 +123,7 @@ fun ReceiptListRoute(
 }
 
 /**
- * Receipts with search and filters (android-app.md §6.4.1–6.4.2). Scan is the raised button in
+ * Receipts with search and filters. Scan is the raised button in
  * the app's bottom bar (docs/design/ui-redesign.md §3), so the list has no Scan button of its own.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -233,7 +234,7 @@ fun ReceiptListScreen(
     }
 }
 
-/** The same confirmation as on Receipt detail (android-app.md §6.4.3). */
+/** The same confirmation as on Receipt detail. */
 @Composable
 private fun DeleteDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
@@ -335,8 +336,10 @@ private fun ReceiptLazyList(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 16.dp),
     ) {
-        // One item per row, so day headers can stick (§6.4.1). `peek` decides the kind without
+        // One item per row, so day headers can stick. `peek` decides the kind without
         // loading; `items[index]` inside each item tells Paging which rows are on screen.
+        // Paging has no placeholders here (core:data listPagingConfig), so this loop covers the
+        // loaded rows only, not every receipt in the database.
         for (index in 0 until items.itemCount) {
             when (val peeked = items.peek(index)) {
                 is ReceiptListItem.Day -> stickyHeader(key = peeked.key(), contentType = DAY) {
@@ -394,26 +397,50 @@ private fun ReceiptListItem.key(): String = when (this) {
 }
 
 /**
- * Each day's total from the rows loaded so far (android-app.md §6.4.1: a convenience; Insights
+ * Each day's total from the rows loaded so far (a convenience; Insights
  * has the real totals). Cancelled receipts don't count, refunds subtract. Days with more than
  * one currency get no total.
  */
-private fun dayTotals(items: LazyPagingItems<ReceiptListItem>): Map<LocalDate, Money> =
-    items.itemSnapshotList.items
-        .filterIsInstance<ReceiptListItem.Row>()
-        .map { it.receipt }
-        .filter { !it.cancelled }
-        .groupBy { it.issuedDate }
-        .mapNotNull { (date, receipts) ->
-            val currency = receipts.map { it.totalAmount.currency }.distinct().singleOrNull()
-                ?: return@mapNotNull null
-            val total = receipts.fold(BigDecimal.ZERO) { sum, receipt ->
-                val amount = receipt.totalAmount.amount
-                if (receipt.documentKind == DocumentKind.CREDIT_NOTE) sum - amount else sum + amount
-            }
-            date to Money(total, currency)
+private fun dayTotals(items: LazyPagingItems<ReceiptListItem>): Map<LocalDate, Money> {
+    val snapshotItems = items.itemSnapshotList.items
+    if (snapshotItems.isEmpty()) return emptyMap()
+
+    val grouped = HashMap<LocalDate, MutableList<Receipt>>()
+    for (i in snapshotItems.indices) {
+        val item = snapshotItems[i]
+        if (item is ReceiptListItem.Row && !item.receipt.cancelled) {
+            grouped.getOrPut(item.receipt.issuedDate) { mutableListOf() }.add(item.receipt)
         }
-        .toMap()
+    }
+
+    if (grouped.isEmpty()) return emptyMap()
+
+    val result = HashMap<LocalDate, Money>(grouped.size)
+    for ((date, receipts) in grouped) {
+        val firstCurrency = receipts[0].totalAmount.currency
+        var sameCurrency = true
+        var total = BigDecimal.ZERO
+
+        for (j in receipts.indices) {
+            val receipt = receipts[j]
+            if (receipt.totalAmount.currency != firstCurrency) {
+                sameCurrency = false
+                break
+            }
+            val amount = receipt.totalAmount.amount
+            if (receipt.documentKind == DocumentKind.CREDIT_NOTE) {
+                total = total.subtract(amount)
+            } else {
+                total = total.add(amount)
+            }
+        }
+
+        if (sameCurrency) {
+            result[date] = Money(total, firstCurrency)
+        }
+    }
+    return result
+}
 
 @Composable
 private fun SearchField(query: String, onChange: (String) -> Unit) {

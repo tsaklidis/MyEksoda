@@ -61,7 +61,7 @@ sealed interface ReviewEffect {
 }
 
 /**
- * "Help us match these items" (`android-app.md` §6.7). The list follows the database, so a
+ * "Help us match these items". The list follows the database, so a
  * resolved line leaves it by itself.
  */
 @OptIn(ExperimentalCoroutinesApi::class)

@@ -16,7 +16,7 @@ import io.eksoda.core.ui.text.formatQuantity
 import io.eksoda.feature.products.R
 import java.math.BigDecimal
 
-/** The package units a product can have (the server's `Product.PackageUnit`). */
+/** The package units a product can have. */
 internal val PACKAGE_UNITS = listOf("g", "kg", "ml", "cl", "l", "piece")
 
 /** Why a write failed, for a snackbar or a form. */

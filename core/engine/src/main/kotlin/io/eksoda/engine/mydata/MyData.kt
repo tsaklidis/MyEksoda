@@ -1,11 +1,10 @@
-// Port of backend/apps/receipts/mydata.py.
 package io.eksoda.engine.mydata
 
 import io.eksoda.engine.text.pyIsDigit
 import io.eksoda.engine.text.pyStrip
 import java.math.BigDecimal
 
-// AADE myDATA code lists (TD §9.2).
+// AADE myDATA code lists.
 //
 // Every Greek e-receipt provider reports the same myDATA codes, so these tables are
 // provider-neutral. Source: AADE "myDATA REST API Documentation" v1.0.9 (official, English,
@@ -58,8 +57,8 @@ public val CREDIT_NOTE_TYPES: Set<String> = setOf("5.1", "5.2", "11.4")
 public val SALE_TYPES: Set<String> = DOCUMENT_TYPES.keys - CREDIT_NOTE_TYPES
 
 /**
- * 8.2 VAT category → rate in percent (null: records without VAT, e.g. payroll). Ordered like
- * the Python dict, which `vatCategoryForRate` depends on.
+ * 8.2 VAT category → rate in percent (null: records without VAT, e.g. payroll). The order
+ * matters: `vatCategoryForRate` depends on it.
  */
 public val VAT_RATES: Map<String, BigDecimal?> = linkedMapOf(
     "1" to BigDecimal("24"),
@@ -99,8 +98,8 @@ public val PAYMENT_METHODS: Map<String, PaymentMethod> = mapOf(
 /**
  * Trims a code; blank means absent. Integer codes lose leading zeros ("07" → "7").
  *
- * Python's `str.isdigit()` also accepts digits such as "²", for which `int()` then raises; only
- * decimal digits (Nd) count as digits here, so such codes are kept as printed.
+ * Only decimal digits (Nd) count as digits, so codes with digits such as "²" are kept as
+ * printed.
  */
 public fun normalizeCode(code: String?): String? {
     if (code == null) return null

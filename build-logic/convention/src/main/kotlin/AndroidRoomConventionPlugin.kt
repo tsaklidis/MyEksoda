@@ -6,7 +6,7 @@ import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.dependencies
 
-/** Room with exported schemas in `<module>/schemas` (docs/android-standalone.md §6.4). */
+/** Room with exported schemas in `<module>/schemas`. */
 class AndroidRoomConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {

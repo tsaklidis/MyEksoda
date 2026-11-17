@@ -10,7 +10,7 @@ import io.eksoda.core.model.TopProduct
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 
-/** Spending analytics computed from the local database (docs/android-standalone.md §6.6, L6). */
+/** Spending analytics computed from the local database. */
 interface AnalyticsRepository {
     /** Emits once at once, then whenever receipts, lines, products or categories change. */
     fun changes(): Flow<Unit>

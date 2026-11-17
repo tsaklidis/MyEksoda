@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -44,33 +43,23 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import io.eksoda.core.designsystem.chart.BarChart
-import io.eksoda.core.designsystem.chart.BarDatum
-import io.eksoda.core.designsystem.chart.LineChart
-import io.eksoda.core.designsystem.chart.ShareBar
 import io.eksoda.core.designsystem.component.CategoryTile
 import io.eksoda.core.designsystem.component.ChangeBadge
 import io.eksoda.core.designsystem.component.ChangeDirection
 import io.eksoda.core.designsystem.component.MerchantAvatar
 import io.eksoda.core.designsystem.component.OverlineText
 import io.eksoda.core.designsystem.component.SectionCard
-import io.eksoda.core.designsystem.component.StatItem
-import io.eksoda.core.designsystem.component.StatRow
 import io.eksoda.core.designsystem.text.monoNumbers
 import io.eksoda.core.designsystem.theme.EksodaTheme
-import io.eksoda.core.designsystem.theme.tabular
 import io.eksoda.core.model.CategorySpending
 import io.eksoda.core.model.DocumentKind
 import io.eksoda.core.model.Money
 import io.eksoda.core.model.MonthPace
-import io.eksoda.core.model.MonthlyTrend
 import io.eksoda.core.model.Receipt
 import io.eksoda.core.model.SpendingBucketKind
-import io.eksoda.core.model.SpendingSummary
 import io.eksoda.core.ui.component.EmptyState
 import io.eksoda.core.ui.component.HeroMoney
 import io.eksoda.core.ui.component.MoneyText
@@ -80,13 +69,14 @@ import io.eksoda.core.ui.text.dateFormatter
 import io.eksoda.core.ui.text.dayLabel
 import io.eksoda.core.ui.text.formatMoney
 import io.eksoda.core.ui.text.formatPercent
-import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
-import java.time.YearMonth
-import java.util.Locale
 
-/** Home (docs/design/ui-redesign.md §5): this month at a glance. */
+/**
+ * Home (docs/design/ui-redesign.md §5): this month at a glance, kept short on purpose. The
+ * details (the day-by-day chart, receipts, averages, monthly trend, shares) are in Insights,
+ * which every card here opens.
+ */
 @Composable
 fun HomeRoute(
     onReceiptsClick: () -> Unit,
@@ -140,7 +130,7 @@ fun HomeScreen(
         ) {
             if (state.loading || today == null) return@Column
             val pace = state.pace
-            if (pace != null) HeroCard(pace, state.summary, today, onInsightsClick)
+            if (pace != null) HeroCard(pace, today, onInsightsClick)
             AttentionList(state.needsReview, state.importing, onReviewClick, onImportsClick)
             if (state.recent.isEmpty() && pace?.spentSoFar?.signum() == 0) {
                 EmptyState(
@@ -148,9 +138,6 @@ fun HomeScreen(
                     description = stringResource(R.string.home_empty_body),
                     icon = Icons.AutoMirrored.Outlined.ReceiptLong,
                 )
-            }
-            state.trend?.let { trend ->
-                if (trend.months.any { it.receipts > 0 }) MonthsCard(trend, onInsightsClick)
             }
             state.categories?.let { categories ->
                 if (categories.buckets.any { it.total.signum() > 0 }) {
@@ -224,84 +211,28 @@ private fun Header(greeting: Greeting, today: LocalDate?, onSettingsClick: () ->
     }
 }
 
-/** "Spent in November so far", the change against the same day last month, the pace chart. */
+/** "Spent in November so far" and one line against the same day last month. */
 @Composable
-private fun HeroCard(
-    pace: MonthPace,
-    summary: SpendingSummary?,
-    today: LocalDate,
-    onClick: () -> Unit,
-) {
+private fun HeroCard(pace: MonthPace, today: LocalDate, onClick: () -> Unit) {
     val colors = EksodaTheme.colors
     val locale = appLocale()
-    val currency = pace.currency
     val lastMonth = pace.month.minusMonths(1)
     val sameDay = lastMonth.atDay(today.dayOfMonth.coerceAtMost(lastMonth.lengthOfMonth()))
     SectionCard(modifier = Modifier.clickable(onClick = onClick)) {
         Column(
             modifier = Modifier.padding(horizontal = 18.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    stringResource(
-                        R.string.home_spent_so_far,
-                        pace.month.format(dateFormatter("MMMM", locale)),
-                    ),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = colors.ink2,
-                )
-                HeroMoney(Money(pace.spentSoFar, currency))
-                PaceChange(pace, sameDay)
-            }
-            val dayLabelFormat = dateFormatter("d MMM", locale)
-            LineChart(
-                values = pace.current,
-                comparison = pace.previous,
-                contentDescription = stringResource(R.string.home_pace_description),
-                formatValue = { formatMoney(Money(it, currency), locale) },
-                gridLines = 4,
-                gridLabels = false,
-                markLast = true,
-                height = 104.dp,
-                axisLabels = listOf(
-                    pace.month.atDay(1).format(dayLabelFormat),
-                    stringResource(R.string.home_pace_today),
-                    pace.month.atEndOfMonth().format(dayLabelFormat),
+            Text(
+                stringResource(
+                    R.string.home_spent_so_far,
+                    pace.month.format(dateFormatter("MMMM", locale)),
                 ),
+                style = MaterialTheme.typography.bodyMedium,
+                color = colors.ink2,
             )
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                LegendLine(monthName(pace.month, locale), colors.spend, dashed = false)
-                LegendLine(
-                    stringResource(
-                        R.string.home_pace_last_month,
-                        monthName(lastMonth, locale),
-                        formatMoney(Money(pace.previousTotal, currency), locale),
-                    ),
-                    colors.compare,
-                    dashed = true,
-                )
-            }
-            val current = summary?.current
-            val perDay = pace.spentSoFar
-                .divide(BigDecimal(today.dayOfMonth), 2, RoundingMode.HALF_UP)
-            StatRow(
-                items = listOf(
-                    StatItem(
-                        label = stringResource(R.string.home_stat_receipts),
-                        value = (current?.receiptCount ?: 0).toString(),
-                    ),
-                    StatItem(
-                        label = stringResource(R.string.home_stat_average),
-                        value = current?.averageSale
-                            ?.let { formatMoney(Money(it, currency), locale) } ?: "—",
-                    ),
-                    StatItem(
-                        label = stringResource(R.string.home_stat_per_day),
-                        value = formatMoney(Money(perDay, currency), locale),
-                    ),
-                ),
-            )
+            HeroMoney(Money(pace.spentSoFar, pace.currency))
+            PaceChange(pace, sameDay)
         }
     }
 }
@@ -346,44 +277,6 @@ private fun PaceChange(pace: MonthPace, sameDay: LocalDate) {
                 color = colors.ink2,
             )
         }
-    }
-}
-
-@Composable
-private fun LegendLine(text: String, color: Color, dashed: Boolean) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        if (dashed) {
-            Dashes(color, width = 4.dp, height = 2.dp)
-        } else {
-            Box(Modifier.size(width = 16.dp, height = 2.dp).background(color))
-        }
-        Text(
-            monoNumbers(text),
-            style = MaterialTheme.typography.bodySmall,
-            color = EksodaTheme.colors.ink2,
-        )
-    }
-}
-
-/** A short dashed line for a legend. */
-@Composable
-private fun Dashes(color: Color, width: Dp, height: Dp) {
-    Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-        repeat(3) { Box(Modifier.size(width = width, height = height).background(color)) }
-    }
-}
-
-@Composable
-private fun LegendSwatch(text: String, swatch: @Composable () -> Unit) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        swatch()
-        Text(text, style = MaterialTheme.typography.bodySmall, color = EksodaTheme.colors.ink2)
     }
 }
 
@@ -461,77 +354,11 @@ private fun AttentionRow(
     }
 }
 
-/** Six months of spending, the average of the full months as a dashed line. */
-@Composable
-private fun MonthsCard(trend: MonthlyTrend, onClick: () -> Unit) {
-    val colors = EksodaTheme.colors
-    val locale = appLocale()
-    val months = trend.months
-    val full = months.dropLast(1).filter { it.receipts > 0 }
-    val average = if (full.isEmpty()) {
-        null
-    } else {
-        full.fold(BigDecimal.ZERO) { sum, month -> sum + month.total }
-            .divide(BigDecimal(full.size), 2, RoundingMode.HALF_UP)
-    }
-    SectionCard(
-        modifier = Modifier.clickable(onClick = onClick),
-        title = stringResource(R.string.home_last_6_months),
-        action = average?.let {
-            {
-                Text(
-                    monoNumbers(
-                        stringResource(
-                            R.string.home_average_per_month,
-                            wholeMoney(it, trend.currency, locale),
-                        ),
-                    ),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = colors.ink2,
-                )
-            }
-        },
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            BarChart(
-                bars = months.mapIndexed { index, month ->
-                    BarDatum(
-                        label = month.month.format(dateFormatter("LLL", locale))
-                            .replaceFirstChar { it.titlecase(locale) },
-                        value = month.total,
-                        partial = index == months.lastIndex,
-                    )
-                },
-                contentDescription = stringResource(R.string.home_months_description),
-                selectedIndex = months.lastIndex - 1,
-                average = average,
-                height = 74.dp,
-            )
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                LegendSwatch(stringResource(R.string.home_legend_so_far)) { Square(colors.spend) }
-                LegendSwatch(stringResource(R.string.home_legend_last_month)) {
-                    Square(colors.compare)
-                }
-                if (average != null) {
-                    LegendSwatch(stringResource(R.string.home_legend_average)) {
-                        Dashes(colors.guide, width = 3.dp, height = 1.dp)
-                    }
-                }
-            }
-        }
-    }
-}
-
-/** The top three buckets of this month with their share. */
+/** The top three buckets of this month: name and amount (shares are in Insights). */
 @Composable
 private fun WhereItWentCard(categories: CategorySpending, onAllClick: () -> Unit) {
     val colors = EksodaTheme.colors
-    val locale = appLocale()
     val top = categories.buckets.filter { it.total.signum() > 0 }.take(TOP_CATEGORIES)
-    val max = top.firstOrNull()?.total ?: BigDecimal.ONE
     SectionCard(
         title = stringResource(R.string.home_where_it_went),
         action = {
@@ -553,48 +380,23 @@ private fun WhereItWentCard(categories: CategorySpending, onAllClick: () -> Unit
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                val slug = bucket.category?.slug
                 CategoryTile(
-                    slug = slug.takeIf { bucket.kind == SpendingBucketKind.CATEGORY },
-                    size = 38.dp,
+                    slug = bucket.category?.slug.takeIf {
+                        bucket.kind == SpendingBucketKind.CATEGORY
+                    },
+                    size = 34.dp,
                 )
-                Column(
+                Text(
+                    bucketName(bucket),
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(7.dp),
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            bucketName(bucket),
-                            style = MaterialTheme.typography.bodyMedium,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f),
-                        )
-                        MoneyText(
-                            Money(bucket.total, categories.currency),
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-                    }
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        ShareBar(
-                            value = bucket.total,
-                            max = max,
-                            color = colors.spend,
-                            thickness = 4.dp,
-                            modifier = Modifier.weight(1f),
-                        )
-                        Text(
-                            bucket.share?.let { formatPercent(it, locale) }.orEmpty(),
-                            style = MaterialTheme.typography.labelSmall.tabular(),
-                            color = colors.ink2,
-                            modifier = Modifier.width(44.dp),
-                            maxLines = 1,
-                        )
-                    }
-                }
+                )
+                MoneyText(
+                    Money(bucket.total, categories.currency),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
             }
         }
     }
@@ -674,24 +476,3 @@ private fun RecentCard(
 }
 
 private const val TOP_CATEGORIES = 3
-
-/** "Νοέμβριος", "November": the month's name on its own, capitalized. */
-private fun monthName(month: YearMonth, locale: Locale): String =
-    month.format(dateFormatter("LLLL", locale)).replaceFirstChar { it.titlecase(locale) }
-
-/** "667 €": an amount rounded to whole units, for a short label. */
-private fun wholeMoney(amount: BigDecimal, currency: String, locale: Locale): String {
-    val format = java.text.NumberFormat.getCurrencyInstance(locale).apply {
-        runCatching { this.currency = java.util.Currency.getInstance(currency) }
-        maximumFractionDigits = 0
-        minimumFractionDigits = 0
-        roundingMode = RoundingMode.HALF_UP
-    }
-    return format.format(amount)
-}
-
-/** A legend square. */
-@Composable
-private fun Square(color: Color) {
-    Box(Modifier.size(10.dp).clip(RoundedCornerShape(2.dp)).background(color))
-}

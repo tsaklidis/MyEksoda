@@ -16,8 +16,8 @@ public data class ResolvedLink(val provider: Provider, val identity: UrlIdentity
 public data class ParsedReceipt(val receipt: CanonicalReceipt, val issues: List<ValidationIssue>)
 
 /**
- * The engine's entry point (docs/android-standalone.md §9.2): what the server's import pipeline
- * does before persisting (`pipeline.py`: resolve, fetch, parse, validate).
+ * The engine's entry point: everything an import does before persisting (resolve, fetch, parse,
+ * validate).
  */
 public class Engine(
     private val fetcher: Fetcher,

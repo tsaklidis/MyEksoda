@@ -1,4 +1,3 @@
-// Port of backend/apps/receipts/classification.py. Named after it, not after LineType (§5.1).
 @file:Suppress("MatchingDeclarationName")
 
 package io.eksoda.engine.classification
@@ -8,7 +7,7 @@ import io.eksoda.engine.text.normalizeText
 import io.eksoda.engine.text.pySplit
 import java.math.BigDecimal
 
-// Line classification into four types (requirements §9.1, TD §13.1).
+// Line classification into four types.
 //
 // The first matching rule wins:
 //
@@ -33,7 +32,7 @@ public val DISCOUNT_KEYWORDS: List<String> = listOf("ΕΚΠΤΩΣ", "ΚΟΥΠΟ�
 
 /**
  * Carrier-bag environmental fee and deposit. Never the bare word "ΣΑΚΟΥΛ": real LIDL receipts
- * sell bags and garbage bags as products (docs/providers/entersoft.md §5).
+ * sell bags and garbage bags as products.
  */
 public val FEE_KEYWORDS: List<String> = listOf("ΠΕΡΙΒΑΛΛΟΝΤΙΚ ΤΕΛ", "ΕΓΓΥΗΣ")
 

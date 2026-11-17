@@ -48,7 +48,7 @@ data class Persisted(
 )
 
 /**
- * Canonical receipt → merchant, store, receipt and lines (docs/android-standalone.md §7.5).
+ * Canonical receipt → merchant, store, receipt and lines.
  * Must run inside the WriteCoordinator's transaction, so a failure leaves nothing behind.
  */
 class Persister @Inject constructor(
@@ -258,7 +258,7 @@ class Persister @Inject constructor(
         return created
     }
 
-    // --- receipt values and lines (persistence.py, matching.py, prices.py) ------------------------
+    // --- receipt values and lines ----------------------------------------------------------------
 
     private fun receiptEntity(
         canonical: CanonicalReceipt,

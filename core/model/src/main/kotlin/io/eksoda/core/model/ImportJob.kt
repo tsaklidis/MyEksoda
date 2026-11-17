@@ -12,7 +12,7 @@ public data class ImportJob(
     val createdAt: Instant,
     val finishedAt: Instant?,
     val receiptId: String?,
-    /** The engine's error code, mapped to a local string in the UI (§5.4). */
+    /** The engine's error code, mapped to a local string in the UI. */
     val errorCode: String?,
     /** When a retrying job tries again; null when it is not waiting. */
     val nextAttemptAt: Instant?,
@@ -33,7 +33,7 @@ public enum class ImportOutcome(public val code: String) {
     RECEIPT_DELETED("receipt_deleted"),
 }
 
-/** The result of submitting a receipt link (docs/android-standalone.md §7.2). */
+/** The result of submitting a receipt link. */
 public sealed interface ImportSubmission {
     /** A new job, or a failed or deleted import started again. [offline]: it imports when online. */
     public data class Queued(val jobId: String, val offline: Boolean = false) : ImportSubmission

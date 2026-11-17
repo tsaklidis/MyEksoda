@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="insights_title">Insights</string>
+    <string name="insights_period_today">Today</string>
+    <string name="insights_period_this_week">This week</string>
     <string name="insights_period_this_month">This month</string>
     <string name="insights_period_last_month">Last month</string>
     <string name="insights_period_3_months">3 months</string>
     <string name="insights_period_year">Year</string>
+    <string name="insights_period_custom">Custom range</string>
 
     <string name="insights_help_title">How these numbers are calculated</string>
     <string name="insights_help_body">Active receipts in the household\'s currency count. Refunds count as negative. Cancelled receipts, receipts you excluded from stats and receipts in other currencies are left out.\n\nThe comparison is with the period of the same length just before.\n\nEach item counts in its product\'s category, else in the shop\'s default category. Discounts, fees and receipts without items have groups of their own.</string>
@@ -21,11 +24,18 @@
     <string name="insights_receipts">Receipts</string>
     <string name="insights_average">Average</string>
     <string name="insights_refunds">Refunds</string>
+    <string name="insights_per_day">Per day</string>
     <string name="insights_note">Refunds count as negative. Excluded and cancelled receipts, and receipts in other currencies, are left out.</string>
     <plurals name="insights_other_currency">
         <item quantity="one">%d receipt in another currency.</item>
         <item quantity="other">%d receipts in other currencies.</item>
     </plurals>
+
+    <string name="insights_pace_title">Day by day</string>
+    <string name="insights_pace_description">Running total this month compared with last month</string>
+    <string name="insights_pace_today">today</string>
+    <!-- %1$s: last month's name; %2$s: its total. -->
+    <string name="insights_pace_last_month">%1$s, total %2$s</string>
 
     <string name="insights_by_category">By category</string>
     <string name="insights_donut_description">Spending by category. Largest: %1$s</string>

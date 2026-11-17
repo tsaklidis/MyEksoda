@@ -29,7 +29,7 @@ import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
 /**
- * The plaintext inside a backup file (§12.1): a ZIP with `manifest.json` and one
+ * The plaintext inside a backup file: a ZIP with `manifest.json` and one
  * `<table>.ndjson` per table, one JSON object per row.
  *
  * The export is logical and does not depend on the Room schema: rows are read and written by
@@ -61,7 +61,7 @@ internal object BackupArchive {
         "tombstone",
     )
 
-    /** Fixed-point column suffixes and their scales (§6.2, `Fixed`). */
+    /** Fixed-point column suffixes and their scales (`Fixed`). */
     private val SCALES = listOf(
         "_minor" to Fixed.MINOR,
         "_e2" to Fixed.E2,
@@ -83,7 +83,10 @@ internal object BackupArchive {
     /** Reads every table. Run it inside a transaction, so the copy is consistent. */
     fun write(db: SupportSQLiteDatabase): Written {
         val counts = TABLES.associateWith { table ->
-            db.query("SELECT COUNT(*) FROM `$table`").use { it.moveToFirst(); it.getInt(0) }
+            db.query("SELECT COUNT(*) FROM `$table`").use {
+                it.moveToFirst()
+                it.getInt(0)
+            }
         }
         val household = db.query("SELECT name FROM household LIMIT 1").use {
             if (it.moveToFirst()) it.getString(0) else null
@@ -136,6 +139,7 @@ internal object BackupArchive {
             val reader = zip.bufferedReader(Charsets.UTF_8)
             when {
                 name == MANIFEST -> manifest = parseManifest(readJson(reader.readText()))
+
                 name.endsWith(EXTENSION) ->
                     lines[name.removeSuffix(EXTENSION)] =
                         reader.lineSequence().count { it.isNotBlank() }
@@ -184,7 +188,13 @@ internal object BackupArchive {
                 while (cursor.moveToNext()) {
                     val name = cursor.getString(nameIndex)
                     val integer = cursor.getString(typeIndex).equals("INTEGER", ignoreCase = true)
-                    val scale = if (integer) SCALES.firstOrNull { name.endsWith(it.first) } else null
+                    val scale = if (integer) {
+                        SCALES.firstOrNull {
+                            name.endsWith(it.first)
+                        }
+                    } else {
+                        null
+                    }
                     add(Column(name, integer, scale?.second))
                 }
             }
@@ -195,9 +205,12 @@ internal object BackupArchive {
             val index = getColumnIndexOrThrow(column.name)
             when {
                 isNull(index) -> put(column.key, JsonNull)
+
                 column.scale != null ->
                     put(column.key, Fixed.toDecimal(getLong(index), column.scale).toPlainString())
+
                 column.integer -> put(column.key, getLong(index))
+
                 else -> put(column.key, getString(index))
             }
         }

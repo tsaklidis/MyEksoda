@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 
 /**
  * An import job as the imports list shows it, with its receipt's merchant and total once
- * imported. Only the columns the list needs: never the `submitted_url` credential (§8.1).
+ * imported. Only the columns the list needs: never the `submitted_url` credential.
  */
 data class ImportJobRow(
     val id: String,
@@ -131,7 +131,7 @@ interface ImportJobDao {
     )
     suspend fun fail(id: String, code: String, message: String, appVersion: Long, now: Long): Int
 
-    /** Failed jobs a new app version may fix (§7.3): the listed codes, failed with an older version. */
+    /** Failed jobs a new app version may fix: the listed codes, failed with an older version. */
     @Query(
         """SELECT * FROM import_job WHERE status = 'failed' AND last_error_code IN (:codes)
            AND (app_version_at_failure IS NULL OR app_version_at_failure < :appVersion)""",

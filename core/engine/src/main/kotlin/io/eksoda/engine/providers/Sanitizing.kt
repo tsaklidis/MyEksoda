@@ -1,11 +1,10 @@
-// Port of backend/apps/receipts/providers/sanitizing.py.
 package io.eksoda.engine.providers
 
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 
 // Shared machinery for turning saved receipt pages into personal-data-free pages for bug
-// reports (docs/android-standalone.md §7.7).
+// reports.
 //
 // A provider sanitizer replaces secret values *where they occur*: the text of the specific
 // elements that hold them (buyer data, payment ids, signatures; any length), specific attributes

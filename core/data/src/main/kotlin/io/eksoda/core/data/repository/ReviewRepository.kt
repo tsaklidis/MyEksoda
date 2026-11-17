@@ -6,7 +6,7 @@ import io.eksoda.core.model.ProductDraft
 import io.eksoda.core.model.ReviewItem
 import kotlinx.coroutines.flow.Flow
 
-/** The review queue and line corrections (`android-app.md` §6.7). */
+/** The review queue and line corrections. */
 interface ReviewRepository {
     /** Product lines waiting for a person, newest receipt first. */
     fun getReviewItems(): Flow<PagingData<ReviewItem>>

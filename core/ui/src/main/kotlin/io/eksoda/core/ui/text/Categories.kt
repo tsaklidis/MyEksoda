@@ -8,7 +8,7 @@ import io.eksoda.core.model.SpendingBucket
 import io.eksoda.core.model.SpendingBucketKind
 import io.eksoda.core.ui.R
 
-/** The translated name of a system category, by slug (the 19 seeded categories, §6.3). */
+/** The translated name of a system category, by slug (the 19 seeded categories). */
 @StringRes
 fun categoryNameRes(slug: String?): Int = slug?.let(::systemCategoryRes) ?: R.string.category_other
 

@@ -7,7 +7,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/** Whether the phone is online now, for "Saved, will import when online" (§7.2). */
+/** Whether the phone is online now, for "Saved, will import when online". */
 @Singleton
 class NetworkMonitor @Inject constructor(@ApplicationContext private val context: Context) {
     fun isOnline(): Boolean {

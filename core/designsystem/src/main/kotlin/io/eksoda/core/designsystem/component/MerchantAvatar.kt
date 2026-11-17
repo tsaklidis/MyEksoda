@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import io.eksoda.core.designsystem.theme.EksodaTheme
 
 /**
- * The merchant's initials on a neutral tile with a line border (android-app.md §6.4.1). The
+ * The merchant's initials on a neutral tile with a line border. The
  * redesign allows three colors only (docs/design/ui-redesign.md §1), each with a meaning, so
  * merchants are told apart by name and initials, not by color. [id] is kept for callers and
  * future use.

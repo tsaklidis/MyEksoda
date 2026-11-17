@@ -25,7 +25,7 @@ import io.eksoda.core.model.Receipt
 import io.eksoda.feature.receipts.R
 
 /**
- * Swipe actions (android-app.md §6.4.1): swipe left asks to delete, swipe right includes or
+ * Swipe actions: swipe left asks to delete, swipe right includes or
  * excludes the receipt from stats. The row always springs back; the action happens elsewhere
  * (a confirmation, or a change with an Undo snackbar).
  */
@@ -62,22 +62,18 @@ internal fun SwipeableReceiptRow(
 
 @Composable
 private fun SwipeBackground(direction: SwipeToDismissBoxValue, excluded: Boolean) {
+    if (direction == SwipeToDismissBoxValue.Settled) return
     val colors = MaterialTheme.colorScheme
     val deleting = direction == SwipeToDismissBoxValue.EndToStart
     val (background, content) = when (direction) {
         SwipeToDismissBoxValue.EndToStart -> colors.errorContainer to colors.onErrorContainer
-
-        SwipeToDismissBoxValue.StartToEnd ->
-            colors.secondaryContainer to colors.onSecondaryContainer
-
-        SwipeToDismissBoxValue.Settled -> colors.surface to colors.onSurface
+        else -> colors.secondaryContainer to colors.onSecondaryContainer
     }
     Row(
         modifier = Modifier.fillMaxSize().background(background).padding(horizontal = 24.dp),
         horizontalArrangement = if (deleting) Arrangement.End else Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (direction == SwipeToDismissBoxValue.Settled) return@Row
         val label = stringResource(
             when {
                 deleting -> R.string.detail_delete

@@ -1,5 +1,3 @@
-// Port of the pure parts of backend/apps/merchants/services.py. The database lookups
-// (resolve_merchant, resolve_store) live in core:data. Named after it, not after FieldSize (§5.1).
 @file:Suppress("MatchingDeclarationName")
 
 package io.eksoda.engine.merchants
@@ -11,7 +9,8 @@ import io.eksoda.engine.text.pyStrip
 import java.time.Instant
 import java.util.Locale
 
-// Merchant and store rules (requirements §8.4, §8.5, TD §12.5).
+// Merchant and store rules. The database lookups (resolveMerchant, resolveStore) live in
+// core:data.
 //
 // Public details are refreshed from receipts:
 // - an empty field is filled from any receipt;
@@ -19,7 +18,7 @@ import java.util.Locale
 //   that last set the details, and never by a truncated copy of itself (some sources cut long
 //   names).
 
-/** Column sizes of the server's models, which values are cut to (`_fit`). */
+/** Maximum field lengths, which values are cut to (`_fit`). */
 public object FieldSize {
     public const val LEGAL_NAME: Int = 255
     public const val DISPLAY_NAME: Int = 120

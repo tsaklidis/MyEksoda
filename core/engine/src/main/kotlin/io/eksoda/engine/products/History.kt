@@ -1,6 +1,5 @@
-// Port of backend/apps/products/history.py (price_stats, compare; requirements §11.2, §11.3).
-// The PRICE_HISTORY query and its date, merchant and store filters are SQL in core:database;
-// these functions take its rows, newest first.
+// Price statistics and comparison. The PRICE_HISTORY query and its date, merchant and store
+// filters are SQL in core:database; these functions take its rows, newest first.
 package io.eksoda.engine.products
 
 import io.eksoda.engine.text.pyDivide
@@ -63,7 +62,7 @@ public fun priceStats(entries: List<PriceObservation>): List<PriceStats> =
 
 /**
  * `compare`: per-merchant statistics in one (unit, currency) group: the requested unit, else
- * the group with the most entries (ties: the greater (unit, currency), like Python's `max`).
+ * the group with the most entries (ties: the greater (unit, currency)).
  */
 public fun compare(entries: List<PriceObservation>, normalizedUnit: String? = null): Comparison {
     val all = groups(entries)
@@ -99,7 +98,7 @@ public fun compare(entries: List<PriceObservation>, normalizedUnit: String? = nu
     return Comparison(reason == null, reason, unit, currency, ranked, available)
 }
 
-/** Groups in first-seen order, like Python's insertion-ordered dict. */
+/** Groups in first-seen order. */
 private fun groups(entries: List<PriceObservation>): Map<UnitKey, List<PriceObservation>> =
     entries.groupBy { it.normalizedUnit to it.currency }
 
@@ -116,7 +115,7 @@ private fun stats(unit: String, currency: String, entries: List<PriceObservation
         count = entries.size,
         latest = prices.first(),
         previous = prices.getOrNull(1),
-        // Python's min and max keep the first of equal values (1.20 before 1.2).
+        // min and max keep the first of equal values (1.20 before 1.2).
         minimum = prices.minWith(Comparator { a, b -> a.compareTo(b) }),
         maximum = prices.maxWith(Comparator { a, b -> a.compareTo(b) }),
         average = gross.pyDivide(quantity).setScale(PRICE_PLACES, RoundingMode.HALF_UP),

@@ -70,8 +70,8 @@ class BackupRepositoryImpl @Inject constructor(
 
     /**
      * Runs in the application scope, so leaving the screen does not stop an export or a restore
-     * halfway (the caller only stops waiting). Not WorkManager, as §12.1 suggests: a worker's
-     * input is stored on disk unencrypted, and the passphrase must never be written anywhere.
+     * halfway (the caller only stops waiting). Not WorkManager: a worker's input is stored on
+     * disk unencrypted, and the passphrase must never be written anywhere.
      */
     private suspend fun <T> outliving(block: suspend () -> T): Result<T> = scope.async(io) {
         try {

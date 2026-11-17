@@ -1,4 +1,3 @@
-// Port of backend/apps/receipts/links.py.
 package io.eksoda.engine.url
 
 import io.eksoda.engine.InvalidUrl
@@ -9,9 +8,8 @@ import java.net.IDN
 import java.text.Normalizer
 import java.util.Locale
 
-// Validation of submitted receipt URLs (requirements §6.2, TD §9.3). The URL splitting follows
-// CPython 3.13's urllib.parse.urlsplit and the host encoding its "idna" codec, so a link is
-// accepted or refused exactly as the server would.
+// Validation of submitted receipt URLs. The URL splitting follows CPython 3.13's
+// urllib.parse.urlsplit and the host encoding its "idna" codec.
 
 public const val MAX_URL_LENGTH: Int = 2048
 private const val MAX_HOST_LENGTH = 253

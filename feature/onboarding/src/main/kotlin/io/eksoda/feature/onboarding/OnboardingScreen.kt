@@ -41,7 +41,7 @@ fun OnboardingRoute(viewModel: OnboardingViewModel = hiltViewModel()) {
     OnboardingScreen(state = state, onEvent = viewModel::onEvent)
 }
 
-/** The privacy promise (§1.3), then creating the household (§11). */
+/** The privacy promise, then creating the household. */
 @Composable
 fun OnboardingScreen(
     state: OnboardingUiState,

@@ -42,14 +42,13 @@ sealed interface ScanEvent {
 }
 
 sealed interface ScanEffect {
-    /** A light tick when a receipt is saved (android-app.md §6.3.1). */
+    /** A light tick when a receipt is saved. */
     data object Saved : ScanEffect
 }
 
 /**
- * Continuous scanning (android-app.md §6.3, docs/android-standalone.md §7.1). Each new code is
- * submitted at once and the camera keeps scanning; the same code again in this session is
- * ignored. Links stay in memory only and are never logged (§8.1).
+ * Continuous scanning. Each new code is submitted at once and the camera keeps scanning; the
+ * same code again in this session is ignored. Links stay in memory only and are never logged.
  */
 @HiltViewModel
 class ScanViewModel @Inject constructor(

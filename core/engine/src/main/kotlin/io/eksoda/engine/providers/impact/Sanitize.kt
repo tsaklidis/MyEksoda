@@ -1,4 +1,3 @@
-// Port of backend/apps/receipts/providers/impact/sanitize.py and impact/__init__.py.
 package io.eksoda.engine.providers.impact
 
 import io.eksoda.engine.providers.Provider
@@ -64,7 +63,7 @@ public fun sanitizeHtml(rawHtml: String): SanitizeResult {
     return finish(document, secrets)
 }
 
-/** Impact SA e-receipt provider (einvoice.impact.gr). Format: docs/providers/impact.md. */
+/** Impact SA e-receipt provider (einvoice.impact.gr). */
 public val IMPACT: Provider = Provider(
     code = PROVIDER_CODE,
     hosts = setOf(HOST),

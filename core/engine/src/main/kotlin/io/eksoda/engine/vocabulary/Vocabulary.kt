@@ -1,4 +1,3 @@
-// Port of backend/apps/receipts/vocabulary.py.
 package io.eksoda.engine.vocabulary
 
 import io.eksoda.engine.mydata.DocumentKind

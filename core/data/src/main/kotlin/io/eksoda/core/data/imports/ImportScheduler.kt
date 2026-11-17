@@ -13,21 +13,21 @@ import javax.inject.Singleton
 
 /**
  * Enqueues one ImportWorker run per job as unique work "import-<jobId>", needing a network
- * connection (§7.2). A job waits in `pending` while the phone is offline.
+ * connection. A job waits in `pending` while the phone is offline.
  */
 @Singleton
 class ImportScheduler @Inject constructor(private val workManager: WorkManager) {
     /**
      * A new or requeued job: runs now. An already queued run is kept. [userInitiated]: the user
      * just scanned, pasted, shared or retried it, so the run is expedited and starts at once
-     * instead of whenever the scheduler gets to it (§7.2). Without expedited quota it runs as
+     * instead of whenever the scheduler gets to it. Without expedited quota it runs as
      * normal work.
      */
     fun enqueue(jobId: String, userInitiated: Boolean = false) =
         enqueue(jobId, delayMillis = 0, ExistingWorkPolicy.KEEP, expedited = userInitiated)
 
     /**
-     * The next attempt after a retryable failure (§7.3). Called from the running worker, so the
+     * The next attempt after a retryable failure. Called from the running worker, so the
      * request is appended: the current run finishes first.
      */
     fun enqueueRetry(jobId: String, delayMillis: Long) =

@@ -1,11 +1,10 @@
-// Port of backend/apps/receipts/providers/entersoft/urls.py.
 package io.eksoda.engine.providers.entersoft
 
 import io.eksoda.engine.providers.UrlIdentity
 import io.eksoda.engine.url.ParsedUrl
 import java.util.Locale
 
-// Entersoft receipt URL recognition (docs/providers/entersoft.md §1).
+// Entersoft receipt URL recognition.
 
 public const val PROVIDER_CODE: String = "entersoft"
 public const val HOST: String = "e-invoicing.gr"

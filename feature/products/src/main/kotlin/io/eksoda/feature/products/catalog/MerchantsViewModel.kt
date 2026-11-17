@@ -55,9 +55,8 @@ sealed interface MerchantDetailEffect {
 }
 
 /**
- * Merchant detail (`android-app.md` §6.8, `android-standalone.md` §11): rename, and the default
- * category, which the receipt category filter and Insights use for the merchant's receipts
- * (this replaces the server's staff curation).
+ * Merchant detail: rename, and the default category, which the receipt category filter and
+ * Insights use for the merchant's receipts.
  */
 @HiltViewModel
 class MerchantDetailViewModel @Inject constructor(

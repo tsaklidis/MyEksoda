@@ -1,4 +1,3 @@
-// Port of backend/apps/receipts/providers/html.py (BeautifulSoup → Jsoup).
 package io.eksoda.engine.providers
 
 import io.eksoda.engine.FormatChanged
@@ -21,7 +20,7 @@ private val CURRENCY_NOISE = Regex("""(?i)\s*(?:€|EUR|ευρώ|ευρω)\s*"""
 /**
  * `collapse_whitespace(element.get_text(" ", strip=True))`. Jsoup's `text()` joins text around
  * block elements differently, so this walks the text nodes as BeautifulSoup does: strip each,
- * drop empty ones, join with " " (§9.3). Script and style contents are data nodes in Jsoup and
+ * drop empty ones, join with " ". Script and style contents are data nodes in Jsoup and
  * are skipped, like BeautifulSoup's Script and Stylesheet strings.
  */
 public fun textOf(element: Element?): String {

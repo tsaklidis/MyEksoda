@@ -50,7 +50,7 @@ interface MerchantDao {
     @Query("SELECT * FROM merchant WHERE id = :id")
     suspend fun get(id: String): MerchantEntity?
 
-    /** Every merchant, the most frequent first (the server's `ordering=-receipt_count`). */
+    /** Every merchant, the most frequent first. */
     @Query("$MERCHANT_ROW ORDER BY receipt_count DESC, merchant.normalized_display_name")
     fun observeRows(): Flow<List<MerchantRow>>
 

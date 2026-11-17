@@ -59,7 +59,7 @@ import io.eksoda.feature.products.common.catalogErrorRes
 /** A category being created (no id) or renamed. */
 private data class NameDialog(val id: String?, val name: String)
 
-/** Categories (`android-app.md` §6.9): create, rename and delete the household's own. */
+/** Categories: create, rename and delete the household's own. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoriesRoute(onBack: () -> Unit, viewModel: CategoriesViewModel = hiltViewModel()) {

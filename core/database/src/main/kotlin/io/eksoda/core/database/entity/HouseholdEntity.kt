@@ -5,7 +5,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 /**
- * The one household of this database file (households.Household; docs/android-standalone.md §6.3).
+ * The one household of this database file.
  * Timestamps are UTC epoch milliseconds.
  */
 @Entity(tableName = "household")

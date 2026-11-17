@@ -21,7 +21,7 @@ import java.util.UUID
 import javax.inject.Inject
 
 /**
- * Corrections people make to matching: the server's `products/review.py`. Each function runs
+ * Corrections people make to matching. Each function runs
  * inside the caller's WriteCoordinator transaction and recomputes the affected lines' prices.
  * Corrections never change source amounts or original descriptions.
  */
@@ -182,7 +182,7 @@ class ReviewService @Inject constructor(
     }
 }
 
-/** The product with [draft]'s values, checked like the server's `ProductSerializer`. */
+/** The product with [draft]'s values, checked. */
 internal fun ProductEntity.with(draft: ProductDraft): ProductEntity {
     val name = draft.name.trim()
     if (name.isEmpty()) fail(CatalogError.BLANK_NAME)

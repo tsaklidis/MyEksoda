@@ -1,68 +1,63 @@
 # Code map: read this instead of the codebase
 
-A compact map of how the app is built, so a session can find the right files without
-reading them. It is written by hand; `SYMBOLS.md` next to it is generated
-(`make codemap`) and lists every declaration with its line number.
+How the app is built, so a session can find the right files without reading them. Written by
+hand; `SYMBOLS.md` beside it is generated (`make codemap`) and lists every declaration with its
+line. The look is in `docs/design/ui-redesign.md`. Nothing else is needed.
 
-**Lookup order (cheapest first):**
+**Lookup order:** this file → `rtk grep -n '<Name>' docs/codemap/SYMBOLS.md` → open only that
+line range. Keep this file current when a change adds a module, a pipeline step or a pattern.
 
-1. This file: which module and file own the thing.
-2. `rtk grep -n '<Name>' docs/codemap/SYMBOLS.md`: the exact file and line.
-3. Open only that range: `rtk read <file>` or `sed -n '<from>,<to>p' <file>`.
-4. A guide section, never the whole guide: `scripts/guide.sh 7.4` (standalone guide) or
-   `scripts/guide.sh 6.4.2 android-app`. `scripts/guide.sh toc` lists the sections.
+## What the app promises
 
-**The app is standalone and Android-only. This repository is the only source of truth.**
+Your receipts never leave the phone: no server, no account, no analytics, no crash reporting.
+The only network traffic is HTTPS GETs to the receipt providers (Impact, Entersoft, AADE).
+Data is in a SQLCipher database; Android cloud backup is off (`allowBackup=false`,
+`dataExtractionRules`); the user's own encrypted export is the only backup.
 
-Keep this file current: when a change adds a module, a pipeline step, a pattern or a
-milestone result, update the matching section here in the same change, and run
-`make codemap`.
+## Status (2026-11-17)
 
-## Status (2026-11-16)
-
-| Milestone | State |
-|---|---|
-| L0 foundation | Done |
-| L1 engine core, L2 providers + fetcher | Built, **few tests yet** (owner's choice; the planned Python test vectors are cancelled). `make check` fails at `:core:engine:koverVerify` until tests exist |
-| L3 storage + import | Built: schema, SQLCipher, KeyManager, Persister, ImportService/Worker. No tests |
-| L4 capture + receipts UI | **Done** (2026-11-15): onboarding, scan, imports list, share dialog, receipts list/filters/detail, swipe actions, remembered filters |
-| L5 products + review | Built (2026-11-16), awaiting `make check`: `feature:products` (list, detail, edit, merge, review queue, categories, merchants), `core:data/products/ReviewService`, `imports/ProductMatcher`. **UI redesign applied (2026-11-16, owner decision):** dark three-color theme, Plex Mono numbers, new components and charts, Product detail per `docs/design/ui-redesign.md` §5; not yet compiled |
-| L6 analytics + home | In progress (2026-11-16): `AnalyticsDao` + `AnalyticsRepositoryImpl`, `engine/analytics/Combine.kt`, Home and Insights per the mockups, `feature:settings` (language, notifications, catalog links, credits), automatic categories (`engine/products/AutoCategory.kt`: products by name/brand, merchants by activity, eating out at cafés; `AutoCategoryBackfill` v2), tab back history in `MainTabs`, price chart by change of price (`pricePoints`) |
-| L7 | Not started |
-
-The authoritative table is the guide's §16 (`scripts/guide.sh 16`).
+Built: scan/paste/share/photo import with retries, receipts (list, filters, detail, edits),
+products (list, detail with price history, edit, merge, review queue), categories, shops,
+automatic categories, Home (short: total, attention, top categories, recent), Insights (presets
+from Today to Year plus a custom range, pace chart for this month), Settings, encrypted backup
+and restore.
+Not built: backup reminder, restore from onboarding, app lock (`BiometricPrompt`), hide content
+(`FLAG_SECURE`), delete all data, light theme, release build (R8, baseline profile).
+Tests are few outside the engine rules (validation, automatic categories), price points and
+backup.
 
 ## Modules and dependency rules
 
 ```
 app                    Application, MainActivity, AppViewModel, nav graph (ui/EksodaApp.kt,
                        ui/Destinations.kt), Hilt root. Depends on the features it shows.
-core:engine   (JVM)    Pure Kotlin rules: parsers, matching, prices, analytics math. NO android.*.
-                       Explicit API. Owned here (first ported from the retired server).
+core:engine   (JVM)    Pure Kotlin rules: parsers, fetcher, matching, prices, analytics math.
+                       NO android.*. Explicit API.
 core:model    (JVM)    Domain types the UI sees (Receipt, Money, ImportJob, Period, filters…)
 core:database          Room + SQLCipher: entities (entity/Entities.kt), DAOs, CategorySeed
-core:data              Repositories (interface + Impl), imports/ pipeline, KeyManager,
+core:data              Repositories (interface + Impl), imports/ pipeline, backup/, KeyManager,
                        WriteCoordinator, Fixed, DI modules (di/)
-core:designsystem      Theme (the redesign's dark scheme + EksodaColors, Inter + IBM Plex Mono,
-                       shapes), components (SectionCard, ChangeBadge, HeroAmount, StatRow,
-                       OverlineText, PeriodSelector, SegmentedToggle, navigation bar/rail +
-                       ScanButton, CategoryTile/Icon, MerchantAvatar, groupedItem, Button),
-                       chart/ (MinMaxBar, RangeDotPlot, BarChart, LineChart, DonutChart,
-                       ShareBar), text/monoNumbers
+core:designsystem      Theme (dark scheme + EksodaColors, Inter + IBM Plex Mono, shapes),
+                       components (SectionCard, ChangeBadge, HeroAmount, StatRow, OverlineText,
+                       PeriodSelector, SegmentedToggle, navigation bar/rail + ScanButton,
+                       CategoryTile/Icon, MerchantAvatar, groupedItem, Button), chart/
+                       (MinMaxBar, RangeDotPlot, BarChart, LineChart, DonutChart, ShareBar),
+                       text/monoNumbers
 core:ui                Shared composables (EmptyState, MoneyText, HeroMoney) and text helpers
                        (formatMoney, formatAmount, currencySymbol, dayLabel, importErrorRes,
                        categoryNameRes)
 feature:*              Screens. See only core:data interfaces, core:model, core:ui,
-                       core:designsystem (wired by the eksoda.android.feature plugin)
+                       core:designsystem (wired by the eksoda.android.feature plugin).
+                       feature:household is empty.
 build-logic            Convention plugins: eksoda.android.{application,library,compose,
                        feature,room}, eksoda.jvm.library, eksoda.hilt; Quality.kt (Spotless,
                        detekt, Kover); NoTelemetryCheck.kt
 ```
 
 Package roots: `io.eksoda` (app), `io.eksoda.engine` (engine), `io.eksoda.core.<module>`,
-`io.eksoda.feature.<feature>`. Sources are under `src/main/kotlin/`.
-Short paths in this file drop that prefix: `core/data/util/Fixed.kt` is
-`core/data/src/main/kotlin/io/eksoda/core/data/util/Fixed.kt`; `SYMBOLS.md` has full paths.
+`io.eksoda.feature.<feature>`. Sources are under `src/main/kotlin/`. Short paths here drop that
+prefix: `core/data/util/Fixed.kt` is `core/data/src/main/kotlin/io/eksoda/core/data/util/Fixed.kt`.
+SDK: `minSdk` 26, `targetSdk` 36, `compileSdk` 37.
 
 ## The import pipeline (the heart of the app)
 
@@ -96,11 +91,15 @@ sealed `ReceiptException` (`ReceiptException.kt`) with `code`, retry policy and
 Providers: `engine/providers/{impact,entersoft,aadefhm}/` each with `Urls.kt`
 (recognize), `Parser.kt` (layouts → `CanonicalReceipt`), `Sanitize.kt`; Impact also
 `Labels.kt`, `Views.kt`. Shared: `Base.kt` (`Provider`, `Layout`, `UrlIdentity`,
-`maskUrl`), `Registry.kt` (`REGISTRY`), `Html.kt` (`textOf`), `Sanitizing.kt`.
-Fetcher: `engine/fetch/SafeFetcher.kt` (the only OkHttp client), `PublicAddress.kt`.
+`maskUrl`), `Registry.kt` (`REGISTRY`), `Html.kt` (`textOf`, Jsoup), `Sanitizing.kt`.
+Fixtures: `testdata/fixtures/<provider>/` (sample page + expected JSON), edited with the parser.
 
-Python-compatible text helpers (kept because stored keys depend on them; reuse them in
-parsers, don't reinvent):
+Fetcher: `engine/fetch/SafeFetcher.kt`, the only OkHttp client in the app: https/443 to
+allowlisted hosts, a `Dns` that rejects non-public addresses (`PublicAddress.kt`), no
+redirects/cookies/cache/proxy, timeouts 5/15/30 s, 2 MiB after decompression, `text/html`
+only, one request per host at least 1 s apart.
+
+Text helpers (stored keys depend on their exact behavior; reuse them, don't reinvent):
 `text/PyStrings.kt` (`pySplit`, `pyStrip`, `pyIsDigit`, `pyRegex` = Unicode-aware regex),
 `text/PyDecimal.kt` (`pyDivide` = 28 digits HALF_EVEN, `pyStr`), `text/PyTime.kt`
 (`pyIsoFormat`, `pyLocalToOffset`), `text/Text.kt` (`normalizeText`, `stripDiacritics`,
@@ -110,15 +109,20 @@ parsers, don't reinvent):
 ## Data layer
 
 - **Tables** (`core/database/.../entity/Entities.kt`, `HouseholdEntity.kt`): household,
-  category, merchant, store, product, merchant_product_mapping, receipt, receipt_item,
-  import_job, tombstone. One DB file = one household (no `household_id`). UUID `TEXT` ids,
-  `created_at`/`updated_at` epoch ms. Deletes write a `tombstone` row.
+  category (19 system ones seeded), merchant, store, product, merchant_product_mapping,
+  receipt, receipt_item, import_job, tombstone. One DB file = one household (no
+  `household_id`). UUID `TEXT` ids, `created_at`/`updated_at` epoch ms UTC, plus
+  `issued_local_date` (`YYYY-MM-DD` in the household zone). Deletes write a `tombstone` row.
 - `EksodaDatabase` version **4**, `exportSchema = true`; schema JSON in
-  `core/database/schemas/`. Pre-release: bump the version and let the schema change; no
-  migrations until L7 (then `MigrationTestHelper`).
+  `core/database/schemas/`. Before the first release: bump the version and let the schema
+  change; no migrations yet (then `MigrationTestHelper`). A new table also goes in
+  `BackupArchive.TABLES`.
 - **Decimals:** columns are fixed-point `Long` with a suffix: `_minor` (2), `_e2` (2),
   `_e4` (4), `_e6` (6). Convert only with `core/data/util/Fixed.kt`
   (`Fixed.toLong(v, Fixed.E4)`, `Fixed.toDecimal(l, Fixed.MINOR)`).
+- **Long lists** (receipts, products) page with `listPagingConfig` (`repository/ListPaging.kt`):
+  no placeholders, pages loaded one page ahead. The product list has one query per ordering
+  (`ProductDao.pagingByName` walks the `normalized_name` index; never a `CASE` in ORDER BY).
 - **Writes** touching receipts/products/mappings: `WriteCoordinator.write { }` (Mutex +
   transaction). Reads: `Flow` from Room; lists use Paging (`PagingSource` in the DAO,
   `Pager` in the repository).
@@ -127,22 +131,37 @@ parsers, don't reinvent):
   `source_data` or the URL); `ROW_SELECT` (`receipt.*`) is for one receipt (detail). Search
   is `instr(normalized_col, :key) > 0` on `normalizeText(query)`. Orderings end with the id in
   the same direction, matching the `(issued_at, id)` and `(gross_total_minor, id)` indexes.
-- The SQLCipher key is passed in raw-key form (`sqlCipherRawKey`, `db/KeyManager.kt`): no
-  PBKDF2 per connection.
+- Database key (`db/KeyManager.kt`, the only code touching keys): 32 random bytes, wrapped by an
+  AES-GCM Android Keystore key in `noBackupFilesDir`, passed in raw-key form
+  (`sqlCipherRawKey`, no PBKDF2 per connection). If unwrapping fails, never create a new empty
+  database over the old file.
 - Repositories return `core:model` types, `Result<T>` for suspend calls, `Flow` for reads.
   Mapping entity/row → model is private in the `*Impl` (`toModel()`), using
   `HouseholdZone.current()` for dates.
 - DI: `di/AppModule.kt` (Engine, WorkManager, DataStore, `@ApplicationScope`,
   `RepositoryModule` @Binds), `di/DatabaseModule.kt` (DB + one `@Provides` per DAO),
-  `di/CoreModule.kt` (`Clock`, `@IoDispatcher`, `@DefaultDispatcher`).
-- Repositories: Receipt (+Impl), ReceiptOptions (+Impl), ReceiptFilterStore (+Impl: the
-  receipt list's last filters in DataStore, ids only, names re-read from the database),
-  Household (+Impl), Product (+Impl), Review (+Impl: queue, link, create, reclassify),
-  Catalog (+Impl: categories, merchant rename and default category), Analytics (+Impl:
-  summary, by category with buckets, by merchant, top products, monthly trend, Home pace,
-  over `AnalyticsDao`; `changes()` re-emits on table changes), Settings (+Impl: preferences
-  shown in Settings). Refused catalog writes are `CatalogException`.
-  `products/AutoCategoryBackfill` categorizes old products once.
+  `di/CoreModule.kt` (`Clock`, `@IoDispatcher`, `@DefaultDispatcher`). Parsing and analytics
+  on Default, database and network on IO.
+- Repositories: Receipt, ReceiptOptions, ReceiptFilterStore (the receipt list's last filters
+  in DataStore, ids only, names re-read from the database), Household, Product, Review (queue,
+  link, create, reclassify), Catalog (categories, merchant rename and default category;
+  refusals are `CatalogException`), Analytics (summary, by category with buckets, by merchant,
+  top products, monthly trend, Home pace, over `AnalyticsDao`; `changes()` re-emits on table
+  changes), Settings (preferences shown in Settings), Backup (export, open, restore; errors are
+  `BackupException(BackupError)`). Each has an `*Impl`. `products/AutoCategoryBackfill`
+  categorizes old products and merchants once (versioned in preferences).
+- **Backup** (`core:data/backup/`): `BackupFile.kt` writes `EKSODABK` | header length (uint32
+  BE) | header JSON (format, app version, created at, PBKDF2-HMAC-SHA256 600k iterations +
+  16-byte salt, 12-byte nonce) | AES-256-GCM ciphertext; the header is the GCM additional data
+  and the passphrase is NFC-normalized, never stored. `BackupArchive.kt`: a ZIP of
+  `manifest.json` (schema, counts, household, receipt date range) + `<table>.ndjson`, rows by
+  column name (older files restore), decimals as strings without the scale suffix
+  (`"gross_total": "32.10"`). `TABLES` is parents first and a test checks it lists every table.
+  Restore replaces everything in one `WriteCoordinator` transaction (deferred foreign keys,
+  then `foreign_key_check`), then requeues pending import jobs. Export and restore run in
+  `@ApplicationScope`, not WorkManager: worker input is stored unencrypted, and the passphrase
+  must never reach disk. Passphrase fields use `remember`, not `rememberSaveable`. Files go
+  through the Storage Access Framework (`CreateDocument` / `OpenDocument`).
 
 ## UI pattern (follow `feature/receipts`, `feature/scan`, `feature/products`, `feature/home`)
 
@@ -154,16 +173,17 @@ parsers, don't reinvent):
 - Screen file: `fun XRoute(onBack…, viewModel: XViewModel = hiltViewModel())` collects
   with `collectAsStateWithLifecycle()` and effects in a `LaunchedEffect`; it calls a
   stateless `fun XScreen(state, onEvent, …)`; sub-parts are `private`/`internal`
-  composables (big screens split into `XSections.kt`).
+  composables (big screens split into `XSections.kt`). Components have a `@Preview`.
 - Navigation: `@Serializable` destinations in `app/ui/Destinations.kt` (ids only, **never a
   receipt URL**), wired in `MainNavHost` in `app/ui/EksodaApp.kt`; top-level sections are tabs
   in `app/ui/MainTabs.kt` (`EksodaNavigationBar` under 600 dp, `EksodaNavigationRail` wider,
-  Scan as the raised button); add the feature to
-  `app/build.gradle.kts` dependencies. Elements that travel between screens use
-  `Modifier.sharedBoundsIfAvailable(SharedKeys…)` (`core:ui` `motion/`).
-- **Look: `docs/design/ui-redesign.md`** (mockups linked there). Dark base, two accents with one
-  meaning each: terracotta = this period, spending, "more", "pricier", attention, Scan;
-  periwinkle = previous period, selection, "less", "cheaper", links, active tab. No green; red
+  Scan as the raised button); add the feature to `app/build.gradle.kts` dependencies. Elements
+  that travel between screens use `Modifier.sharedBoundsIfAvailable(SharedKeys…)` (`core:ui`
+  `motion/`). Back on a tab other than Home returns to the previous tab; only Back on Home
+  leaves the app.
+- **Look: `docs/design/ui-redesign.md`.** Dark base, two accents with one meaning each:
+  terracotta = this period, spending, "more", "pricier", attention, Scan; periwinkle =
+  previous period, selection, "less", "cheaper", links, active tab. No green; red
   (`colorScheme.error`) only for errors and destructive actions; color never alone (arrows and
   words). Read colors from `MaterialTheme.colorScheme` or `EksodaTheme.colors` (`EksodaColors`:
   spend*/compare* families, panel, inset, tile, line, guide, inks, `rank`), **never a hex in a
@@ -171,6 +191,13 @@ parsers, don't reinvent):
   small labels are `OverlineText` (sentence case, wraps to 2 lines); figures are `StatRow`
   (side by side when they fit, else one per line); charts come from
   `core:designsystem/chart` (BigDecimal in, colors by rank, content description required).
+- **Compose stability:** `compose-stability.conf` (root, applied by `eksoda.android.compose`)
+  marks every `core:model` type stable, so list rows skip redrawing when their data is equal.
+  Keep `core:model` immutable (no `var`, no mutable collections). List rows are plain
+  `Row`s, not `ListItem` (see `ReceiptRow`).
+- **Periods:** `core:model` `PeriodPreset` (Today, This week from Monday, This month, Last month,
+  3 months, This year) serves Insights (`soFar(today)`) and the receipt filter (`range(today)`,
+  the whole calendar period). Custom ranges use `core:ui` `DateRangeDialog`.
 - **Never put text in capitals** (no `uppercase()` on UI text, no caps styles). When text does
   not fit, rearrange: wrap, stack (as `StatRow` does), or use a shorter word.
 - Screens without a `Scaffold` (Home, Insights) set `LocalContentColor` to `colors.ink`
@@ -181,10 +208,11 @@ parsers, don't reinvent):
 - Strings: per module `values/strings.xml` (Greek, the default), `values-el/` (Greek) and
   `values-en/` (English); every string in all three (lint fails otherwise). Plurals for
   counts. The Greek must read naturally. The app's language is chosen in Settings
-  (`core:ui` `AppLanguage`: `LocaleManager` on 13+, `wrap()` in `attachBaseContext` before). Error codes → `importErrorRes(code)`; money → `MoneyText` /
-  `formatMoney(money, appLocale())`; category names → `categoryNameRes(slug)`.
+  (`core:ui` `AppLanguage`: `LocaleManager` on 13+, `wrap()` in `attachBaseContext` before).
+  Error codes → `importErrorRes(code)`; money → `MoneyText` / `formatMoney(money, appLocale())`;
+  category names → `categoryNameRes(slug)`.
 - Receipt text (descriptions, merchant names) is shown as printed, never translated.
-- Speed and polish helpers in `core:ui`: `dateFormatter(pattern, locale)` (cached; never
+- Helpers in `core:ui`: `dateFormatter(pattern, locale)` (cached; never
   `DateTimeFormatter.ofPattern` in a composable), `searchKey(text)` for accent-free matching
   of in-memory lists, `DelayedProgressIndicator` (no spinner flash on fast loads), and
   `EmptyState` with a one-line description. Text fields keep their text in the screen
@@ -197,14 +225,14 @@ parsers, don't reinvent):
 ## Hard rules that are easy to break
 
 - `BigDecimal` from `String`/`Long` only; no `Double`/`Float` (detekt bans `toDouble`,
-  `BigDecimal(Double)`). Compare with `compareTo`.
+  `BigDecimal(Double)`; only `core:designsystem/chart` converts to Float, for drawing).
+  Compare with `compareTo`.
 - No `android.util.Log`, `println`, `GlobalScope`, `java.util.Date`/`Calendar` (detekt).
   Inject `Clock` and dispatchers.
-- Receipt URLs are secrets: no logs, notifications, nav args, clipboard. Log host +
+- Receipt URLs are secrets: stored only in `receipt.source_url` and
+  `import_job.submitted_url`; no logs, notifications, nav args, clipboard. Log host +
   `fingerprint(url).take(12)` only.
 - OkHttp only in `core:engine` (configuration fails elsewhere). No Firebase/ML Kit/GMS
   (`:app:checkNoTelemetry`).
-- `testdata/fixtures/` belongs to this repository: edit fixtures
-  with the parser they test; there is nothing to sync. Never commit, push or `git init`.
-- Back on a tab other than Home returns to the previous tab (`MainTabs` history); only Back
-  on Home leaves the app.
+- Tests: JUnit 5 + AssertK in `core:engine` (fixtures in `testdata/fixtures/`); JUnit 4 +
+  Robolectric in Android modules (in-memory Room). No live network except tests tagged `live`.

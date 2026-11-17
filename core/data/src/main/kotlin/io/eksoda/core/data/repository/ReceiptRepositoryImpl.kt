@@ -1,7 +1,6 @@
 package io.eksoda.core.data.repository
 
 import androidx.paging.Pager
-import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
 import io.eksoda.core.data.db.WriteCoordinator
@@ -75,7 +74,7 @@ class ReceiptRepositoryImpl @Inject constructor(
 
     override fun getReceipts(filter: ReceiptFilter): Flow<PagingData<Receipt>> {
         val query = ReceiptQuery.list(filter)
-        return Pager(PagingConfig(pageSize = PAGE_SIZE)) { receipts.pagingRows(query) }.flow
+        return Pager(listPagingConfig(PAGE_SIZE)) { receipts.pagingRows(query) }.flow
             .map { page ->
                 val zone = householdZone.current()
                 page.map { it.toModel(zone) }
@@ -117,7 +116,7 @@ class ReceiptRepositoryImpl @Inject constructor(
     /**
      * `delete_receipt`: the receipt and its lines go; its import jobs stay, marked
      * `receipt_deleted`, so scanning the receipt again imports it again. A tombstone is kept for
-     * sync (§6.1).
+     * sync later.
      */
     override suspend fun deleteReceipt(id: String): Result<Unit> = runCatching {
         coordinator.write {
@@ -256,7 +255,7 @@ class ReceiptRepositoryImpl @Inject constructor(
         finishedAt = finishedAt?.let(Instant::ofEpochMilli),
         receiptId = receiptId,
         errorCode = lastErrorCode,
-        // A pending job with an error is waiting for its next attempt (android-app.md §6.3.4).
+        // A pending job with an error is waiting for its next attempt.
         nextAttemptAt = nextAttemptAt
             ?.takeIf { status == ImportService.STATUS_PENDING && lastErrorCode != null }
             ?.let(Instant::ofEpochMilli),
@@ -265,9 +264,9 @@ class ReceiptRepositoryImpl @Inject constructor(
     )
 
     private companion object {
-        const val PAGE_SIZE = 25
+        const val PAGE_SIZE = 40
 
-        /** android-app.md §6.4.3: `user_note` up to 2000 characters. */
+        /** `user_note` is up to 2000 characters. */
         const val MAX_NOTE_LENGTH = 2000
         const val STATUS_CANCELLED = "cancelled"
         const val DEFAULT_CURRENCY = "EUR"

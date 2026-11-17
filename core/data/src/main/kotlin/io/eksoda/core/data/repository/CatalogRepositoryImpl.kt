@@ -28,7 +28,7 @@ import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/** The server's `products/categories.py` and the merchant edits that replace staff curation. */
+/** Household categories and the user's merchant edits (name, default category). */
 @Singleton
 class CatalogRepositoryImpl @Inject constructor(
     private val categories: CategoryDao,
@@ -63,7 +63,7 @@ class CatalogRepositoryImpl @Inject constructor(
         }
     }
 
-    /** Merchants with it as their default category lose it (`SET NULL`, as on the server). */
+    /** Merchants with it as their default category lose it (`SET NULL`). */
     override suspend fun deleteCategory(id: String): Result<Unit> = runCatching {
         coordinator.write {
             val category = categories.get(id) ?: fail(CatalogError.NOT_FOUND)
@@ -123,7 +123,7 @@ class CatalogRepositoryImpl @Inject constructor(
             }
         }
 
-    /** The name trimmed, and its slug. A blank name is refused, like the server's field. */
+    /** The name trimmed, and its slug. A blank name is refused. */
     private fun checkedName(name: String): Pair<String, String> {
         val text = name.trim().take(CATEGORY_NAME_LENGTH)
         if (text.isEmpty()) fail(CatalogError.BLANK_NAME)

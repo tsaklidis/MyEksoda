@@ -99,7 +99,7 @@ fun ReceiptDetailRoute(
 
 /**
  * Opens the receipt page in a Custom Tab, with sharing turned off: the link works like a
- * password (§8.1). It is never copied or put in a share intent.
+ * password. It is never copied or put in a share intent.
  */
 private fun openInCustomTab(context: Context, link: String): Boolean = try {
     CustomTabsIntent.Builder()
@@ -111,7 +111,7 @@ private fun openInCustomTab(context: Context, link: String): Boolean = try {
     false
 }
 
-/** Receipt detail (android-app.md §6.4.3). */
+/** Receipt detail. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReceiptDetailScreen(
@@ -329,7 +329,7 @@ private fun ConfirmDialog(
     )
 }
 
-/** `user_note`, up to 2000 characters (android-app.md §6.4.3). */
+/** `user_note`, up to 2000 characters. */
 @Composable
 private fun NoteDialog(initial: String, onSave: (String) -> Unit, onDismiss: () -> Unit) {
     var text by rememberSaveable { mutableStateOf(initial) }
@@ -351,7 +351,7 @@ private fun NoteDialog(initial: String, onSave: (String) -> Unit, onDismiss: () 
     )
 }
 
-/** One of the merchant's stores, or none (android-app.md §6.4.3). */
+/** One of the merchant's stores, or none. */
 @Composable
 private fun StoreDialog(
     selectedId: String?,

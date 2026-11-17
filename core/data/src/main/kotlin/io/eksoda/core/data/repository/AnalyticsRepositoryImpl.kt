@@ -37,7 +37,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * The server's `analytics/queries.py` over the local database (§6.6): the included receipts are
+ * Spending analytics over the local database: the included receipts are
  * active, not excluded, and in the household's currency; credit notes count as negative.
  */
 @Singleton

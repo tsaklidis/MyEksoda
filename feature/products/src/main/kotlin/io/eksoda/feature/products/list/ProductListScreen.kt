@@ -63,6 +63,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import io.eksoda.core.designsystem.theme.EksodaTheme
 import io.eksoda.core.model.Category
@@ -130,7 +131,7 @@ fun ProductListRoute(
     }
 }
 
-/** Every product, with price history one tap away (`android-app.md` §6.6.1). */
+/** Every product, with price history one tap away. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductListScreen(
@@ -248,7 +249,11 @@ private fun ProductListContent(
                 state = listState,
                 contentPadding = PaddingValues(bottom = 88.dp),
             ) {
-                items(count = items.itemCount, key = items.itemKey { it.id }) { index ->
+                items(
+                    count = items.itemCount,
+                    key = items.itemKey { it.id },
+                    contentType = items.itemContentType { "product" },
+                ) { index ->
                     val product = items[index] ?: return@items
                     ProductRow(
                         product = product,

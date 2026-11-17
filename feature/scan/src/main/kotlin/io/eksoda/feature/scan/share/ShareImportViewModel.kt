@@ -20,7 +20,7 @@ sealed interface ShareImportUiState {
     data class Done(val feedback: ImportFeedback) : ShareImportUiState
 }
 
-/** Submits a link shared to Eksoda after the user confirms (android-app.md §6.3.6). */
+/** Submits a link shared to Eksoda after the user confirms. */
 @HiltViewModel
 class ShareImportViewModel @Inject constructor(private val receipts: ReceiptRepository) :
     ViewModel() {

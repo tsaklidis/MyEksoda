@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="insights_title">Στατιστικά</string>
+    <string name="insights_period_today">Σήμερα</string>
+    <string name="insights_period_this_week">Αυτή η εβδομάδα</string>
     <string name="insights_period_this_month">Αυτός ο μήνας</string>
     <string name="insights_period_last_month">Προηγούμενος μήνας</string>
     <string name="insights_period_3_months">3 μήνες</string>
     <string name="insights_period_year">Φέτος</string>
+    <string name="insights_period_custom">Άλλο διάστημα</string>
 
     <string name="insights_help_title">Πώς υπολογίζονται</string>
     <string name="insights_help_body">Μετράνε οι ενεργές αποδείξεις στο νόμισμα του νοικοκυριού. Οι επιστροφές αφαιρούνται. Οι ακυρωμένες αποδείξεις, όσες έχετε βγάλει από τα στατιστικά και όσες είναι σε άλλο νόμισμα δεν μετράνε.\n\nΗ σύγκριση γίνεται με το αμέσως προηγούμενο διάστημα ίδιας διάρκειας.\n\nΚάθε είδος μετράει στην κατηγορία του προϊόντος του, αλλιώς στην προεπιλεγμένη κατηγορία του καταστήματος. Οι εκπτώσεις, τα τέλη και οι αποδείξεις χωρίς είδη έχουν δικές τους ομάδες.</string>
@@ -22,11 +25,18 @@
     <string name="insights_receipts">Αποδείξεις</string>
     <string name="insights_average">Μέση απόδειξη</string>
     <string name="insights_refunds">Επιστροφές</string>
+    <string name="insights_per_day">Ανά ημέρα</string>
     <string name="insights_note">Οι επιστροφές αφαιρούνται. Δεν μετράνε οι ακυρωμένες αποδείξεις, όσες έχετε βγάλει από τα στατιστικά και όσες είναι σε άλλο νόμισμα.</string>
     <plurals name="insights_other_currency">
         <item quantity="one">Σε άλλο νόμισμα: %d απόδειξη.</item>
         <item quantity="other">Σε άλλο νόμισμα: %d αποδείξεις.</item>
     </plurals>
+
+    <string name="insights_pace_title">Μέρα με τη μέρα</string>
+    <string name="insights_pace_description">Το σύνολο αυτού του μήνα μέρα με τη μέρα, σε σύγκριση με τον προηγούμενο μήνα</string>
+    <string name="insights_pace_today">σήμερα</string>
+    <!-- %1$s: last month's name; %2$s: its total. -->
+    <string name="insights_pace_last_month">%1$s, σύνολο %2$s</string>
 
     <string name="insights_by_category">Ανά κατηγορία</string>
     <string name="insights_donut_description">Δαπάνες ανά κατηγορία. Μεγαλύτερες: %1$s</string>

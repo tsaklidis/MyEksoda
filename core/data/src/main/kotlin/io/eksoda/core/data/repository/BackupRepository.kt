@@ -4,10 +4,9 @@ import android.net.Uri
 import io.eksoda.core.model.BackupSummary
 
 /**
- * Export and import of all data as one encrypted file (docs/android-standalone.md §12.1). There
- * is no server, so this file is the only copy of the data outside the phone. It is encrypted
- * with a passphrase the user chooses; the passphrase is never stored, and without it the file
- * cannot be opened.
+ * Export and import of all data as one encrypted file. There is no server, so this file is the
+ * only copy of the data outside the phone. It is encrypted with a passphrase the user chooses;
+ * the passphrase is never stored, and without it the file cannot be opened.
  */
 interface BackupRepository {
     /**
@@ -24,22 +23,19 @@ interface BackupRepository {
     suspend fun open(source: Uri, passphrase: String): Result<RestorePlan>
 
     /**
-     * Replaces all data with the backup's in one transaction (v1 has no merge, §12.1). On any
+     * Replaces all data with the backup's in one transaction (there is no merge). On any
      * error nothing changes. Keeps running when the screen is left.
      */
     suspend fun restore(plan: RestorePlan): Result<Unit>
 
     companion object {
-        /** The shortest passphrase an export accepts (§12.1). */
+        /** The shortest passphrase an export accepts. */
         const val MIN_PASSPHRASE_LENGTH = 12
     }
 }
 
 /** A decrypted, checked backup waiting for the user to confirm the restore. */
-class RestorePlan internal constructor(
-    val summary: BackupSummary,
-    internal val archive: ByteArray,
-)
+class RestorePlan internal constructor(val summary: BackupSummary, internal val archive: ByteArray)
 
 enum class BackupError {
     /** The file is not an Eksoda backup. */

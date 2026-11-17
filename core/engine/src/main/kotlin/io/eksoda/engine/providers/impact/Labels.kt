@@ -1,7 +1,6 @@
-// Port of backend/apps/receipts/providers/impact/labels.py.
 package io.eksoda.engine.providers.impact
 
-// Field names of the Impact receipt page (docs/providers/impact.md §3).
+// Field names of the Impact receipt page.
 //
 // The commercial view marks fields with `field-<Name>` CSS classes. The tax view (myDATA) uses
 // label/value table rows whose labels are Greek in every culture (observed 2026-11-14). Labels

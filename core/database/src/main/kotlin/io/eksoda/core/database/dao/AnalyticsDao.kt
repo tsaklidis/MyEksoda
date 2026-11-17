@@ -4,7 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Query
 
-// The server's `analytics/queries.py` as SQL (requirements §13, android-app.md §6.6). Every query
+// Spending analytics as SQL. Every query
 // counts the *included* receipts: active, not excluded, in the household's currency, issued in
 // [start, end] (local dates, YYYY-MM-DD, both inclusive). Credit notes count as negative.
 

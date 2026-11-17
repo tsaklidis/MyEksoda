@@ -22,10 +22,9 @@ import io.eksoda.core.database.entity.StoreEntity
 import io.eksoda.core.database.entity.TombstoneEntity
 
 /**
- * The encrypted on-device database: one file per household (docs/android-standalone.md §6). It
- * is opened through SQLCipher with the key from KeyManager (core:data); tests use plain Room in
- * memory (§8.2). Until the first release the schema changes freely; each change updates the
- * exported schema in core/database/schemas (§6.4).
+ * The encrypted on-device database: one file per household. It is opened through SQLCipher with
+ * the key from KeyManager (core:data); tests use plain Room in memory. Until the first release
+ * the schema changes freely; each change updates the exported schema in core/database/schemas.
  */
 @Database(
     entities = [

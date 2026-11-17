@@ -3,9 +3,9 @@ package io.eksoda.core.model
 import java.math.BigDecimal
 import java.time.LocalDate
 
-/** The receipt list's search and filters (android-app.md §6.4.2). Null means "any". */
+/** The receipt list's search and filters. Null means "any". */
 public data class ReceiptFilter(
-    /** Text in a line description or the merchant name, compared as normalized text (§6.5). */
+    /** Text in a line description or the merchant name, compared as normalized text. */
     val query: String? = null,
     val merchant: Option? = null,
     val store: Option? = null,

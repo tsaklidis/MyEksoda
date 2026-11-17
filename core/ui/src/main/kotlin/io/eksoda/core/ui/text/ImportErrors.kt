@@ -4,7 +4,7 @@ import androidx.annotation.StringRes
 import io.eksoda.core.ui.R
 
 /**
- * The local string for an engine error code (docs/android-standalone.md §5.4). The engine's
+ * The local string for an engine error code. The engine's
  * English `publicMessage` is never shown. Unknown codes read as an internal error.
  */
 @StringRes

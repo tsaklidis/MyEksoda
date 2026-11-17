@@ -2,9 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Only to download receipt pages from the registered provider hosts (§7.4), from L2 on. -->
+    <!-- Only to download receipt pages from the registered provider hosts. -->
     <uses-permission android:name="android.permission.INTERNET" />
-    <!-- Asked for only when the user turns import notifications on (§7.6, L7). -->
+    <!-- Asked for only when the user turns import notifications on. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
@@ -32,7 +32,7 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <!-- Share target: a receipt link shared from Google Lens or the camera (§7.1). -->
+            <!-- Share target: a receipt link shared from Google Lens or the camera. -->
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />

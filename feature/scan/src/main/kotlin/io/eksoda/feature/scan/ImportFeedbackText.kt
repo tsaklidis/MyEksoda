@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import io.eksoda.core.ui.text.importErrorRes
 
-/** The chip text for a submission result (docs/android-standalone.md §11, §5.4). */
+/** The chip text for a submission result. */
 @Composable
 internal fun feedbackText(feedback: ImportFeedback): String = when (feedback) {
     is ImportFeedback.Importing -> stringResource(R.string.feedback_importing, feedback.number)

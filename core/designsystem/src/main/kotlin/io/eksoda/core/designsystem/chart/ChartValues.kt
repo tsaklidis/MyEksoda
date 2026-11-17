@@ -5,7 +5,7 @@ import java.math.MathContext
 
 /**
  * Converts a percent (0–100) to a 0–1 fraction for drawing a bar or a chart. This package is the
- * only place a decimal becomes a Float, and only for drawing (docs/android-standalone.md §5.2).
+ * only place a decimal becomes a Float, and only for drawing.
  */
 fun percentToFraction(percent: BigDecimal?): Float =
     ((percent?.toFloat() ?: 0f) / PERCENT).coerceIn(0f, 1f)

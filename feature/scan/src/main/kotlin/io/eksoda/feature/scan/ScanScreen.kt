@@ -115,7 +115,7 @@ fun ScanRoute(
     )
 }
 
-/** The camera screen (android-app.md §6.3.1). */
+/** The camera screen. */
 @Composable
 fun ScanScreen(
     state: ScanUiState,
@@ -401,7 +401,7 @@ private fun FeedbackChip(
     }
 }
 
-/** "That QR code isn't a receipt" shows for 2 seconds (android-app.md §6.3.1). */
+/** "That QR code isn't a receipt" shows for 2 seconds. */
 private const val SHORT_FEEDBACK_MILLIS = 2_000L
 private const val FEEDBACK_MILLIS = 4_000L
 private const val FEEDBACK_WITH_ACTION_MILLIS = 6_000L
@@ -439,8 +439,8 @@ private fun PasteLinkDialog(onImport: (String) -> Unit, onDismiss: () -> Unit) {
 }
 
 /**
- * The camera preview with a QR analyzer. zxing-cpp decodes on the device with no network
- * (docs/android-standalone.md §1.3). The analyzer thread is released with the composable.
+ * The camera preview with a QR analyzer. zxing-cpp decodes on the device with no network. The
+ * analyzer thread is released with the composable.
  */
 @Composable
 private fun CameraPreview(

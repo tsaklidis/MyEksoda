@@ -1,5 +1,3 @@
-// Port of the decisions in backend/apps/products/matching.py. The lookups and writes live in
-// core:data (docs/android-standalone.md §9.1).
 package io.eksoda.engine.products
 
 import io.eksoda.engine.merchants.FieldSize
@@ -7,7 +5,7 @@ import io.eksoda.engine.mydata.Unit
 import io.eksoda.engine.text.SequenceMatcher
 import io.eksoda.engine.text.pyStrip
 
-// Matching receipt lines to household products (requirements §9.2, TD §13.2).
+// Matching receipt lines to household products. The lookups and writes live in core:data.
 //
 // The key of a line is its merchant item code, or its normalized description when the merchant
 // prints no code:
@@ -18,14 +16,14 @@ import io.eksoda.engine.text.pyStrip
 //    mapping is left alone.
 // 2. No mapping → a product is created from the line (its name is the description, with a
 //    package size when the description states one unambiguously) together with a mapping, so
-//    the item's price history starts right away (D7).
+//    the item's price history starts right away.
 
-/** MATCH_GUARD_SIMILARITY in the server's settings. */
+/** Below this description similarity, a reused item code goes to review. */
 public const val MATCH_GUARD_SIMILARITY: Double = 0.4
 
 /**
- * The mapping key (§6.3): `code:<code>` when the line has an item code, otherwise
- * `desc:<normalized description>`. It replaces the server's two partial unique indexes.
+ * The mapping key: `code:<code>` when the line has an item code, otherwise
+ * `desc:<normalized description>`. One unique index on it replaces two partial ones.
  */
 public fun mappingKey(merchantProductCode: String?, normalizedDescription: String): String =
     if (merchantProductCode.isNullOrEmpty()) {

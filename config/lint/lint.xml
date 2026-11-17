@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Android Lint for every module. Versions are pinned on purpose (docs/android-standalone.md §3),
+<!-- Android Lint for every module. Versions are pinned on purpose (gradle/libs.versions.toml),
      so "a newer version is available" checks are off; everything else keeps its default. -->
 <lint>
     <issue id="GradleDependency" severity="ignore" />

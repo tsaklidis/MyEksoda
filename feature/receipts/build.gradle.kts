@@ -4,6 +4,6 @@ plugins {
 
 dependencies {
     implementation(libs.androidx.paging.compose)
-    // "Open original" opens the receipt page in a Custom Tab (docs/android-standalone.md §8.1).
+    // "Open original" opens the receipt page in a Custom Tab.
     implementation(libs.androidx.browser)
 }

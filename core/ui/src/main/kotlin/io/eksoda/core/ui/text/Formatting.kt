@@ -19,7 +19,7 @@ private const val MINUS_SIGN = '−'
 private const val DAYS_IN_A_WEEK = 7L
 private const val MAX_QUANTITY_DECIMALS = 3
 
-/** The app's locale, for numbers and dates (android-app.md §8). */
+/** The app's locale, for numbers and dates. */
 @Composable
 @ReadOnlyComposable
 fun appLocale(): Locale = LocalConfiguration.current.locales[0]
@@ -43,8 +43,8 @@ fun dateFormatter(pattern: String, locale: Locale): DateTimeFormatter =
     dateFormatters.getOrPut(pattern to locale) { DateTimeFormatter.ofPattern(pattern, locale) }
 
 /**
- * `12,40 €` in Greek, `€12.40` in English (android-app.md §7.4, §8). [negative] shows credit
- * notes and discounts with a true minus sign. BigDecimal throughout, never Double (§5.2).
+ * `12,40 €` in Greek, `€12.40` in English. [negative] shows credit notes and discounts with a
+ * true minus sign. BigDecimal throughout, never Double.
  */
 fun formatMoney(money: Money, locale: Locale, negative: Boolean = false): String {
     val format = currencyFormats.get().getOrPut(locale to money.currency) {
@@ -88,7 +88,7 @@ fun formatPercent(percent: BigDecimal, locale: Locale, decimals: Int = 1): Strin
 fun currencySymbol(currency: String, locale: Locale): String =
     runCatching { Currency.getInstance(currency).getSymbol(locale) }.getOrDefault(currency)
 
-/** Up to 3 decimals for kg and l, none for whole pieces (android-app.md §8). */
+/** Up to 3 decimals for kg and l, none for whole pieces. */
 fun formatQuantity(quantity: BigDecimal, locale: Locale): String {
     val format = quantityFormats.get().getOrPut(locale) {
         NumberFormat.getNumberInstance(locale).apply {
@@ -115,7 +115,7 @@ fun parseDecimalInput(text: String): BigDecimal? =
 
 /**
  * "Today", "Yesterday", a weekday within the last week, then "11 Nov", and "11 Nov 2025" for
- * other years (android-app.md §8).
+ * other years.
  */
 @Composable
 fun dayLabel(date: LocalDate, today: LocalDate): String {

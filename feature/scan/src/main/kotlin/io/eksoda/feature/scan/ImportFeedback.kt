@@ -2,12 +2,12 @@ package io.eksoda.feature.scan
 
 import io.eksoda.core.model.ImportSubmission
 
-/** What the user is told after submitting a receipt link (docs/android-standalone.md §11). */
+/** What the user is told after submitting a receipt link. */
 sealed interface ImportFeedback {
     /** Saved and importing. [number]: how many receipts this scan session sent. */
     data class Importing(val number: Int) : ImportFeedback
 
-    /** Saved; it imports when the phone is online (§7.2). */
+    /** Saved; it imports when the phone is online. */
     data class SavedOffline(val number: Int) : ImportFeedback
 
     data class AlreadyImported(val receiptId: String) : ImportFeedback
@@ -17,7 +17,7 @@ sealed interface ImportFeedback {
     /** Not a receipt link Eksoda can read; [code] is the engine's error code. */
     data class Rejected(val code: String) : ImportFeedback
 
-    /** A QR code that is not an https link (android-app.md §6.3.1). */
+    /** A QR code that is not an https link. */
     data object NotAReceipt : ImportFeedback
 
     /** The chosen photo has no QR code. */

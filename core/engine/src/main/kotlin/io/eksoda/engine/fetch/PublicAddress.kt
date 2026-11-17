@@ -1,5 +1,4 @@
-// Port of is_public_address in backend/apps/receipts/fetching.py, with CPython 3.13's
-// ipaddress network tables.
+// Whether an address is public, with CPython 3.13's ipaddress network tables.
 package io.eksoda.engine.fetch
 
 import java.net.Inet4Address

@@ -9,7 +9,7 @@ indent_style = space
 indent_size = 4
 
 [*.{kt,kts}]
-# Official Kotlin coding conventions (docs/android-standalone.md §5.1), line length 100.
+# Official Kotlin coding conventions, line length 100.
 ktlint_code_style = intellij_idea
 max_line_length = 100
 ij_kotlin_allow_trailing_comma = true

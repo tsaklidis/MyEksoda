@@ -40,7 +40,7 @@ import kotlinx.coroutines.SupervisorJob
 import javax.inject.Qualifier
 import javax.inject.Singleton
 
-/** A scope that lives as long as the process, for app-start work (never GlobalScope, §4.3). */
+/** A scope that lives as long as the process, for app-start work (never GlobalScope). */
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
 annotation class ApplicationScope
@@ -57,7 +57,7 @@ object AppModule {
     fun provideWorkManager(@ApplicationContext context: Context): WorkManager =
         WorkManager.getInstance(context)
 
-    /** Preferences only: theme, language, flags (§3). Never data or secrets. */
+    /** Preferences only: theme, language, flags. Never data or secrets. */
     @Provides
     @Singleton
     fun providePreferences(@ApplicationContext context: Context): DataStore<Preferences> =

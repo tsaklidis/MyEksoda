@@ -7,7 +7,7 @@ import java.time.ZoneId
 import java.util.Locale
 import kotlin.math.abs
 
-// Python datetime behavior the ported code depends on (docs/android-standalone.md §9.3).
+// Python datetime behavior the engine's stored times depend on.
 
 private const val NANOS_PER_MICRO = 1_000
 private const val SECONDS_PER_HOUR = 3_600

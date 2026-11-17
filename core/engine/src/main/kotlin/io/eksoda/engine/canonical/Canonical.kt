@@ -1,4 +1,3 @@
-// Port of backend/apps/receipts/canonical.py (the types; to_json is in CanonicalJson.kt).
 package io.eksoda.engine.canonical
 
 import io.eksoda.engine.mydata.DocumentKind
@@ -9,12 +8,11 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.OffsetDateTime
 
-// Provider-independent receipt representation (requirements §7.2, TD §9.1).
+// Provider-independent receipt representation (JSON form in CanonicalJson.kt).
 //
 // Provider adapters produce a CanonicalReceipt; the core only consumes this type. Amounts are
-// BigDecimal and always keep the values printed by the source (scale included, as Python's
-// Decimal does). Sources differ in what they provide, so every receipt states its `coverage`.
-// Maps keep insertion order, like Python dicts.
+// BigDecimal and always keep the values printed by the source (scale included). Sources differ
+// in what they provide, so every receipt states its `coverage`. Maps keep insertion order.
 
 public enum class PriceBasis(public val code: String) {
     GROSS("gross"),
@@ -159,7 +157,7 @@ public data class CanonicalReceipt(
     val providerCode: String,
     val parserVersion: String,
     val culture: String,
-    /** The receipt link: a credential. Never log it (§5.5). */
+    /** The receipt link: a credential. Never log it. */
     val sourceUrl: String,
     val issuer: Party,
     val document: Document,

@@ -1,4 +1,3 @@
-// Port of backend/apps/receipts/providers/entersoft/sanitize.py and entersoft/__init__.py.
 package io.eksoda.engine.providers.entersoft
 
 import io.eksoda.engine.FormatChanged
@@ -96,7 +95,7 @@ public suspend fun fetchDocument(identity: UrlIdentity, fetcher: Fetcher): Fetch
     return document
 }
 
-/** Entersoft e-receipt provider (e-invoicing.gr). Format: docs/providers/entersoft.md. */
+/** Entersoft e-receipt provider (e-invoicing.gr). */
 public val ENTERSOFT: Provider = Provider(
     code = PROVIDER_CODE,
     hosts = HOSTS,

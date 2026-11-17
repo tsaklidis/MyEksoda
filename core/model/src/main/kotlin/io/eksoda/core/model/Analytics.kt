@@ -4,7 +4,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.YearMonth
 
-// The results of the ported analytics functions (backend/apps/analytics/queries.py, §6.6).
+// The results of the analytics queries.
 // Amounts are in the household's default currency.
 
 /** `summary()`: spending in a period and the change from the period of equal length before. */
@@ -44,7 +44,7 @@ public data class CategorySpending(
     val buckets: List<SpendingBucket>,
 )
 
-/** Buckets that are not categories (requirements §13). */
+/** Buckets that are not categories. */
 public enum class SpendingBucketKind(public val code: String) {
     CATEGORY("category"),
     UNCATEGORIZED("uncategorized"),

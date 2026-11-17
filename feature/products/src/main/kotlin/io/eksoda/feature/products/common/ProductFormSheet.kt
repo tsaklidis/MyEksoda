@@ -50,7 +50,7 @@ import java.text.DecimalFormatSymbols
 import java.util.Locale
 
 /**
- * Create or edit a product (`android-app.md` §6.6.2 Edit, §6.7 New product): name, brand,
+ * Create or edit a product: name, brand,
  * category and the package size (both parts or neither). When [warnPackageChange], a changed
  * package size shows that every purchase's price per unit is recalculated.
  */

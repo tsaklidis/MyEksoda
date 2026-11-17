@@ -53,8 +53,8 @@ class MainActivity : ComponentActivity() {
     }
 
     /**
-     * A shared link (§7.1) or a tapped import notification (§7.6). The shared text is taken out
-     * of the intent once read, so the link does not stay in the activity's intent (§8.1).
+     * A shared link or a tapped import notification. The shared text is taken out of the intent
+     * once read, so the link does not stay in the activity's intent.
      */
     private fun handle(intent: Intent) {
         val launch = when {

@@ -11,7 +11,7 @@ import java.time.Clock
 @Module
 @InstallIn(SingletonComponent::class)
 object CoreModule {
-    /** "Now" always comes from this clock, so tests can fix it (§5.3). */
+    /** "Now" always comes from this clock, so tests can fix it. */
     @Provides
     fun provideClock(): Clock = Clock.systemDefaultZone()
 

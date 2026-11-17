@@ -25,7 +25,7 @@ import javax.crypto.spec.PBEKeySpec
 import javax.crypto.spec.SecretKeySpec
 
 /**
- * The encrypted backup file (docs/android-standalone.md §12.1):
+ * The encrypted backup file:
  *
  * ```
  * MAGIC "EKSODABK" | header length (uint32, big-endian) | header (UTF-8 JSON) | ciphertext

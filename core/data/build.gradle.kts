@@ -32,7 +32,7 @@ kover {
             }
         }
         verify {
-            rule("core:data line coverage (docs/android-standalone.md §10.3)") {
+            rule("core:data line coverage") {
                 minBound(80)
             }
         }

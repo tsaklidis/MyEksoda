@@ -1,4 +1,3 @@
-// Port of the pure parts of backend/apps/receipts/services/persistence.py.
 package io.eksoda.engine.persist
 
 import io.eksoda.engine.canonical.CanonicalReceipt
@@ -28,12 +27,12 @@ public fun paymentMethod(payments: List<Payment>): String {
     }
 }
 
-/** A non-zero cancellation MARK means the receipt was cancelled (requirements §8.6). */
+/** A non-zero cancellation MARK means the receipt was cancelled. */
 public fun isCancelled(identity: Identity): Boolean =
     identity.cancellationMark?.trim('0')?.isNotEmpty() == true
 
 /**
- * The canonical receipt as stored (requirements §15.3):
+ * The canonical receipt as stored:
  * - without its URL (a credential, stored only in `source_url`)
  * - with the names of unknown fields but not their values: an unknown field was not
  *   allowlisted, so it may hold personal data (a loyalty code, a terminal id)

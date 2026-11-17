@@ -8,7 +8,6 @@ import io.eksoda.core.data.repository.ReceiptRepository
 import io.eksoda.core.model.CategorySpending
 import io.eksoda.core.model.ImportStatus
 import io.eksoda.core.model.MonthPace
-import io.eksoda.core.model.MonthlyTrend
 import io.eksoda.core.model.Period
 import io.eksoda.core.model.Receipt
 import io.eksoda.core.model.SpendingSummary
@@ -28,7 +27,10 @@ import java.time.LocalDate
 import java.time.LocalTime
 import javax.inject.Inject
 
-/** What Home shows (docs/design/ui-redesign.md §5). Amounts are in the household's currency. */
+/**
+ * What Home shows (docs/design/ui-redesign.md §5): this month's total, what needs attention, the
+ * top categories and the latest receipts. Amounts are in the household's currency.
+ */
 data class HomeUiState(
     val loading: Boolean = true,
     /** Some figures could not be computed; the rest are shown. */
@@ -38,7 +40,6 @@ data class HomeUiState(
     val pace: MonthPace? = null,
     /** This month up to today. */
     val summary: SpendingSummary? = null,
-    val trend: MonthlyTrend? = null,
     val categories: CategorySpending? = null,
     val importing: Int = 0,
     val recent: List<Receipt> = emptyList(),
@@ -53,7 +54,6 @@ private data class Figures(
     val today: LocalDate,
     val pace: MonthPace?,
     val summary: SpendingSummary?,
-    val trend: MonthlyTrend?,
     val categories: CategorySpending?,
     val failed: Boolean,
 )
@@ -80,7 +80,6 @@ class HomeViewModel @Inject constructor(
             greeting = greetingAt(LocalTime.now()),
             pace = figures?.pace,
             summary = figures?.summary,
-            trend = figures?.trend,
             categories = figures?.categories,
             importing = importing,
             recent = recent,
@@ -96,14 +95,12 @@ class HomeViewModel @Inject constructor(
         val soFar = Period.Range(today.withDayOfMonth(1), today)
         val pace = async { analytics.getMonthPace() }
         val summary = async { analytics.getSummary(soFar) }
-        val trend = async { analytics.getMonthlyTrend(TREND_MONTHS) }
         val categories = async { analytics.getSpendingByCategory(soFar) }
-        val results = listOf(pace.await(), summary.await(), trend.await(), categories.await())
+        val results = listOf(pace.await(), summary.await(), categories.await())
         Figures(
             today = today,
             pace = pace.await().getOrNull(),
             summary = summary.await().getOrNull(),
-            trend = trend.await().getOrNull(),
             categories = categories.await().getOrNull(),
             failed = results.any { it.isFailure },
         )
@@ -112,7 +109,6 @@ class HomeViewModel @Inject constructor(
     private companion object {
         const val STOP_TIMEOUT = 5_000L
         const val RECENT_COUNT = 3
-        const val TREND_MONTHS = 6
     }
 }
 

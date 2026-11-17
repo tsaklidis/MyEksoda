@@ -13,7 +13,7 @@ import zxingcpp.BarcodeReader
 import javax.inject.Inject
 
 /**
- * Reads a receipt QR code from a gallery photo with zxing-cpp, on the device (§7.1). The photo
+ * Reads a receipt QR code from a gallery photo with zxing-cpp, on the device. The photo
  * is scaled down while decoding, so a large picture does not exhaust memory.
  */
 class QrImageDecoder @Inject constructor(

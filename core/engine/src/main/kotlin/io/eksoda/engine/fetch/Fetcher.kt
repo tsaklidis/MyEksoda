@@ -1,4 +1,3 @@
-// Port of FetchLimits and FetchedDocument in backend/apps/receipts/fetching.py.
 package io.eksoda.engine.fetch
 
 import io.eksoda.engine.FormatChanged
@@ -23,7 +22,7 @@ public class FetchedDocument(
     public val status: Int = 200,
     public val charset: String = "utf-8",
 ) {
-    /** The body decoded with [charset]; undecodable bytes become U+FFFD (Python: errors="replace"). */
+    /** The body decoded with [charset]; undecodable bytes become U+FFFD (like errors="replace"). */
     public fun text(): String {
         val encoding = charset.ifEmpty { "utf-8" }
         val decoder = try {
@@ -39,7 +38,7 @@ public class FetchedDocument(
 
 /**
  * Fetches receipt pages. [SafeFetcher] is the real one; tests use a fake that serves the
- * synced fixtures (docs/android-standalone.md §9.2).
+ * receipt fixtures.
  */
 public interface Fetcher {
     /**

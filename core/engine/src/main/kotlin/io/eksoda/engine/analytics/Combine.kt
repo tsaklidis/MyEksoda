@@ -1,12 +1,12 @@
-// Port of the bucket arithmetic of spending_by_category() in backend/apps/analytics/queries.py,
-// and the Android-only running totals of the Home pace chart (docs/design/ui-redesign.md §6).
+// The bucket arithmetic of spending by category, and the running totals of the Home pace chart
+// (docs/design/ui-redesign.md §6).
 package io.eksoda.engine.analytics
 
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.YearMonth
 
-/** Category buckets that are not categories (requirements §13). */
+/** Category buckets that are not categories. */
 public const val UNCATEGORIZED: String = "uncategorized"
 public const val DISCOUNTS: String = "discounts"
 public const val FEES: String = "fees_deposits"

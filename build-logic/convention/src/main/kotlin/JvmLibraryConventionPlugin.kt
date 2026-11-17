@@ -14,7 +14,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 
 /**
  * A plain Kotlin/JVM module with no Android (core:engine, core:model). Explicit API mode and
- * JUnit 5 (docs/android-standalone.md §3 and §5.1).
+ * JUnit 5.
  */
 class JvmLibraryConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
@@ -32,7 +32,7 @@ class JvmLibraryConventionPlugin : Plugin<Project> {
             configureQuality()
             tasks.withType<Test>().configureEach {
                 useJUnitPlatform {
-                    // Tests that fetch real receipt pages run only when asked for (§10.3).
+                    // Tests that fetch real receipt pages run only when asked for (-Plive).
                     if (!providers.gradleProperty("live").isPresent) excludeTags("live")
                 }
             }

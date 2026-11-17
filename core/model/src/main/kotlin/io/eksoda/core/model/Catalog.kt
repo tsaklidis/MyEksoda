@@ -6,7 +6,7 @@ import java.time.OffsetDateTime
 /** A category with the number of products in it. */
 public data class CategorySummary(val category: Category, val productCount: Int)
 
-/** A merchant as shown in the merchant list and detail (`android-app.md` §6.8). */
+/** A merchant as shown in the merchant list and detail. */
 public data class MerchantSummary(
     val id: String,
     val name: String,

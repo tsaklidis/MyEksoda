@@ -9,8 +9,8 @@ import io.eksoda.engine.text.normalizeText
 import java.math.BigDecimal
 
 /**
- * SQL for the receipt list (android-app.md §6.4.2). Search matches normalized text with
- * `instr`, not LIKE, so there is no wildcard escaping and no ASCII-only case folding (§6.5).
+ * SQL for the receipt list. Search matches normalized text with
+ * `instr`, not LIKE, so there is no wildcard escaping and no ASCII-only case folding.
  * Every value is a bound argument; only fixed SQL fragments are concatenated.
  */
 internal object ReceiptQuery {
@@ -91,7 +91,7 @@ internal object ReceiptQuery {
         "JOIN product p ON p.id = i.product_id " +
         "WHERE i.receipt_id = receipt.id AND p.category_id = ?)"
 
-    /** Like the server: a product of the category, or a merchant whose default category it is. */
+    /** A product of the category, or a merchant whose default category it is. */
     private const val CATEGORY = "($ITEM_CATEGORY OR merchant.default_category_id = ?)"
     private const val ITEM_PRODUCT = "EXISTS (SELECT 1 FROM receipt_item i " +
         "WHERE i.receipt_id = receipt.id AND i.product_id = ?)"

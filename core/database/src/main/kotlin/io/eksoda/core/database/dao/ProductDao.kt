@@ -19,6 +19,12 @@ private const val PRODUCT_ROW = """SELECT product.*, category.name AS category_n
         (SELECT COUNT(*) FROM receipt_item i WHERE i.product_id = product.id) AS line_count
     FROM product LEFT JOIN category ON category.id = product.category_id"""
 
+/** The product list's filters: name substring, category, bought at a merchant. */
+private const val PRODUCT_LIST_WHERE = """WHERE (:key = '' OR instr(product.normalized_name, :key) > 0)
+    AND (:categoryId IS NULL OR product.category_id = :categoryId)
+    AND (:merchantId IS NULL OR EXISTS (SELECT 1 FROM merchant_product_mapping m
+        WHERE m.product_id = product.id AND m.merchant_id = :merchantId))"""
+
 /** A product with its category and the number of receipt lines linked to it. */
 data class ProductRow(
     @Embedded val product: ProductEntity,
@@ -28,7 +34,7 @@ data class ProductRow(
     @ColumnInfo(name = "line_count") val lineCount: Int,
 )
 
-/** One `PRICE_HISTORY` line (the server's `products/prices.py`), with its receipt. */
+/** One `PRICE_HISTORY` line, with its receipt. */
 data class PriceRow(
     val id: String,
     @ColumnInfo(name = "receipt_id") val receiptId: String,
@@ -112,24 +118,30 @@ interface ProductDao {
     // --- list and detail --------------------------------------------------------------------
 
     /**
-     * The product list: [key] is a normalized substring of the name (empty for all), [merchantId]
-     * keeps products bought at that merchant (through its mappings, like the server). Sorted by
-     * name, or by the number of lines first when [byLineCount].
+     * The product list sorted by name: [key] is a normalized substring of the name (empty for
+     * all), [merchantId] keeps products bought at that merchant (through its mappings). A plain
+     * ORDER BY on `normalized_name` walks its index, so a page reads only the rows it shows
+     * (a `CASE` in the ORDER BY would sort the whole table for every page).
      */
     @Query(
-        """$PRODUCT_ROW
-           WHERE (:key = '' OR instr(product.normalized_name, :key) > 0)
-           AND (:categoryId IS NULL OR product.category_id = :categoryId)
-           AND (:merchantId IS NULL OR EXISTS (SELECT 1 FROM merchant_product_mapping m
-                WHERE m.product_id = product.id AND m.merchant_id = :merchantId))
-           ORDER BY CASE WHEN :byLineCount THEN line_count END DESC,
-                product.normalized_name, product.name, product.id""",
+        """$PRODUCT_ROW $PRODUCT_LIST_WHERE
+           ORDER BY product.normalized_name, product.name, product.id""",
     )
-    fun pagingRows(
+    fun pagingByName(
         key: String,
         categoryId: String?,
         merchantId: String?,
-        byLineCount: Boolean,
+    ): PagingSource<Int, ProductRow>
+
+    /** As [pagingByName], the most bought first. */
+    @Query(
+        """$PRODUCT_ROW $PRODUCT_LIST_WHERE
+           ORDER BY line_count DESC, product.normalized_name, product.name, product.id""",
+    )
+    fun pagingByLineCount(
+        key: String,
+        categoryId: String?,
+        merchantId: String?,
     ): PagingSource<Int, ProductRow>
 
     @Query("$PRODUCT_ROW WHERE product.id = :id")

@@ -47,7 +47,7 @@ import io.eksoda.core.ui.text.categoryName
 import io.eksoda.core.ui.text.searchKey
 import io.eksoda.feature.products.R
 
-/** Every merchant, the most frequent first, searched on the device (`android-app.md` §6.8). */
+/** Every merchant, the most frequent first, searched on the device. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MerchantsRoute(

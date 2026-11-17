@@ -9,9 +9,8 @@ import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.withType
 
 /**
- * Spotless (ktlint) and detekt for one module (docs/android-standalone.md §5.1, §12.2), plus the
- * rule that only core:engine may depend on OkHttp (§8.1: the engine's fetcher is the only HTTP
- * client in the app).
+ * Spotless (ktlint) and detekt for one module, plus the rule that only core:engine may depend on
+ * OkHttp (the engine's fetcher is the only HTTP client in the app).
  */
 internal fun Project.configureQuality() {
     pluginManager.apply("com.diffplug.spotless")
@@ -42,7 +41,7 @@ internal fun Project.configureQuality() {
                 if (group == OKHTTP_GROUP) {
                     throw GradleException(
                         "$path declares $group:$name in '$configurationName'. Only $ENGINE_PATH " +
-                            "may use OkHttp (docs/android-standalone.md §8.1).",
+                            "may use OkHttp.",
                     )
                 }
             }

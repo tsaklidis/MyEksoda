@@ -4,11 +4,11 @@ import java.math.BigDecimal
 import java.math.MathContext
 import java.math.RoundingMode
 
-// Python Decimal behavior the ported code depends on (docs/android-standalone.md §5.2, §9.3).
+// Python Decimal behavior the engine's stored values depend on.
 
 private const val PY_DECIMAL_PRECISION = 28
 
-/** Python `Decimal` division: 28 significant digits, ROUND_HALF_EVEN (§5.2). */
+/** Python `Decimal` division: 28 significant digits, ROUND_HALF_EVEN. */
 internal val PY_DECIMAL_CONTEXT: MathContext =
     MathContext(PY_DECIMAL_PRECISION, RoundingMode.HALF_EVEN)
 

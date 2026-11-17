@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/** App preferences shown in Settings (§3: preferences only, never data or secrets). */
+/** App preferences shown in Settings (preferences only, never data or secrets). */
 interface SettingsRepository {
     /** A notification when a receipt finishes importing while the app is closed. Off by default. */
     val notifyImports: Flow<Boolean>

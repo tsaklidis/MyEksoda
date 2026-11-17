@@ -3,7 +3,7 @@ package io.eksoda.core.model
 import java.math.BigDecimal
 import java.math.RoundingMode
 
-/** An amount in one currency. BigDecimal, never Double (docs/android-standalone.md §5.2). */
+/** An amount in one currency. BigDecimal, never Double. */
 public data class Money(val amount: BigDecimal, val currency: String) {
     public fun format(decimals: Int = 2): String =
         amount.setScale(decimals, RoundingMode.HALF_UP).toPlainString()

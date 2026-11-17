@@ -1,4 +1,4 @@
-# Latest stable versions as of L0 (2026-11-15). docs/android-standalone.md §3.
+# Latest stable versions as of 2026-11-15.
 [versions]
 agp = "9.5.1"
 kotlin = "2.4.21"
@@ -38,7 +38,7 @@ espresso = "3.7.0"
 spotless = "8.11.0"
 ktlint = "1.8.0"
 # 2.0 alpha, not 1.23.8 (the latest stable): 1.23 embeds Kotlin 2.0.21, which cannot run on the
-# JDK 25 that Gradle now runs on. 2.0.0-alpha.6 embeds Kotlin 2.4.10 (docs/android-standalone.md §16, L0).
+# JDK 25 that Gradle now runs on. 2.0.0-alpha.6 embeds Kotlin 2.4.10. Move to 2.0 stable when released.
 detekt = "2.0.0-alpha.6"
 kover = "0.9.11"
 
@@ -96,7 +96,7 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
 
-# QR codes: zxing-cpp, fully offline (§1.3). Never ML Kit.
+# QR codes: zxing-cpp, fully offline. Never ML Kit.
 zxing-cpp = { group = "io.github.zxing-cpp", name = "android", version.ref = "zxingCpp" }
 
 # Charts

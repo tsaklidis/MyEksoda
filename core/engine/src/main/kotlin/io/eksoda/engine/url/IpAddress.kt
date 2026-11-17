@@ -1,4 +1,4 @@
-// Port of the parts of CPython 3.13's ipaddress module that links.py and urllib.parse use.
+// Port of the parts of CPython 3.13's ipaddress module that URL validation and urlsplit use.
 package io.eksoda.engine.url
 
 // `ipaddress.ip_address(text)` only decides whether a string is an IP literal here, so these

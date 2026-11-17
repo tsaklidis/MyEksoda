@@ -30,7 +30,7 @@ import javax.inject.Singleton
 /**
  * Keeps the filters in the preferences DataStore. That file is not encrypted, so it holds ids,
  * dates, amounts and flags only: merchant, store and product names are read back from the
- * encrypted database (§8.1).
+ * encrypted database.
  */
 @Singleton
 class ReceiptFilterStoreImpl @Inject constructor(
@@ -110,7 +110,7 @@ class ReceiptFilterStoreImpl @Inject constructor(
         }
 
         /**
-         * A period saved in an earlier month becomes this month (android-app.md §6.4.2). With no
+         * A period saved in an earlier month becomes this month. With no
          * period chosen, the list stays unfiltered by date.
          */
         fun withCurrentPeriod(

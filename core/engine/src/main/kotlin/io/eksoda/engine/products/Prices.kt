@@ -1,5 +1,3 @@
-// Port of normalize() in backend/apps/products/prices.py. The PRICE_HISTORY filter and the
-// refresh functions query the database, so they live in core:data (docs/android-standalone.md §6.6).
 package io.eksoda.engine.products
 
 import io.eksoda.engine.classification.LineType
@@ -8,7 +6,8 @@ import io.eksoda.engine.text.pyDivide
 import java.math.BigDecimal
 import java.math.RoundingMode
 
-// Normalized unit prices on receipt lines (requirements §11.1, TD §13.4).
+// Normalized unit prices on receipt lines. The PRICE_HISTORY filter and the refresh functions
+// query the database, so they live in core:data.
 //
 // Price history is a query over receipt lines: each product line with a product carries its
 // quantity in a base unit and its price per base unit. A price is null when it cannot be
@@ -50,8 +49,8 @@ private const val QUANTITY_SCALE = 6 // NormalizedQuantityField
 private const val PRICE_SCALE = 4 // UnitPriceField
 
 /**
- * The normalized quantity, unit and unit price of [line] linked to [product], or null where
- * Python returns `(None, None, None)`: not a product line, no product, or no quantity.
+ * The normalized quantity, unit and unit price of [line] linked to [product], or null:
+ * not a product line, no product, or no quantity.
  */
 public fun normalize(line: PricedLine, product: ProductPackage?): NormalizedPrice? {
     val itemQuantity = line.quantity
@@ -64,7 +63,7 @@ public fun normalize(line: PricedLine, product: ProductPackage?): NormalizedPric
         line.unit == Unit.L -> toBase(itemQuantity, Unit.L.code)
 
         line.unit == Unit.PIECE && packageQuantity != null && packageQuantity.signum() != 0 -> {
-            // Python raises ValueError for a None unit; toBase does too.
+            // A missing unit is an error: toBase throws for it.
             val (packageInBase, base) = toBase(packageQuantity, product.unit ?: "None")
             itemQuantity * packageInBase to base
         }

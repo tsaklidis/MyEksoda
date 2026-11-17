@@ -2,7 +2,7 @@ package io.eksoda.engine.text
 
 import java.util.regex.Pattern
 
-// Python 3.13 string behavior the ported code depends on (docs/android-standalone.md §9.3).
+// Python 3.13 string behavior the engine's parsing and keys depend on.
 // Each helper names the Python construct it reproduces.
 
 // Character.isWhitespace leaves out these four, which Python's str.isspace() includes.
@@ -80,5 +80,5 @@ private val UNICODE_CLASSES: Int = try {
     0
 }
 
-/** Compiles a pattern with Python's Unicode-aware `\d`, `\w` and `\s` (§9.3). */
+/** Compiles a pattern with Python's Unicode-aware `\d`, `\w` and `\s`. */
 internal fun pyRegex(pattern: String): Regex = Pattern.compile(pattern, UNICODE_CLASSES).toRegex()

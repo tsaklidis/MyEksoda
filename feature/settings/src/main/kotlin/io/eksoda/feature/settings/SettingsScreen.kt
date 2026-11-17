@@ -37,6 +37,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -71,6 +72,24 @@ fun SettingsRoute(
     val permission = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { granted -> viewModel.onEvent(SettingsEvent.NotifyImportsChanged(granted)) }
+    // Storage Access Framework: no storage permission, the user picks the file.
+    val createBackup = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument(BACKUP_MIME_TYPE),
+    ) { uri -> viewModel.onEvent(SettingsEvent.ExportFileChosen(uri)) }
+    val openBackup = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri -> viewModel.onEvent(SettingsEvent.ImportFileChosen(uri)) }
+    LaunchedEffect(viewModel) {
+        viewModel.effects.collect { effect ->
+            // No app may handle the picker on a stripped-down device: then nothing happens.
+            runCatching {
+                when (effect) {
+                    is SettingsEffect.ChooseExportFile -> createBackup.launch(effect.fileName)
+                    SettingsEffect.ChooseImportFile -> openBackup.launch(arrayOf("*/*"))
+                }
+            }
+        }
+    }
     SettingsScreen(
         state = state,
         language = language,
@@ -86,8 +105,12 @@ fun SettingsRoute(
         },
         onCategoriesClick = onCategoriesClick,
         onMerchantsClick = onMerchantsClick,
+        onEvent = viewModel::onEvent,
     )
 }
+
+/** `.eksoda` files have no registered type; octet-stream keeps the name as given. */
+private const val BACKUP_MIME_TYPE = "application/octet-stream"
 
 private fun needsNotificationPermission(context: Context): Boolean =
     Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
@@ -109,8 +132,10 @@ fun SettingsScreen(
     onNotifyImportsChange: (Boolean) -> Unit,
     onCategoriesClick: () -> Unit,
     onMerchantsClick: () -> Unit,
+    onEvent: (SettingsEvent) -> Unit,
 ) {
     val colors = EksodaTheme.colors
+    BackupDialogs(dialog = state.backup, onEvent = onEvent)
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
@@ -172,6 +197,24 @@ fun SettingsScreen(
                     }
                     Switch(checked = state.notifyImports, onCheckedChange = onNotifyImportsChange)
                 }
+            }
+            SectionCard(title = stringResource(R.string.settings_backup)) {
+                Text(
+                    text = stringResource(R.string.settings_backup_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.ink2,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                )
+                HorizontalDivider(color = colors.line)
+                LinkRow(
+                    label = stringResource(R.string.settings_backup_export),
+                    onClick = { onEvent(SettingsEvent.ExportClicked) },
+                )
+                HorizontalDivider(color = colors.line)
+                LinkRow(
+                    label = stringResource(R.string.settings_backup_import),
+                    onClick = { onEvent(SettingsEvent.ImportClicked) },
+                )
             }
             SectionCard(title = stringResource(R.string.settings_catalog)) {
                 LinkRow(stringResource(R.string.settings_categories), onCategoriesClick)
@@ -334,6 +377,7 @@ private fun SettingsScreenPreview() {
             onNotifyImportsChange = {},
             onCategoriesClick = {},
             onMerchantsClick = {},
+            onEvent = {},
         )
     }
 }

@@ -33,7 +33,7 @@ class EksodaApplication :
     override fun onCreate() {
         super.onCreate()
         AppLanguage.initDefault(this)
-        // The after-update retry and requeueing pending imports (docs/android-standalone.md §7.3).
+        // The after-update retry and requeueing pending imports.
         // A database that cannot be opened (its key does not match) must not crash the app at
         // start: the UI shows "data unavailable" instead (AppViewModel).
         applicationScope.launch {

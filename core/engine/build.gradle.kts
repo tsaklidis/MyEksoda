@@ -4,16 +4,16 @@ plugins {
 }
 
 dependencies {
-    // The canonical receipt JSON (CanonicalJson) and, later, test vectors and backups (§3).
+    // The canonical receipt JSON (CanonicalJson).
     api(libs.kotlinx.serialization.json)
-    // Parsers take Jsoup documents (the Layout contract); the fetcher is the app's only HTTP client (§8.1).
+    // Parsers take Jsoup documents (the Layout contract); the fetcher is the app's only HTTP client.
     api(libs.jsoup)
     implementation(libs.okhttp)
     implementation(libs.kotlinx.coroutines.core)
 }
 
 tasks.test {
-    // Parser tests read this repository's receipt fixtures, testdata/fixtures/<provider>/ (§10).
+    // Parser tests read this repository's receipt fixtures, testdata/fixtures/<provider>/.
     systemProperty("eksoda.testdata", rootDir.resolve("testdata").absolutePath)
     inputs.dir(rootDir.resolve("testdata")).withPathSensitivity(PathSensitivity.RELATIVE)
 }
@@ -21,7 +21,7 @@ tasks.test {
 kover {
     reports {
         verify {
-            rule("core:engine line coverage (docs/android-standalone.md §10.3)") {
+            rule("core:engine line coverage") {
                 minBound(90)
             }
         }

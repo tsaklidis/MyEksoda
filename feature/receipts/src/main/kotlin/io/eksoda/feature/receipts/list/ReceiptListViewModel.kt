@@ -44,7 +44,7 @@ sealed interface ReceiptListItem {
     data class Row(val receipt: Receipt) : ReceiptListItem
 }
 
-/** Choices for the filter sheet (android-app.md §6.4.2). */
+/** Choices for the filter sheet. */
 data class FilterOptions(
     val merchants: List<Option> = emptyList(),
     /** The stores of the merchant chosen in the sheet. */
@@ -90,7 +90,7 @@ sealed interface ReceiptListEffect {
 }
 
 /**
- * The receipt list with search and filters (android-app.md §6.4.1–6.4.2). Only typing is
+ * The receipt list with search and filters. Only typing is
  * debounced (300 ms), so each key press is not a query; sorting, chips and Apply take effect at
  * once. Room re-runs the query when a receipt changes, so an import shows up by itself.
  */

@@ -1,11 +1,10 @@
-// Port of backend/apps/receipts/providers/impact/urls.py.
 package io.eksoda.engine.providers.impact
 
 import io.eksoda.engine.providers.UrlIdentity
 import io.eksoda.engine.url.ParsedUrl
 import java.util.Locale
 
-// Impact receipt URL recognition (docs/providers/impact.md §1).
+// Impact receipt URL recognition.
 
 public const val PROVIDER_CODE: String = "impact"
 public const val HOST: String = "einvoice.impact.gr"

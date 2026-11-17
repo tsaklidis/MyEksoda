@@ -42,37 +42,44 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 
-/** The dialog for the current export or import step (§12.1), or nothing. */
+/** The dialog for the current export or import step, or nothing. */
 @Composable
 internal fun BackupDialogs(dialog: BackupDialog, onEvent: (SettingsEvent) -> Unit) {
     val dismiss = { onEvent(SettingsEvent.BackupDialogDismissed) }
     when (dialog) {
         BackupDialog.None -> Unit
+
         BackupDialog.ExportPassphrase -> ExportPassphraseDialog(
             onConfirm = { onEvent(SettingsEvent.ExportPassphraseSet(it)) },
             onDismiss = dismiss,
         )
+
         is BackupDialog.ImportPassphrase -> ImportPassphraseDialog(
             wrongPassphrase = dialog.wrongPassphrase,
             onConfirm = { onEvent(SettingsEvent.ImportPassphraseEntered(it)) },
             onDismiss = dismiss,
         )
+
         is BackupDialog.Working -> WorkingDialog(dialog.step)
+
         is BackupDialog.ConfirmRestore -> ConfirmRestoreDialog(
             summary = dialog.summary,
             onConfirm = { onEvent(SettingsEvent.RestoreConfirmed) },
             onDismiss = dismiss,
         )
+
         BackupDialog.Exported -> MessageDialog(
             title = stringResource(R.string.backup_exported_title),
             text = stringResource(R.string.backup_exported_text),
             onDismiss = dismiss,
         )
+
         BackupDialog.Restored -> MessageDialog(
             title = stringResource(R.string.backup_restored_title),
             text = stringResource(R.string.backup_restored_text),
             onDismiss = dismiss,
         )
+
         is BackupDialog.Failed -> MessageDialog(
             title = stringResource(
                 if (dialog.step == BackupStep.EXPORT) {
@@ -89,10 +96,20 @@ internal fun BackupDialogs(dialog: BackupDialog, onEvent: (SettingsEvent) -> Uni
 
 private fun errorRes(error: BackupError, step: BackupStep): Int = when (error) {
     BackupError.NOT_A_BACKUP -> R.string.backup_error_not_a_backup
+
     BackupError.WRONG_PASSPHRASE -> R.string.backup_error_passphrase
+
     BackupError.NEWER_VERSION -> R.string.backup_error_newer
+
     BackupError.DAMAGED ->
-        if (step == BackupStep.EXPORT) R.string.backup_error_export else R.string.backup_error_damaged
+        if (step ==
+            BackupStep.EXPORT
+        ) {
+            R.string.backup_error_export
+        } else {
+            R.string.backup_error_damaged
+        }
+
     BackupError.FILE_ERROR ->
         if (step == BackupStep.EXPORT) R.string.backup_error_export else R.string.backup_error_file
 }
@@ -127,12 +144,14 @@ private fun ExportPassphraseDialog(onConfirm: (String) -> Unit, onDismiss: () ->
                     imeAction = ImeAction.Next,
                     supporting = when {
                         passphrase.isEmpty() -> null
+
                         passphrase.length < BackupRepository.MIN_PASSPHRASE_LENGTH ->
                             pluralStringResource(
                                 R.plurals.backup_passphrase_min,
                                 BackupRepository.MIN_PASSPHRASE_LENGTH,
                                 BackupRepository.MIN_PASSPHRASE_LENGTH,
                             )
+
                         else -> strengthText(passphraseStrength(passphrase))
                     },
                 )
@@ -249,7 +268,10 @@ private fun ShowPassphraseRow(visible: Boolean, onChange: (Boolean) -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Checkbox(checked = visible, onCheckedChange = null)
-        Text(stringResource(R.string.backup_show_passphrase), style = MaterialTheme.typography.bodyMedium)
+        Text(
+            stringResource(R.string.backup_show_passphrase),
+            style = MaterialTheme.typography.bodyMedium,
+        )
     }
 }
 

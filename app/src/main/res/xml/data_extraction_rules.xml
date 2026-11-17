@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Android 12+: no cloud backup and no device-to-device transfer of any app data. The user's own
-     encrypted export is the only backup (docs/android-standalone.md §1.3, §8.1). -->
+     encrypted export is the only backup. -->
 <data-extraction-rules>
     <cloud-backup>
         <exclude domain="root" path="." />

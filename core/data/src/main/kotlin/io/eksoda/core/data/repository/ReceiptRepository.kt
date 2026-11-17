@@ -8,7 +8,7 @@ import io.eksoda.core.model.ReceiptDetail
 import io.eksoda.core.model.ReceiptFilter
 import kotlinx.coroutines.flow.Flow
 
-/** Receipts and their import jobs, all local (docs/android-standalone.md §7, L3 and L4). */
+/** Receipts and their import jobs, all local. */
 interface ReceiptRepository {
     fun getReceipts(filter: ReceiptFilter): Flow<PagingData<Receipt>>
 
@@ -18,12 +18,12 @@ interface ReceiptRepository {
     fun getRecentReceipts(limit: Int): Flow<List<Receipt>>
 
     /**
-     * Saves an import job for a receipt link and queues it (§7.2). A link Eksoda cannot read
+     * Saves an import job for a receipt link and queues it. A link Eksoda cannot read
      * gives [ImportSubmission.Rejected] and stores nothing.
      */
     suspend fun importReceipt(url: String): Result<ImportSubmission>
 
-    /** Import jobs, newest first. Updates by itself when a job changes (no polling, §7.2). */
+    /** Import jobs, newest first. Updates by itself when a job changes (no polling). */
     fun getImportJobs(): Flow<List<ImportJob>>
 
     suspend fun retryImport(id: String): Result<Unit>
@@ -39,7 +39,7 @@ interface ReceiptRepository {
 
     /**
      * The receipt link, for "Open original" only. It works like a password: open it in a Custom
-     * Tab after the user confirms; never log, copy or share it (§8.1).
+     * Tab after the user confirms; never log, copy or share it.
      */
     suspend fun originalLink(id: String): String?
 }

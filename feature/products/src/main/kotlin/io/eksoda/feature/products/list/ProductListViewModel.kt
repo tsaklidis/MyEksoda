@@ -63,7 +63,7 @@ sealed interface ProductListEffect {
 }
 
 /**
- * The product list (`android-app.md` §6.6.1): search, category and "bought at" filters, and
+ * The product list: search, category and "bought at" filters, and
  * New product. Room re-runs the query when a product changes, so edits show by themselves.
  */
 @OptIn(ExperimentalCoroutinesApi::class)

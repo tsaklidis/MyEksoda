@@ -12,12 +12,6 @@
     <string name="home_change_than">σε σχέση με το διάστημα ως τις %1$s (%2$s)</string>
     <string name="home_change_first">Πρώτος μήνας με αποδείξεις</string>
     <string name="home_change_nothing_before">Καμία δαπάνη ως τις %1$s τον προηγούμενο μήνα</string>
-    <string name="home_pace_description">Το σύνολο αυτού του μήνα μέρα με τη μέρα, σε σύγκριση με τον προηγούμενο μήνα</string>
-    <string name="home_pace_today">σήμερα</string>
-    <string name="home_pace_last_month">%1$s, σύνολο %2$s</string>
-    <string name="home_stat_receipts">Αποδείξεις</string>
-    <string name="home_stat_average">Μέσος όρος</string>
-    <string name="home_stat_per_day">Ανά ημέρα</string>
 
     <plurals name="home_to_match">
         <item quantity="one">%d είδος για αντιστοίχιση</item>
@@ -29,13 +23,6 @@
         <item quantity="other">%d αποδείξεις σε εισαγωγή…</item>
     </plurals>
     <string name="home_importing_body">Θα εμφανιστούν εδώ μόλις ολοκληρωθούν</string>
-
-    <string name="home_last_6_months">Τελευταίοι 6 μήνες</string>
-    <string name="home_average_per_month">μ.ό. %1$s / μήνα</string>
-    <string name="home_months_description">Δαπάνες ανά μήνα για τους τελευταίους 6 μήνες</string>
-    <string name="home_legend_so_far">Μέχρι σήμερα</string>
-    <string name="home_legend_last_month">Προηγούμενος μήνας</string>
-    <string name="home_legend_average">Μέσος όρος</string>
 
     <string name="home_where_it_went">Πού πήγαν τα χρήματα</string>
     <string name="home_all_categories">Όλες οι κατηγορίες</string>

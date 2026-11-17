@@ -1,4 +1,3 @@
-// Port of backend/apps/receipts/validation.py.
 package io.eksoda.engine.validation
 
 import io.eksoda.engine.canonical.CanonicalReceipt
@@ -10,7 +9,7 @@ import io.eksoda.engine.text.pyStr
 import java.math.BigDecimal
 import java.math.RoundingMode
 
-// Provider-neutral receipt validation (requirements §10.2, TD §11).
+// Provider-neutral receipt validation.
 //
 // Rules R1–R3 (identity, view agreement, required fields) are fatal and enforced by the provider
 // parsers. The rules here only produce warnings: source values are never changed to make a rule
@@ -313,7 +312,7 @@ private fun currency(receipt: CanonicalReceipt): List<ValidationIssue> { // R12
 
 private fun documentKind(receipt: CanonicalReceipt): List<ValidationIssue> { // R15
     if (receipt.document.kind != DocumentKind.OTHER) return emptyList()
-    // Python's `type_label or type_code`: an empty label falls back to the code.
+    // An empty label falls back to the code.
     val printed =
         receipt.document.typeLabel?.takeIf { it.isNotEmpty() } ?: receipt.document.typeCode
     return listOf(

@@ -37,7 +37,7 @@
     <string name="backup_error_damaged">Backup file is damaged or corrupted.</string>
     <string name="backup_error_file">Could not read the file.</string>
     <string name="backup_export_title">Create backup</string>
-    <string name="backup_export_text">Set a passphrase to protect your backup file.</string>
+    <string name="backup_export_text">The file is encrypted with this passphrase, and you will need it to import the file. If you forget it, the file cannot be opened in any way.</string>
     <string name="backup_passphrase">Passphrase</string>
     <string name="backup_passphrase_repeat">Repeat passphrase</string>
     <string name="backup_passphrase_mismatch">Passphrases do not match.</string>
@@ -56,7 +56,11 @@
     <string name="backup_restore_title">Restore backup</string>
     <string name="backup_restore_made">Created on %1$s</string>
     <string name="backup_restore_range">From %1$s to %2$s</string>
-    <string name="backup_restore_warning">Restoring will replace your current data.</string>
+    <string name="backup_restore_warning">All current data on this device will be replaced by the data in the file. This cannot be undone.</string>
+    <string name="settings_backup">Backup</string>
+    <string name="settings_backup_hint">There is no server: your data exists only on this device. Export it to an encrypted file and keep it somewhere safe.</string>
+    <string name="settings_backup_export">Export data</string>
+    <string name="settings_backup_import">Import data</string>
     <string name="backup_restore_confirm">Restore</string>
     <string name="backup_ok">OK</string>
 

@@ -27,9 +27,9 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * "Receipt from AB Vasilopoulos imported · €32.10" (§7.6), only when the user turned import
- * notifications on (Settings, L7), the permission is granted, and the app is not visible. The
- * receipt URL is never part of a notification (§8.1).
+ * "Receipt from AB Vasilopoulos imported · €32.10", only when the user turned import
+ * notifications on (Settings), the permission is granted, and the app is not visible. The
+ * receipt URL is never part of a notification.
  */
 @Singleton
 class ImportNotifier @Inject constructor(

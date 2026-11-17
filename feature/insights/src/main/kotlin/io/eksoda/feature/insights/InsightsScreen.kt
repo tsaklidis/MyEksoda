@@ -71,11 +71,13 @@ import io.eksoda.core.model.MerchantSpending
 import io.eksoda.core.model.Money
 import io.eksoda.core.model.MonthlyTrend
 import io.eksoda.core.model.Period
+import io.eksoda.core.model.PeriodPreset
 import io.eksoda.core.model.SpendingBucket
 import io.eksoda.core.model.SpendingBucketKind
 import io.eksoda.core.model.SpendingSummary
 import io.eksoda.core.model.TopProduct
 import io.eksoda.core.model.percentOf
+import io.eksoda.core.ui.component.DateRangeDialog
 import io.eksoda.core.ui.component.DelayedProgressIndicator
 import io.eksoda.core.ui.component.HeroMoney
 import io.eksoda.core.ui.component.MoneyText
@@ -88,6 +90,7 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
 import java.time.YearMonth
+import java.time.temporal.ChronoUnit
 import java.util.Locale
 
 /** Insights (docs/design/ui-redesign.md §5): a period, its summary and its breakdowns. */
@@ -120,7 +123,9 @@ fun InsightsScreen(
     onMerchantsClick: () -> Unit,
 ) {
     var showHelp by rememberSaveable { mutableStateOf(false) }
+    var pickingDates by rememberSaveable { mutableStateOf(false) }
     val currency = state.currency()
+    val locale = appLocale()
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -130,10 +135,26 @@ fun InsightsScreen(
             .padding(bottom = 20.dp),
     ) {
         Header(state.range, state.summary, onHelp = { showHelp = true })
+        // The presets, then "Custom range", which shows its dates once picked.
+        val period = state.period
+        val customLabel = if (period is InsightsPeriod.Custom) {
+            rangeLabel(Period.Range(period.from, period.to), locale, withYear = false)
+        } else {
+            stringResource(R.string.insights_period_custom)
+        }
         PeriodSelector(
-            labels = PERIODS.map { stringResource(it.second) },
-            selectedIndex = PERIODS.indexOfFirst { it.first == state.period },
-            onSelect = { onEvent(InsightsEvent.PeriodSelected(PERIODS[it].first)) },
+            labels = PRESETS.map { stringResource(it.label) } + customLabel,
+            selectedIndex = when (period) {
+                is InsightsPeriod.Preset -> PRESETS.indexOf(period.preset)
+                is InsightsPeriod.Custom -> PRESETS.size
+            },
+            onSelect = { index ->
+                if (index < PRESETS.size) {
+                    onEvent(InsightsEvent.PeriodSelected(InsightsPeriod.Preset(PRESETS[index])))
+                } else {
+                    pickingDates = true
+                }
+            },
             modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 16.dp),
         )
         Column(
@@ -142,6 +163,9 @@ fun InsightsScreen(
         ) {
             val retry = { onEvent(InsightsEvent.Retry) }
             Card(state.summary, retry) { SummaryCard(it) }
+            state.pace?.let { pace ->
+                Card(pace, retry) { if (it.spentSoFar.signum() != 0) PaceCard(it) }
+            }
             Card(state.categories, retry) {
                 if (it.buckets.isNotEmpty()) CategoryCard(it, onAssignCategories)
             }
@@ -156,6 +180,24 @@ fun InsightsScreen(
             }
             TopProductsCard(state.topBySpend, state.topByCount, currency, onProductClick, retry)
         }
+    }
+    if (pickingDates) {
+        val custom = state.period as? InsightsPeriod.Custom
+        DateRangeDialog(
+            from = custom?.from,
+            to = custom?.to,
+            onConfirm = { from, to ->
+                pickingDates = false
+                // One picked day is a range of one day; the picker may return it reversed.
+                val end = to ?: from
+                onEvent(
+                    InsightsEvent.PeriodSelected(
+                        InsightsPeriod.Custom(minOf(from, end), maxOf(from, end)),
+                    ),
+                )
+            },
+            onDismiss = { pickingDates = false },
+        )
     }
     if (showHelp) {
         AlertDialog(
@@ -179,12 +221,18 @@ private fun InsightsUiState.currency(): String = (summary as? CardState.Ready)?.
 
 private const val DEFAULT_CURRENCY = "EUR"
 
-private val PERIODS = listOf(
-    InsightsPeriod.THIS_MONTH to R.string.insights_period_this_month,
-    InsightsPeriod.LAST_MONTH to R.string.insights_period_last_month,
-    InsightsPeriod.THREE_MONTHS to R.string.insights_period_3_months,
-    InsightsPeriod.YEAR to R.string.insights_period_year,
-)
+/** The preset chips, in order; "Custom range" follows them. */
+private val PRESETS = PeriodPreset.entries
+
+private val PeriodPreset.label: Int
+    get() = when (this) {
+        PeriodPreset.TODAY -> R.string.insights_period_today
+        PeriodPreset.THIS_WEEK -> R.string.insights_period_this_week
+        PeriodPreset.THIS_MONTH -> R.string.insights_period_this_month
+        PeriodPreset.LAST_MONTH -> R.string.insights_period_last_month
+        PeriodPreset.LAST_3_MONTHS -> R.string.insights_period_3_months
+        PeriodPreset.THIS_YEAR -> R.string.insights_period_year
+    }
 
 @Composable
 private fun <T> Card(card: CardState<T>, onRetry: () -> Unit, content: @Composable (T) -> Unit) {
@@ -258,12 +306,14 @@ private fun Header(range: Period?, summary: CardState<SpendingSummary>, onHelp: 
     }
 }
 
-/** "1–15 Νοεμβρίου 2026", "17–31 Οκτ", "1 Σεπ – 15 Νοε". */
+/** "1–15 Νοεμβρίου 2026", "17–31 Οκτ", "1 Σεπ – 15 Νοε", "17 Νοε" for one day. */
 private fun rangeLabel(period: Period, locale: Locale, withYear: Boolean): String {
     val start = period.start
     val end = period.end
     val year = if (withYear) " yyyy" else ""
-    return if (start.year == end.year && start.month == end.month) {
+    return if (start == end) {
+        end.format(dateFormatter(if (withYear) "d MMMM yyyy" else "d MMM", locale))
+    } else if (start.year == end.year && start.month == end.month) {
         val monthPattern = if (withYear) "MMMM" else "MMM"
         "${start.dayOfMonth}–" + end.format(dateFormatter("d $monthPattern$year", locale))
     } else {
@@ -340,12 +390,23 @@ private fun SummaryCard(summary: SpendingSummary) {
                 }
             }
             val refunds = summary.current.creditNotesTotal
+            // Days in the period, both ends included; "per day" says nothing for one day.
+            val days = ChronoUnit.DAYS.between(summary.current.from, summary.current.to) + 1
+            val perDay = summary.current.spending
+                .takeIf { days > 1 }
+                ?.divide(BigDecimal(days), 2, RoundingMode.HALF_UP)
             StatRow(
-                items = listOf(
+                items = listOfNotNull(
                     StatItem(
                         stringResource(R.string.insights_receipts),
                         summary.current.receiptCount.toString(),
                     ),
+                    perDay?.let {
+                        StatItem(
+                            stringResource(R.string.insights_per_day),
+                            formatMoney(Money(it, currency), locale),
+                        )
+                    },
                     StatItem(
                         stringResource(R.string.insights_average),
                         summary.current.averageSale?.let {

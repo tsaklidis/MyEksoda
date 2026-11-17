@@ -1,9 +1,9 @@
 // Port of CPython 3.13's difflib.SequenceMatcher, the parts ratio() uses.
 package io.eksoda.engine.text
 
-// The matching guard (backend/apps/products/matching.py, `_reused_code`) compares descriptions
-// with `SequenceMatcher(None, a, b).ratio()`. Similar-looking libraries give different ratios,
-// so this follows CPython's algorithm step by step (docs/android-standalone.md §9.3), including
+// The matching guard for reused item codes (products/Matching.kt) compares descriptions with
+// `SequenceMatcher(None, a, b).ratio()`. Similar-looking libraries give different ratios,
+// so this follows CPython's algorithm step by step, including
 // the autojunk heuristic: when b has 200 or more elements, elements that make up more than 1% of
 // b (plus one) are "popular" and are not used to start a match.
 //

@@ -1,4 +1,3 @@
-// Port of backend/apps/analytics/periods.py.
 package io.eksoda.engine.analytics
 
 import io.eksoda.engine.text.pyLocalToOffset
@@ -8,7 +7,7 @@ import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 
-// Reporting periods in the household timezone (requirements §13).
+// Reporting periods in the household timezone.
 
 private const val MONTHS_PER_YEAR = 12
 

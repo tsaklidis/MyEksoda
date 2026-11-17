@@ -13,7 +13,7 @@ import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/** The household timezone, for `issued_local_date` and display (§5.3). Europe/Athens until onboarding sets one. */
+/** The household timezone, for `issued_local_date` and display. Europe/Athens until onboarding sets one. */
 @Singleton
 class HouseholdZone @Inject constructor(private val households: HouseholdDao) {
     suspend fun current(): ZoneId =
@@ -57,7 +57,7 @@ class HouseholdRepositoryImpl @Inject constructor(
 
     /**
      * Renames or changes the currency or timezone. A timezone change should also recompute
-     * `issued_local_date` (§5.3); that comes with household settings (L5).
+     * `issued_local_date`; that comes with household settings (not built yet).
      */
     override suspend fun updateHousehold(
         name: String,

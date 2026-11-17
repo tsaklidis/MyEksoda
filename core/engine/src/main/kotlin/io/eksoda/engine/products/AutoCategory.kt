@@ -1,5 +1,4 @@
-// Automatic categories (owner decisions 2026-11-16 and 2026-11-17, docs/android-standalone.md
-// §16): a system category for a new product from its name or brand, and a default category
+// Automatic categories: a system category for a new product from its name or brand, and a default category
 // for a merchant from its registered activity or name, so spending by category is useful
 // without assigning every product by hand. The user can always change either.
 package io.eksoda.engine.products

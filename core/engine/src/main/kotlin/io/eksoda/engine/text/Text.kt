@@ -1,11 +1,10 @@
-// Port of backend/apps/common/text.py.
 package io.eksoda.engine.text
 
 import java.security.MessageDigest
 import java.text.Normalizer
 import java.util.Locale
 
-// Text normalization for matching and search keys (requirements §9.5).
+// Text normalization for matching and search keys.
 //
 // Normalized text is a *key*: it never replaces the original receipt text.
 
@@ -18,14 +17,13 @@ private val AMBIGUOUS: Set<Char> = (LATIN_LOOKALIKES + GREEK_LOOKALIKES).toSet()
 private val GREEK_ONLY: Set<Char> = "ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ".toSet() - AMBIGUOUS
 private val LATIN_ONLY: Set<Char> = ('A'..'Z').toSet() - AMBIGUOUS
 
-// _LOOSE_DOT and _DECIMAL_COMMA, with Python's Unicode \d.
+// Dots not between digits, and decimal commas, with a Unicode-aware \d.
 private val LOOSE_DOT = pyRegex("""(?<!\d)\.|\.(?!\d)""")
 private val DECIMAL_COMMA = pyRegex("""(?<=\d),(?=\d)""")
 
 /**
- * Removes combining marks: NFD, drop the marks, NFC. Python drops characters whose canonical
- * combining class is not 0; the plain JVM has no such API, so this drops non-spacing marks
- * (Mn), which is the same set for Greek and Latin text (§9.3).
+ * Removes combining marks: NFD, drop non-spacing marks (Mn), NFC. For Greek and Latin text these
+ * are all the marks.
  */
 public fun stripDiacritics(text: String): String {
     val decomposed = Normalizer.normalize(text, Normalizer.Form.NFD)
@@ -54,7 +52,7 @@ private fun unifyScript(token: String): String {
 /** Uppercase, accent-free, script-unified, punctuation-collapsed matching key. */
 public fun normalizeText(text: String): String {
     var value = Normalizer.normalize(text, Normalizer.Form.NFKC)
-    // uppercase() also turns the final sigma into Σ, as Python's upper() does.
+    // uppercase() also turns the final sigma into Σ.
     value = stripDiacritics(value).uppercase(Locale.ROOT)
     value = DECIMAL_COMMA.replace(value, ".")
     value = replaceNotKept(value)
@@ -63,10 +61,9 @@ public fun normalizeText(text: String): String {
 }
 
 /**
- * `_NOT_KEPT.sub(" ", value)` with `_NOT_KEPT = (?:[^\w.%]|_)+`: every run of characters that
- * are not letters or digits of any script, `.` or `%` becomes one space. Python's `\w` is
- * `str.isalnum()` plus `_`; it differs from Java's Unicode `\w` (which also keeps marks and
- * connector punctuation), so the class is spelled out here.
+ * Every run of characters that are not letters or digits of any script, `.` or `%` (an `_`
+ * included) becomes one space. Java's Unicode `\w` also keeps marks and connector punctuation,
+ * so the class is spelled out here.
  */
 private fun replaceNotKept(value: String): String {
     val result = StringBuilder(value.length)

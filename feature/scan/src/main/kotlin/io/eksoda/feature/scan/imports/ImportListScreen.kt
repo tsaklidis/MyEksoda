@@ -82,7 +82,7 @@ fun ImportListRoute(
     )
 }
 
-/** The imports screen (android-app.md §6.3.5), from the local `import_job` table. */
+/** The imports screen, from the local `import_job` table. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ImportListScreen(
@@ -252,7 +252,7 @@ private fun StatusIcon(status: ImportStatus, deleted: Boolean) {
     }
 }
 
-/** Today: the time; otherwise the day (android-app.md §8). Shown in the phone's timezone. */
+/** Today: the time; otherwise the day. Shown in the phone's timezone. */
 @Composable
 private fun timeLabel(instant: Instant): String {
     val zone = ZoneId.systemDefault()

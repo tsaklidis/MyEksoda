@@ -6,7 +6,7 @@ import org.gradle.kotlin.dsl.dependencies
 
 /**
  * A feature module. Features see only core:data's interfaces, core:model, core:ui and
- * core:designsystem (docs/android-standalone.md §4.1).
+ * core:designsystem.
  */
 class AndroidFeatureConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {

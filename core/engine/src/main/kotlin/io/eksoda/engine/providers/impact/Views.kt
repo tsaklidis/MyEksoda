@@ -1,4 +1,3 @@
-// Port of backend/apps/receipts/providers/impact/views.py.
 package io.eksoda.engine.providers.impact
 
 import io.eksoda.engine.providers.childCells

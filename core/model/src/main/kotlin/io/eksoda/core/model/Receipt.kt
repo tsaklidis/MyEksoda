@@ -100,7 +100,7 @@ public data class VatAmount(val rate: BigDecimal?, val net: Money, val vat: Mone
 
 public data class ReceiptWarning(val code: String, val lineNumber: Int?)
 
-/** Everything Receipt detail shows (android-app.md §6.4.3). */
+/** Everything Receipt detail shows. */
 public data class ReceiptDetail(
     val receipt: Receipt,
     val issueTime: IssueTime,

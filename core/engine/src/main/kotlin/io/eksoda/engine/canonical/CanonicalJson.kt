@@ -1,4 +1,3 @@
-// Port of to_json / to_jsonable in backend/apps/receipts/canonical.py.
 package io.eksoda.engine.canonical
 
 import io.eksoda.engine.text.pyIsoFormat
@@ -12,10 +11,10 @@ import kotlinx.serialization.json.buildJsonObject
 import java.math.BigDecimal
 
 /**
- * The canonical receipt as the JSON tree Python's `to_json()` produces: dataclass fields under
- * their snake_case names, `Decimal` as `str(value)`, dates and times as `isoformat()`, enums as
- * their values. Golden files (`testdata/fixtures/<provider>/expected`) are this tree,
- * written with sorted keys; compare trees, not text (§9.3).
+ * The canonical receipt as a JSON tree: fields under their snake_case names, decimals as their
+ * plain text (`pyStr`), dates and times in ISO form (`pyIsoFormat`), enums as their values. Golden
+ * files (`testdata/fixtures/<provider>/expected`) are this tree, written with sorted keys;
+ * compare trees, not text.
  */
 public object CanonicalJson {
     public fun encode(receipt: CanonicalReceipt): JsonObject = buildJsonObject {

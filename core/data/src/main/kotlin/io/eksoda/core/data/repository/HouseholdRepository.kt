@@ -4,8 +4,8 @@ import io.eksoda.core.model.Household
 import kotlinx.coroutines.flow.Flow
 
 /**
- * The one household in this database. There are no members, roles or invitations
- * (docs/android-standalone.md §6.1 and §11). Null until onboarding creates it.
+ * The one household in this database. There are no members, roles or invitations. Null until
+ * onboarding creates it.
  */
 interface HouseholdRepository {
     val household: Flow<Household?>

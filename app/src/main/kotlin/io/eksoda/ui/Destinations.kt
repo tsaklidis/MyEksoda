@@ -2,9 +2,9 @@ package io.eksoda.ui
 
 import kotlinx.serialization.Serializable
 
-// Type-safe navigation destinations (docs/android-standalone.md §3). Onboarding is not one: it
+// Type-safe navigation destinations. Onboarding is not one: it
 // is shown instead of the graph until the household exists. Never put a receipt link in a
-// destination: arguments are saved with the back stack, and the link is a credential (§8.1).
+// destination: arguments are saved with the back stack, and the link is a credential.
 
 /** The tabs: Home, Receipts, Insights and Products. */
 @Serializable

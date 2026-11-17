@@ -1,4 +1,3 @@
-// Port of backend/apps/common/numbers.py.
 package io.eksoda.engine.text
 
 import java.math.BigDecimal
@@ -9,13 +8,13 @@ import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.util.Locale
 
-// Strict, culture-aware parsing of numbers and dates (TD §6.4).
+// Strict, culture-aware parsing of numbers and dates.
 //
 // Receipt pages render numbers and dates according to a culture (`el` or `en`). Parsing is
 // strict per culture: ambiguous or malformed text raises instead of being guessed, because a
 // misread amount silently corrupts financial history.
 
-/** The cultures receipt pages are rendered in. Python passes them as the strings "el"/"en". */
+/** The cultures receipt pages are rendered in (codes "el" and "en"). */
 public enum class Culture(public val code: String) {
     EL("el"),
     EN("en"),
@@ -87,14 +86,13 @@ private const val HOURS_PER_HALF_DAY = 12
 // Pages may use (narrow) no-break spaces, e.g. before "π.μ." or "AM".
 private fun clean(text: String): String = text.replace(' ', ' ').replace(' ', ' ').pyStrip()
 
-/** Python's `repr()` of a string, close enough for error messages. */
+/** A quoted string for error messages. */
 private fun repr(text: String): String = "'" + text.replace("\\", "\\\\").replace("'", "\\'") + "'"
 
 /**
  * Parses a number rendered in [culture]. A trailing `%` is allowed and ignored.
  *
- * Python takes the culture as a string and rejects unknown ones; [parseDecimal] with a raw code
- * keeps that behavior.
+ * [parseDecimal] with a raw culture code rejects unknown codes.
  */
 public fun parseDecimal(text: String, culture: Culture): BigDecimal {
     var value = clean(text)
@@ -109,7 +107,7 @@ public fun parseDecimal(text: String, culture: Culture): BigDecimal {
     return if (negative) number.negate() else number
 }
 
-/** [parseDecimal] for a culture given as Python's string code ("el", "en"). */
+/** [parseDecimal] for a culture given as its code ("el", "en"). */
 public fun parseDecimal(text: String, culture: String): BigDecimal {
     val known =
         Culture.fromCode(culture) ?: throw NumberFormatError("unknown culture ${repr(culture)}")
@@ -155,7 +153,7 @@ public fun parseDate(text: String, order: DateOrder): LocalDate {
  * Parses `d/m/yyyy h:mm[:ss] [am/pm marker]` as a local time in [zone].
  *
  * Greek pages use `π.μ.` / `μ.μ.`; English pages `AM` / `PM`. Without a marker the time is read
- * as 24-hour. Ambiguous DST times resolve to fold=0, as in Python ([pyLocalToOffset]).
+ * as 24-hour. Ambiguous DST times resolve with fold=0 ([pyLocalToOffset]).
  */
 public fun parseLocalDatetime(
     text: String,

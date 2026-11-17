@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import io.eksoda.core.model.DocumentKind
+import io.eksoda.core.model.PeriodPreset
 import io.eksoda.core.model.ReceiptFilter
 import io.eksoda.core.ui.text.appLocale
 import io.eksoda.core.ui.text.categoryName
@@ -24,7 +25,7 @@ import io.eksoda.core.ui.text.formatDecimalInput
 import io.eksoda.feature.receipts.R
 import java.time.LocalDate
 
-/** One active filter as a removable chip (android-app.md §6.4.2, §4.3). */
+/** One active filter as a removable chip. */
 private data class ActiveFilter(val label: String, val remove: (ReceiptFilter) -> ReceiptFilter)
 
 /** The active filters as removable chips, and "Clear all". Nothing when no filter is set. */

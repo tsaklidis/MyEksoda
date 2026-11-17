@@ -12,7 +12,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Submitting receipt links (docs/android-standalone.md §7.2, the server's `imports.py`).
+ * Submitting receipt links.
  * Nothing is fetched here: the job is stored and the worker is queued.
  */
 @Singleton

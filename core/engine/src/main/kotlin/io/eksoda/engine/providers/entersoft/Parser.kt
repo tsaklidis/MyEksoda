@@ -1,4 +1,3 @@
-// Port of backend/apps/receipts/providers/entersoft/parser.py.
 package io.eksoda.engine.providers.entersoft
 
 import io.eksoda.engine.FormatChanged
@@ -55,7 +54,7 @@ import java.util.IdentityHashMap
 import java.util.Locale
 import org.jsoup.nodes.Document as HtmlDocument
 
-// Entersoft receipt document → CanonicalReceipt (docs/providers/entersoft.md).
+// Entersoft receipt document → CanonicalReceipt.
 //
 // Single rendering (no tax view to cross-check), so the parser enforces the receipt's own
 // arithmetic as fatal consistency checks (Σ lines = total, VAT analysis = net/VAT totals,

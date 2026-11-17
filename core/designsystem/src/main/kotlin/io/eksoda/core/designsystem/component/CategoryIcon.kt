@@ -70,7 +70,7 @@ fun CategoryTile(slug: String?, modifier: Modifier = Modifier, size: Dp = 40.dp)
 /** The icon of a category (none or unknown: the "other" icon). */
 fun categoryIcon(slug: String?): ImageVector = CATEGORY_ICONS[slug] ?: DEFAULT_ICON
 
-/** Icon per system category slug (§6.3); "other" and unknown slugs get the default. */
+/** Icon per system category slug; "other" and unknown slugs get the default. */
 private val CATEGORY_ICONS: Map<String, ImageVector> = mapOf(
     "groceries" to Icons.Default.ShoppingBasket,
     "dairy-and-eggs" to Icons.Default.Egg,

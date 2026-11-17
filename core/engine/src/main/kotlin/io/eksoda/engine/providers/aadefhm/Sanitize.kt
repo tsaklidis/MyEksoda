@@ -1,4 +1,3 @@
-// Port of backend/apps/receipts/providers/aade_fhm/sanitize.py and aade_fhm/__init__.py.
 package io.eksoda.engine.providers.aadefhm
 
 import io.eksoda.engine.providers.Provider
@@ -30,7 +29,7 @@ public fun sanitizeHtml(rawHtml: String): SanitizeResult {
     return finish(document, secrets)
 }
 
-/** AADE cash-register (ΦΗΜ) receipt check page (www1.aade.gr). Format: docs/providers/aade.md. */
+/** AADE cash-register (ΦΗΜ) receipt check page (www1.aade.gr). */
 public val AADE_FHM: Provider = Provider(
     code = PROVIDER_CODE,
     hosts = setOf(HOST),

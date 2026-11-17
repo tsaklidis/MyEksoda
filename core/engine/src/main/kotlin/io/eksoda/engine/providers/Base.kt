@@ -1,4 +1,3 @@
-// Port of backend/apps/receipts/providers/base.py and registry.py.
 package io.eksoda.engine.providers
 
 import io.eksoda.engine.FormatChanged
@@ -13,19 +12,19 @@ import io.eksoda.engine.url.parseSubmittedUrl
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 
-// Provider contract and shared building blocks (requirements §7).
+// Provider contract and shared building blocks.
 //
 // A provider recognizes its URLs, fetches its pages through the fetcher, parses them with one of
 // its *layouts*, and sanitizes saved pages for bug reports. Layouts make format changes cheap:
 // when a provider changes its page, add a new layout next to the old one (old fixtures keep
 // passing) and register it first.
 
-/** What a provider learns from a URL before fetching (pre-fetch dedup, §6.3). */
+/** What a provider learns from a URL before fetching (pre-fetch dedup). */
 public data class UrlIdentity(
     val providerCode: String,
     /** E.g. "GR:094062259:<UID>", "entersoft:<uuid>", "fhm:<register>:<seq>". */
     val identity: String,
-    /** The receipt link: a credential. Never log it (§5.5). */
+    /** The receipt link: a credential. Never log it. */
     val canonicalUrl: String,
     /** Known before fetching only for some providers. */
     val issuerCountry: String? = null,
@@ -95,7 +94,7 @@ public class Provider(
         parseHtml(document.text(), identity)
 }
 
-/** Maps hosts to providers (TD §9.3). */
+/** Maps hosts to providers. */
 public class ProviderRegistry(providers: Iterable<Provider> = emptyList()) {
     private val byCode = LinkedHashMap<String, Provider>()
     private val byHost = LinkedHashMap<String, Provider>()

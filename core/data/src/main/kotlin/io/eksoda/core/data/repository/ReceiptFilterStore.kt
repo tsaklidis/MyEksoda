@@ -3,7 +3,7 @@ package io.eksoda.core.data.repository
 import io.eksoda.core.model.ReceiptFilter
 
 /**
- * The receipt list's last filters (android-app.md §6.4.2), without the search text. The period
+ * The receipt list's last filters, without the search text. The period
  * moves to this month when a new calendar month has started since it was saved.
  */
 interface ReceiptFilterStore {

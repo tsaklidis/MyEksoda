@@ -23,9 +23,8 @@ import java.util.UUID
 import javax.inject.Inject
 
 /**
- * `match_item` and `apply_prices` (the server's `products/matching.py` and `prices.py`), shared
- * by imports (Persister) and the review actions (ReviewService). Callers run inside the
- * WriteCoordinator's transaction.
+ * Matching a line to a product and applying its normalized prices, shared by imports (Persister)
+ * and the review actions (ReviewService). Callers run inside the WriteCoordinator's transaction.
  */
 class ProductMatcher @Inject constructor(
     private val products: ProductDao,

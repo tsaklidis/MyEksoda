@@ -35,6 +35,8 @@
     <string name="filter_clear_all">Καθαρισμός όλων</string>
     <string name="filter_remove">Αφαίρεση φίλτρου: %1$s</string>
     <string name="filter_period">Περίοδος</string>
+    <string name="period_today">Σήμερα</string>
+    <string name="period_this_week">Αυτή η εβδομάδα</string>
     <string name="period_this_month">Αυτός ο μήνας</string>
     <string name="period_last_month">Προηγούμενος μήνας</string>
     <string name="period_last_3_months">Τελευταίοι 3 μήνες</string>
@@ -62,7 +64,6 @@
     <string name="filter_needs_review">Θέλει έλεγχο</string>
     <string name="filter_has_warnings">Με προειδοποιήσεις</string>
     <string name="filter_hide_cancelled">Απόκρυψη ακυρωμένων</string>
-    <string name="ok">OK</string>
     <string name="cancel">Ακύρωση</string>
     <string name="save">Αποθήκευση</string>
     <string name="back">Πίσω</string>

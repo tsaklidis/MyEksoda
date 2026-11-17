@@ -13,7 +13,7 @@ import io.eksoda.core.designsystem.R
 
 /**
  * Inter (SIL Open Font License, `assets/licenses/Inter-OFL.txt`), bundled: downloadable fonts
- * need Google Play services, which the app never uses (§8.1). The file is the variable font
+ * need Google Play services, which the app never uses. The file is the variable font
  * subset to Latin, Greek, currency and math signs, with every OpenType feature kept.
  */
 @OptIn(ExperimentalTextApi::class)

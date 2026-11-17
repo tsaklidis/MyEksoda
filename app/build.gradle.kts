@@ -20,7 +20,7 @@ android {
             applicationIdSuffix = ".debug"
         }
         release {
-            // R8, signing and reproducible builds come in L7 (docs/android-standalone.md §12.4).
+            // R8, signing and reproducible builds are not set up yet.
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

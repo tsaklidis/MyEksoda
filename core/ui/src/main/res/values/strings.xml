@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Import errors, by engine code (docs/android-standalone.md §5.4). -->
+    <!-- Import errors, by engine code. -->
     <string name="import_error_invalid_url">Αυτός δεν είναι σύνδεσμος απόδειξης.</string>
     <string name="import_error_unsupported_provider">Το Eksoda δεν διαβάζει ακόμη αποδείξεις από αυτή την εταιρεία.</string>
     <string name="import_error_unsupported_url_format">Το Eksoda δεν αναγνωρίζει αυτόν τον σύνδεσμο απόδειξης.</string>
@@ -15,7 +15,7 @@
     <string name="import_error_inconsistent_source">Η σελίδα της απόδειξης έχει αντιφατικά στοιχεία.</string>
     <string name="import_error_internal_error">Κάτι πήγε στραβά κατά την ανάγνωση της απόδειξης.</string>
 
-    <!-- System categories, by slug (§6.3). -->
+    <!-- System categories, by slug. -->
     <string name="category_groceries">Παντοπωλείο</string>
     <string name="category_dairy_and_eggs">Γαλακτοκομικά και αυγά</string>
     <string name="category_meat_and_fish">Κρέας και ψάρι</string>
@@ -36,7 +36,7 @@
     <string name="category_services">Υπηρεσίες</string>
     <string name="category_other">Άλλα</string>
 
-    <!-- Spending buckets that are not categories (requirements §13). -->
+    <!-- Spending buckets that are not categories. -->
     <string name="bucket_uncategorized">Χωρίς κατηγορία</string>
     <string name="bucket_discounts">Εκπτώσεις</string>
     <string name="bucket_fees">Τέλη και εγγυήσεις</string>
@@ -45,4 +45,10 @@
 
     <string name="day_today">Σήμερα</string>
     <string name="day_yesterday">Χθες</string>
+
+    <string name="date_range_ok">OK</string>
+    <string name="date_range_cancel">Ακύρωση</string>
+    <string name="date_range_title">Επιλέξτε διάστημα</string>
+    <string name="date_range_from">Από</string>
+    <string name="date_range_to">Έως</string>
 </resources>

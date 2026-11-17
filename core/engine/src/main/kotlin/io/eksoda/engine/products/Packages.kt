@@ -1,4 +1,3 @@
-// Port of backend/apps/products/packages.py.
 package io.eksoda.engine.products
 
 import io.eksoda.engine.text.pyDivide
@@ -8,7 +7,7 @@ import java.math.BigDecimal
 import java.text.Normalizer
 import java.util.Locale
 
-// Package-size suggestions from item descriptions (requirements §9.4).
+// Package-size suggestions from item descriptions.
 //
 // A suggestion is applied automatically only when it is unambiguous: exactly one size token, and
 // no multipack (`6X330ML`) or slash pack (`27/250ML`). Percentages (`1,5%`) are never read as

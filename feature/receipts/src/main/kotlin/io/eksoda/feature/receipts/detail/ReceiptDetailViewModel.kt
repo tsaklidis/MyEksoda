@@ -43,7 +43,7 @@ sealed interface ReceiptDetailEvent {
 
     data object DeleteConfirmed : ReceiptDetailEvent
 
-    /** "Open original", after the user confirmed (§8.1). */
+    /** "Open original", after the user confirmed. */
     data object OpenOriginalConfirmed : ReceiptDetailEvent
 }
 
@@ -59,7 +59,7 @@ sealed interface ReceiptDetailEffect {
 }
 
 /**
- * Receipt detail (android-app.md §6.4.3). Edits go to the database, and the screen follows the
+ * Receipt detail. Edits go to the database, and the screen follows the
  * database Flow, so a saved edit shows by itself; a failed one leaves the old value and says so.
  */
 @OptIn(ExperimentalCoroutinesApi::class)

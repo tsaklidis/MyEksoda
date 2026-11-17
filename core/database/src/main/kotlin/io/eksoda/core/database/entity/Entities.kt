@@ -6,16 +6,15 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
-// The tables of docs/android-standalone.md §6.3. Each one names the Django model it comes from;
-// read the field rules there. Rules:
-// - Primary keys are random UUID strings; times are UTC epoch milliseconds (§5.3).
-// - Decimals are fixed-point Longs with the server column's scale, named by suffix: `_minor`
-//   (2 places), `_e2`, `_e4`, `_e6` (§6.2). Mappers in core:data convert them.
-// - Enums are stored as their server codes ("sale", "needs_review", …).
+// The tables. Rules:
+// - Primary keys are random UUID strings; times are UTC epoch milliseconds.
+// - Decimals are fixed-point Longs, the scale named by suffix: `_minor` (2 places), `_e2`,
+//   `_e4`, `_e6`. Mappers in core:data convert them.
+// - Enums are stored as lowercase codes ("sale", "needs_review", …).
 // - Room has no partial unique indexes: key columns (`store_key`, `mapping_key`) replace them,
 //   and SQLite treats NULLs as distinct in unique indexes, like `WHERE x IS NOT NULL`.
 
-/** `products.ProductCategory`. The 19 system categories are seeded on creation. */
+/** A product category. The 19 system categories are seeded on creation. */
 @Entity(tableName = "category", indices = [Index(value = ["slug"], unique = true)])
 data class CategoryEntity(
     @PrimaryKey val id: String,
@@ -26,7 +25,7 @@ data class CategoryEntity(
     @ColumnInfo(name = "updated_at") val updatedAt: Long,
 )
 
-/** `merchants.Merchant`. */
+/** A merchant, by country and VAT number. */
 @Entity(
     tableName = "merchant",
     indices = [
@@ -50,9 +49,9 @@ data class MerchantEntity(
     @ColumnInfo(name = "vat_number") val vatNumber: String,
     @ColumnInfo(name = "legal_name") val legalName: String,
     @ColumnInfo(name = "display_name") val displayName: String,
-    /** `normalizeText(display_name)`, for search (§6.5). */
+    /** `normalizeText(display_name)`, for search. */
     @ColumnInfo(name = "normalized_display_name") val normalizedDisplayName: String,
-    /** Imports never overwrite a name the user set (§6.3). */
+    /** Imports never overwrite a name the user set. */
     @ColumnInfo(name = "display_name_set_by_user") val displayNameSetByUser: Boolean = false,
     @ColumnInfo(name = "activity_description") val activityDescription: String = "",
     @ColumnInfo(name = "tax_office") val taxOffice: String = "",
@@ -67,7 +66,7 @@ data class MerchantEntity(
     @ColumnInfo(name = "updated_at") val updatedAt: Long,
 )
 
-/** `merchants.Store`. `store_key` is `branch:<number>`, else `addr:<normalized address>`, else null. */
+/** A merchant's store. `store_key` is `branch:<number>`, else `addr:<normalized address>`, else null. */
 @Entity(
     tableName = "store",
     indices = [Index(value = ["merchant_id", "store_key"], unique = true)],
@@ -96,7 +95,7 @@ data class StoreEntity(
     @ColumnInfo(name = "updated_at") val updatedAt: Long,
 )
 
-/** `products.Product`. Package quantity and unit are both null or both set. */
+/** A household product. Package quantity and unit are both null or both set. */
 @Entity(
     tableName = "product",
     indices = [Index("normalized_name"), Index("category_id")],
@@ -122,7 +121,7 @@ data class ProductEntity(
     @ColumnInfo(name = "updated_at") val updatedAt: Long,
 )
 
-/** `products.MerchantProductMapping`. `mapping_key` is `code:<code>` or `desc:<normalized>`. */
+/** How a merchant's line maps to a product. `mapping_key` is `code:<code>` or `desc:<normalized>`. */
 @Entity(
     tableName = "merchant_product_mapping",
     indices = [Index(value = ["merchant_id", "mapping_key"], unique = true), Index("product_id")],
@@ -152,7 +151,7 @@ data class MerchantProductMappingEntity(
     @ColumnInfo(name = "updated_at") val updatedAt: Long,
 )
 
-/** `receipts.Receipt`. */
+/** An imported receipt. */
 @Entity(
     tableName = "receipt",
     indices = [
@@ -198,7 +197,7 @@ data class ReceiptEntity(
     @ColumnInfo(name = "document_type_code") val documentTypeCode: String?,
     @ColumnInfo(name = "document_number") val documentNumber: String,
     @ColumnInfo(name = "issued_at") val issuedAt: Long,
-    /** YYYY-MM-DD in the household timezone (§5.3). */
+    /** YYYY-MM-DD in the household timezone. */
     @ColumnInfo(name = "issued_local_date") val issuedLocalDate: String,
     val currency: String,
     @ColumnInfo(name = "gross_total_minor") val grossTotalMinor: Long,
@@ -213,17 +212,17 @@ data class ReceiptEntity(
     @ColumnInfo(name = "validation_warnings") val validationWarnings: String,
     @ColumnInfo(name = "excluded_from_analytics") val excludedFromAnalytics: Boolean = false,
     @ColumnInfo(name = "user_note") val userNote: String = "",
-    /** The credential: encrypted at rest with the database, never logged or shown (§8.1). */
+    /** The credential: encrypted at rest with the database, never logged or shown. */
     @ColumnInfo(name = "source_url") val sourceUrl: String,
     @ColumnInfo(name = "source_url_fingerprint") val sourceUrlFingerprint: String,
-    /** Canonical JSON without URL, unknown values or card numbers (`persistence.source_data()`). */
+    /** Canonical JSON without URL, unknown values or card numbers (`sourceData`). */
     @ColumnInfo(name = "source_data") val sourceData: String,
     @ColumnInfo(name = "created_at") val createdAt: Long,
     @ColumnInfo(name = "updated_at") val updatedAt: Long,
 )
 
 /**
- * `receipts.ReceiptItem`. `product_id` is set exactly when `match_status = matched`;
+ * A receipt line. `product_id` is set exactly when `match_status = matched`;
  * `match_status = not_a_product` exactly when `line_type != product`.
  */
 @Entity(
@@ -277,7 +276,7 @@ data class ReceiptItemEntity(
     @ColumnInfo(name = "updated_at") val updatedAt: Long,
 )
 
-/** `receipts.ReceiptImportJob`. */
+/** A submitted receipt link and its import state. */
 @Entity(
     tableName = "import_job",
     indices = [
@@ -314,13 +313,13 @@ data class ImportJobEntity(
     @ColumnInfo(name = "last_error_message") val lastErrorMessage: String?,
     @ColumnInfo(name = "receipt_id") val receiptId: String?,
     @ColumnInfo(name = "finished_at") val finishedAt: Long?,
-    /** The versionCode a job failed with; the after-update retry runs once per version (§7.3). */
+    /** The versionCode a job failed with; the after-update retry runs once per version. */
     @ColumnInfo(name = "app_version_at_failure") val appVersionAtFailure: Long?,
     @ColumnInfo(name = "created_at") val createdAt: Long,
     @ColumnInfo(name = "updated_at") val updatedAt: Long,
 )
 
-/** Deleted rows, for sync later (§6.1, §13). Nothing reads it in v1. */
+/** Deleted rows, kept for a future sync. Nothing reads them yet. */
 @Entity(tableName = "tombstone", primaryKeys = ["entity", "id"])
 data class TombstoneEntity(
     val entity: String,

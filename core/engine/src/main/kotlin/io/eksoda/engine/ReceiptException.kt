@@ -1,12 +1,10 @@
-// Port of backend/apps/receipts/errors.py.
 package io.eksoda.engine
 
-// Receipt import errors (requirements §6.4, TD §9.4).
+// Receipt import errors.
 //
 // Every error has a stable `code` (shown to users), a `publicMessage` (safe to show), a retry
 // policy, and an internal `detail` for logs. Details must never contain full receipt URLs. The
-// app maps codes to local strings and never shows `publicMessage` (docs/android-standalone.md
-// §5.4); it is kept for parity and logs.
+// app maps codes to local strings and never shows `publicMessage`; it is kept for logs.
 
 public enum class ErrorCode(public val code: String) {
     INVALID_URL("invalid_url"),
@@ -40,7 +38,7 @@ public enum class RetryPolicy(public val code: String) {
     override fun toString(): String = code
 }
 
-/** `ReceiptError`. Subclasses fix [code], [retry] and [publicMessage], as the Python classes do. */
+/** `ReceiptError`. Subclasses fix [code], [retry] and [publicMessage]. */
 public sealed class ReceiptException(
     public val code: ErrorCode,
     public val retry: RetryPolicy,

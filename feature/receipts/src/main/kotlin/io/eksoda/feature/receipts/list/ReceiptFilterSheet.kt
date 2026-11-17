@@ -14,8 +14,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -29,7 +27,6 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -48,7 +45,9 @@ import androidx.compose.ui.unit.dp
 import io.eksoda.core.designsystem.component.CategoryIcon
 import io.eksoda.core.model.DocumentKind
 import io.eksoda.core.model.Option
+import io.eksoda.core.model.PeriodPreset
 import io.eksoda.core.model.ReceiptFilter
+import io.eksoda.core.ui.component.DateRangeDialog
 import io.eksoda.core.ui.text.appLocale
 import io.eksoda.core.ui.text.categoryName
 import io.eksoda.core.ui.text.formatDecimalInput
@@ -57,16 +56,14 @@ import io.eksoda.core.ui.text.searchKey
 import io.eksoda.feature.receipts.R
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
-import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneOffset
 import java.util.Locale
 
 private const val MAX_SUGGESTIONS = 8
 
 /**
- * The filter sheet (android-app.md §6.4.2). It edits a draft; nothing changes until Apply.
- * Sheet actions never navigate away (§4.3).
+ * The filter sheet. It edits a draft; nothing changes until Apply. Sheet actions never navigate
+ * away.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -193,7 +190,7 @@ private fun PeriodSection(
         )
     }
     if (customOpen) {
-        CustomRangeDialog(
+        DateRangeDialog(
             from = filter.issuedFrom,
             to = filter.issuedTo,
             onConfirm = { from, to ->
@@ -204,46 +201,6 @@ private fun PeriodSection(
         )
     }
 }
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun CustomRangeDialog(
-    from: LocalDate?,
-    to: LocalDate?,
-    onConfirm: (LocalDate?, LocalDate?) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    val state = rememberDateRangePickerState(
-        initialSelectedStartDateMillis = from?.toPickerMillis(),
-        initialSelectedEndDateMillis = to?.toPickerMillis(),
-    )
-    DatePickerDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    onConfirm(
-                        state.selectedStartDateMillis?.toPickerDate(),
-                        state.selectedEndDateMillis?.toPickerDate(),
-                    )
-                },
-                enabled = state.selectedStartDateMillis != null,
-            ) { Text(stringResource(R.string.ok)) }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
-        },
-    ) {
-        DateRangePicker(state = state, modifier = Modifier.weight(1f))
-    }
-}
-
-/** The date picker works in UTC midnights. */
-private fun LocalDate.toPickerMillis(): Long =
-    atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
-
-private fun Long.toPickerDate(): LocalDate =
-    Instant.ofEpochMilli(this).atZone(ZoneOffset.UTC).toLocalDate()
 
 private fun amountText(value: BigDecimal?, locale: Locale): String =
     value?.let { formatDecimalInput(it, locale) }.orEmpty()

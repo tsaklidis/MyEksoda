@@ -14,7 +14,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/** Plain in-memory Room on Robolectric, without SQLCipher (docs/android-standalone.md §8.2). */
+/** Plain in-memory Room on Robolectric, without SQLCipher. */
 @RunWith(AndroidJUnit4::class)
 class HouseholdDaoTest {
     private lateinit var database: EksodaDatabase

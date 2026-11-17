@@ -8,7 +8,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 
 /**
- * A short beep for each saved receipt (android-app.md §6.3.1), only when the ringer is on:
+ * A short beep for each saved receipt, only when the ringer is on:
  * silent and vibrate modes stay quiet. The tone generator is made on first use and released
  * with the screen.
  */

@@ -6,8 +6,8 @@ import io.eksoda.core.model.Store
 import kotlinx.coroutines.flow.Flow
 
 /**
- * Categories and merchants (`android-app.md` §6.8, §6.9; `android-standalone.md` §11). Writes
- * fail with a [io.eksoda.core.model.CatalogException] when the server would refuse them.
+ * Categories and merchants. Refused writes fail with a
+ * [io.eksoda.core.model.CatalogException].
  */
 interface CatalogRepository {
     fun getCategories(): Flow<List<CategorySummary>>

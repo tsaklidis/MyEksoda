@@ -33,7 +33,7 @@ sealed interface OnboardingEvent {
 }
 
 /**
- * Creating the household (docs/android-standalone.md §11). The app leaves onboarding by itself
+ * Creating the household. The app leaves onboarding by itself
  * once the household exists. Restoring a backup and the app lock come with L7.
  */
 @HiltViewModel

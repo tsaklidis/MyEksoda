@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- HTTPS only, and only the system's certificate authorities: certificates a user or an app
-     added are not trusted (docs/android-standalone.md §7.4 rule 8). Applies to every build type. -->
+     added are not trusted. Applies to every build type. -->
 <network-security-config>
     <base-config cleartextTrafficPermitted="false">
         <trust-anchors>

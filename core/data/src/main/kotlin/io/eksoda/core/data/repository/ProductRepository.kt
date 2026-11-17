@@ -9,8 +9,8 @@ import io.eksoda.core.model.ProductFilter
 import kotlinx.coroutines.flow.Flow
 
 /**
- * Products, price history and comparison (`android-app.md` §6.6). Writes fail with a
- * [io.eksoda.core.model.CatalogException] when the server would answer 400, 404 or 409.
+ * Products, price history and comparison. Refused writes (invalid, missing or conflicting) fail
+ * with a [io.eksoda.core.model.CatalogException].
  */
 interface ProductRepository {
     fun getProducts(filter: ProductFilter): Flow<PagingData<Product>>

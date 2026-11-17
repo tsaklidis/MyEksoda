@@ -19,9 +19,9 @@ import java.time.Clock
 import kotlin.random.Random
 
 /**
- * Processes one import job (§7.2, the server's `pipeline.py`): claim → fetch → parse → validate
+ * Processes one import job: claim → fetch → parse → validate
  * → persist and complete in one transaction → notify. A failure is recorded: the next attempt is
- * scheduled for retryable errors while the schedule lasts (§7.3), otherwise the job fails. It
+ * scheduled for retryable errors while the schedule lasts, otherwise the job fails. It
  * never returns `Result.retry()`; WorkManager's backoff cannot express the schedule.
  *
  * There is no lease: WorkManager's unique work and the WriteCoordinator mean one worker per job.
@@ -76,7 +76,7 @@ class ImportWorker @AssistedInject constructor(
         } catch (exception: ReceiptException) {
             recordFailure(jobId, attempt.attemptCount, exception)
         } catch (
-            // Anything else is an internal error, as on the server.
+            // Anything else is an internal error.
             @Suppress("TooGenericExceptionCaught") exception: Exception,
         ) {
             recordFailure(
@@ -148,7 +148,7 @@ class ImportWorker @AssistedInject constructor(
     companion object {
         const val KEY_JOB_ID = "job_id"
 
-        /** IMPORT_RETRY_SCHEDULE: 60 s, 5 min, 30 min, 2 h, 6 h, 24 h (§7.3). */
+        /** The retry schedule: 60 s, 5 min, 30 min, 2 h, 6 h, 24 h. */
         val RETRY_SCHEDULE_SECONDS: List<Long> = listOf(60, 300, 1_800, 7_200, 21_600, 86_400)
         private const val MILLIS_PER_SECOND = 1_000
         private const val JITTER_MIN = 0.9

@@ -34,7 +34,7 @@ class DatabaseKeyUnavailable(cause: Throwable) :
     Exception("the database key cannot be unwrapped", cause)
 
 /**
- * The only code that touches the database key (docs/android-standalone.md §8.2).
+ * The only code that touches the database key.
  *
  * On first use it creates 32 random bytes as the SQLCipher passphrase and stores them wrapped
  * with an AES-256-GCM key in the Android Keystore (non-exportable, no user authentication, so
@@ -70,7 +70,7 @@ class KeyManager @Inject constructor(@ApplicationContext private val context: Co
         }
     }
 
-    /** "Delete all data" (§8.1) removes the wrapped key with the database file. */
+    /** "Delete all data" removes the wrapped key with the database file. */
     @Synchronized
     fun deleteKey() {
         wrappedFile.delete()

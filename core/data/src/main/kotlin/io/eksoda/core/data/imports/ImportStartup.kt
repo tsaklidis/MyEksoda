@@ -15,7 +15,7 @@ import java.time.Clock
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/** The app's versionCode, for the after-update retry (§7.3). */
+/** The app's versionCode, for the after-update retry. */
 @Singleton
 class AppVersion @Inject constructor(@ApplicationContext context: Context) {
     val code: Long = PackageInfoCompat.getLongVersionCode(

@@ -197,7 +197,7 @@ fun ProductDetailRoute(
     }
 }
 
-/** Product detail (`android-app.md` §6.6.2), in the redesign's layout (ui-redesign.md §5). */
+/** Product detail, in the design's layout (ui-redesign.md §5). */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductDetailScreen(

@@ -6,8 +6,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.eksoda.core.data.repository.AnalyticsRepository
 import io.eksoda.core.model.CategorySpending
 import io.eksoda.core.model.MerchantSpending
+import io.eksoda.core.model.MonthPace
 import io.eksoda.core.model.MonthlyTrend
 import io.eksoda.core.model.Period
+import io.eksoda.core.model.PeriodPreset
 import io.eksoda.core.model.SpendingSummary
 import io.eksoda.core.model.TopProduct
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -24,10 +26,19 @@ import kotlinx.coroutines.flow.stateIn
 import java.time.LocalDate
 import javax.inject.Inject
 
-/** The period chips (docs/design/ui-redesign.md §5). */
-enum class InsightsPeriod { THIS_MONTH, LAST_MONTH, THREE_MONTHS, YEAR }
+/** The period chips (docs/design/ui-redesign.md §5): a preset, or days the user picked. */
+sealed interface InsightsPeriod {
+    data class Preset(val preset: PeriodPreset) : InsightsPeriod
 
-/** A card's data: each card loads and fails on its own (§6.5). */
+    /** Both ends inclusive. */
+    data class Custom(val from: LocalDate, val to: LocalDate) : InsightsPeriod
+
+    companion object {
+        val DEFAULT: InsightsPeriod = Preset(PeriodPreset.THIS_MONTH)
+    }
+}
+
+/** A card's data: each card loads and fails on its own. */
 sealed interface CardState<out T> {
     data object Loading : CardState<Nothing>
 
@@ -37,10 +48,12 @@ sealed interface CardState<out T> {
 }
 
 data class InsightsUiState(
-    val period: InsightsPeriod = InsightsPeriod.THIS_MONTH,
+    val period: InsightsPeriod = InsightsPeriod.DEFAULT,
     val range: Period? = null,
     val today: LocalDate? = null,
     val summary: CardState<SpendingSummary> = CardState.Loading,
+    /** This month day by day against last month; only for "This month", else null. */
+    val pace: CardState<MonthPace>? = null,
     val categories: CardState<CategorySpending> = CardState.Loading,
     val merchants: CardState<List<MerchantSpending>> = CardState.Loading,
     val trend: CardState<MonthlyTrend> = CardState.Loading,
@@ -60,7 +73,7 @@ private data class Request(val period: InsightsPeriod, val attempt: Int)
 @HiltViewModel
 class InsightsViewModel @Inject constructor(private val analytics: AnalyticsRepository) :
     ViewModel() {
-    private val request = MutableStateFlow(Request(InsightsPeriod.THIS_MONTH, 0))
+    private val request = MutableStateFlow(Request(InsightsPeriod.DEFAULT, 0))
 
     val uiState: StateFlow<InsightsUiState> = request
         .flatMapLatest { current -> analytics.changes().map { current } }
@@ -68,9 +81,7 @@ class InsightsViewModel @Inject constructor(private val analytics: AnalyticsRepo
         .let { loaded ->
             combine(loaded, request) { state, current ->
                 // While another period loads, the chips already show the new choice.
-                if (state.period ==
-                    current.period
-                ) {
+                if (state.period == current.period) {
                     state
                 } else {
                     InsightsUiState(period = current.period)
@@ -90,6 +101,11 @@ class InsightsViewModel @Inject constructor(private val analytics: AnalyticsRepo
         val today = analytics.today()
         val range = rangeOf(period, today)
         val summary = async { analytics.getSummary(range).card() }
+        val pace = if (period == InsightsPeriod.DEFAULT) {
+            async { analytics.getMonthPace().card() }
+        } else {
+            null
+        }
         val categories = async { analytics.getSpendingByCategory(range).card() }
         val merchants = async { analytics.getSpendingByMerchant(range).card() }
         val trend = async { analytics.getMonthlyTrend(TREND_MONTHS).card() }
@@ -101,6 +117,7 @@ class InsightsViewModel @Inject constructor(private val analytics: AnalyticsRepo
             range = range,
             today = today,
             summary = summary.await(),
+            pace = pace?.await(),
             categories = categories.await(),
             merchants = merchants.await(),
             trend = trend.await(),
@@ -119,16 +136,11 @@ class InsightsViewModel @Inject constructor(private val analytics: AnalyticsRepo
     }
 }
 
-/** The days a chip covers, up to [today]: the comparison is the period of equal length before. */
+/**
+ * The days a chip covers: a preset up to [today], a custom range as picked. The comparison is
+ * the period of equal length before.
+ */
 internal fun rangeOf(period: InsightsPeriod, today: LocalDate): Period = when (period) {
-    InsightsPeriod.THIS_MONTH -> Period.Range(today.withDayOfMonth(1), today)
-
-    InsightsPeriod.LAST_MONTH -> {
-        val month = java.time.YearMonth.from(today).minusMonths(1)
-        Period.Range(month.atDay(1), month.atEndOfMonth())
-    }
-
-    InsightsPeriod.THREE_MONTHS -> Period.Range(today.withDayOfMonth(1).minusMonths(2), today)
-
-    InsightsPeriod.YEAR -> Period.Range(today.withDayOfYear(1), today)
+    is InsightsPeriod.Preset -> period.preset.soFar(today)
+    is InsightsPeriod.Custom -> Period.Range(period.from, period.to)
 }

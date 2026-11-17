@@ -16,8 +16,8 @@ import io.eksoda.feature.scan.ReceiptLinks
 import io.eksoda.feature.scan.feedbackText
 
 /**
- * "Import this receipt?" for a link shared from another app (android-app.md §6.3.6). The dialog
- * names the website, never the link itself (§8.1).
+ * "Import this receipt?" for a link shared from another app. The dialog
+ * names the website, never the link itself.
  */
 @Composable
 fun ShareImportDialog(
