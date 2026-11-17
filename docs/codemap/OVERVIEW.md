@@ -30,7 +30,7 @@ milestone result, update the matching section here in the same change, and run
 | L3 storage + import | Built: schema, SQLCipher, KeyManager, Persister, ImportService/Worker. No tests |
 | L4 capture + receipts UI | **Done** (2026-11-15): onboarding, scan, imports list, share dialog, receipts list/filters/detail, swipe actions, remembered filters |
 | L5 products + review | Built (2026-11-16), awaiting `make check`: `feature:products` (list, detail, edit, merge, review queue, categories, merchants), `core:data/products/ReviewService`, `imports/ProductMatcher`. **UI redesign applied (2026-11-16, owner decision):** dark three-color theme, Plex Mono numbers, new components and charts, Product detail per `docs/design/ui-redesign.md` §5; not yet compiled |
-| L6 analytics + home | In progress (2026-11-16): `AnalyticsDao` + `AnalyticsRepositoryImpl`, `engine/analytics/Combine.kt`, Home and Insights per the mockups, `feature:settings` (language, notifications, catalog links, credits), automatic categories (`engine/products/AutoCategory.kt`), tab back history in `MainTabs`, price chart by change of price (`pricePoints`) |
+| L6 analytics + home | In progress (2026-11-16): `AnalyticsDao` + `AnalyticsRepositoryImpl`, `engine/analytics/Combine.kt`, Home and Insights per the mockups, `feature:settings` (language, notifications, catalog links, credits), automatic categories (`engine/products/AutoCategory.kt`: products by name/brand, merchants by activity, eating out at cafés; `AutoCategoryBackfill` v2), tab back history in `MainTabs`, price chart by change of price (`pricePoints`) |
 | L7 | Not started |
 
 The authoritative table is the guide's §16 (`scripts/guide.sh 16`).
@@ -207,7 +207,7 @@ parsers, don't reinvent):
   `fingerprint(url).take(12)` only.
 - OkHttp only in `core:engine` (configuration fails elsewhere). No Firebase/ML Kit/GMS
   (`:app:checkNoTelemetry`).
-- `testdata/server/fixtures/` belongs to this repository (historical name): edit fixtures
+- `testdata/fixtures/` belongs to this repository: edit fixtures
   with the parser they test; there is nothing to sync. Never commit, push or `git init`.
 - Back on a tab other than Home returns to the previous tab (`MainTabs` history); only Back
   on Home leaves the app.

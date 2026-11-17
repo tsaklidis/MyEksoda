@@ -14,7 +14,7 @@ import java.math.BigDecimal
 /**
  * The canonical receipt as the JSON tree Python's `to_json()` produces: dataclass fields under
  * their snake_case names, `Decimal` as `str(value)`, dates and times as `isoformat()`, enums as
- * their values. Golden files (`testdata/server/fixtures/<provider>/expected`) are this tree,
+ * their values. Golden files (`testdata/fixtures/<provider>/expected`) are this tree,
  * written with sorted keys; compare trees, not text (§9.3).
  */
 public object CanonicalJson {

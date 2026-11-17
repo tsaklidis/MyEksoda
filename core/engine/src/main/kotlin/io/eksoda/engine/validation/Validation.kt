@@ -27,7 +27,7 @@ import java.math.RoundingMode
 // R11 MARK                      present for myDATA-registered documents
 // R12 currency                  EUR
 // R13 line discount             gross before discount − discount = gross
-// R14 VAT breakdown rate        breakdown net × rate = breakdown VAT
+// R14 VAT breakdown rate        breakdown net × rate = breakdown VAT, allowing per-line rounding
 // R15 document kind             the document type is recognized
 // R16 total discount            total before discount − discount = gross
 // +   provider notices          conditions the provider detected (e.g. signature mismatch)
@@ -37,6 +37,7 @@ public val TOTAL_TOLERANCE: BigDecimal = BigDecimal("0.02")
 public const val EXPECTED_CURRENCY: String = "EUR"
 private val ZERO = BigDecimal("0")
 private val HUNDRED = BigDecimal(100)
+private val HALF_CENT = BigDecimal("0.005")
 private const val CENT_SCALE = 2
 
 /** A warning. [expected] and [actual] are `str(Decimal)` texts, or the raw value. */
@@ -243,7 +244,8 @@ private fun vatBreakdownRates(receipt: CanonicalReceipt): List<ValidationIssue> 
     receipt.vatBreakdown.mapNotNull { entry ->
         val rate = entry.rate ?: return@mapNotNull null
         val expected = money((entry.net * rate).pyDivide(HUNDRED))
-        if (!off(expected, entry.vat, LINE_TOLERANCE)) return@mapNotNull null
+        val tolerance = breakdownRateTolerance(receipt, rate)
+        if (!off(expected, entry.vat, tolerance)) return@mapNotNull null
         issue(
             "vat_breakdown_rate_mismatch",
             "The VAT for the ${rate.pyStr()}% rate does not match its net amount.",
@@ -252,6 +254,21 @@ private fun vatBreakdownRates(receipt: CanonicalReceipt): List<ValidationIssue> 
             entry.vat,
         )
     }
+
+/**
+ * How far a rate's reported VAT may be from `net × rate`. Retailers compute VAT per line, round
+ * each line to the cent and add the rounded amounts, so the reported VAT can drift from the VAT
+ * of the summed net: e.g. net 14.12 at 13% gives 1.84, while the receipt reports 1.82. Each line
+ * contributes at most half a cent, or `half a cent × (1 + rate)` when the retailer rounds the
+ * net derived from a VAT-inclusive price. Without lines at this rate the line count is unknown,
+ * so [TOTAL_TOLERANCE] applies.
+ */
+private fun breakdownRateTolerance(receipt: CanonicalReceipt, rate: BigDecimal): BigDecimal {
+    val lines = receipt.lines.count { it.vatRate?.compareTo(rate) == 0 }
+    if (lines == 0) return TOTAL_TOLERANCE
+    val perLine = HALF_CENT * (BigDecimal.ONE + rate.pyDivide(HUNDRED))
+    return LINE_TOLERANCE.max(perLine * BigDecimal(lines))
+}
 
 private fun payments(receipt: CanonicalReceipt): List<ValidationIssue> { // R10
     if (receipt.payments.isEmpty()) return emptyList()

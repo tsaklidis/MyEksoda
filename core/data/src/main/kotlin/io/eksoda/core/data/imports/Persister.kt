@@ -2,6 +2,7 @@ package io.eksoda.core.data.imports
 
 import android.database.sqlite.SQLiteConstraintException
 import io.eksoda.core.data.util.Fixed
+import io.eksoda.core.database.CategorySeed
 import io.eksoda.core.database.dao.MerchantDao
 import io.eksoda.core.database.dao.ReceiptDao
 import io.eksoda.core.database.entity.MerchantEntity
@@ -25,6 +26,7 @@ import io.eksoda.engine.persist.documentNumber
 import io.eksoda.engine.persist.isCancelled
 import io.eksoda.engine.persist.paymentMethod
 import io.eksoda.engine.persist.sourceData
+import io.eksoda.engine.products.merchantCategorySlug
 import io.eksoda.engine.text.fingerprint
 import io.eksoda.engine.text.normalizeText
 import io.eksoda.engine.validation.ValidationIssue
@@ -130,6 +132,7 @@ class Persister @Inject constructor(
                     deriveDisplayName(details.getValue("legal_name")),
                 ),
                 activityDescription = details.getValue("activity_description"),
+                defaultCategoryId = defaultCategoryOf(details),
                 taxOffice = details.getValue("tax_office"),
                 gemiNumber = details.getValue("gemi_number"),
                 street = details.getValue("street"),
@@ -166,6 +169,16 @@ class Persister @Inject constructor(
         merchants.update(updated)
         return updated
     }
+
+    /**
+     * A new merchant's default category: a fuel station, café, pharmacy... defaults to its kind
+     * (AutoCategory.kt); general stores get none. The user can change or clear it.
+     */
+    private fun defaultCategoryOf(details: Map<String, String>): String? = merchantCategorySlug(
+        details.getValue("activity_description"),
+        details.getValue("legal_name"),
+    )
+        ?.let(CategorySeed::categoryId)
 
     /** By branch number; else by normalized address; without either, no store. */
     private suspend fun resolveStore(

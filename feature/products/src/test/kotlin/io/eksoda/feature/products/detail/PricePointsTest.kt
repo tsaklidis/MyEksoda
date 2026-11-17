@@ -53,4 +53,30 @@ class PricePointsTest {
         assertThat(points.minOf { it.price }).isEqualTo(prices.min())
         assertThat(points.maxOf { it.price }).isEqualTo(prices.max())
     }
+
+    @Test
+    fun `the latest purchase ends the line even when the price did not change`() {
+        val priced = entries("1.20", "1.25", "1.25", "1.25")
+        val points = pricePoints(priced)
+        assertThat(points.map { it.price.toPlainString() }).containsExactly("1.20", "1.25", "1.25")
+        assertThat(points.last().entry).isEqualTo(priced.first())
+    }
+
+    @Test
+    fun `one price bought several times is a flat line`() {
+        assertThat(pricePoints(entries("1.20", "1.20", "1.20")).size).isEqualTo(2)
+        assertThat(pricePoints(entries("1.20")).size).isEqualTo(1)
+    }
+
+    @Test
+    fun `distinct prices ignore trailing zeros and repeats`() {
+        assertThat(distinctPrices(entries("1.20", "1.200", "1.25", "1.20"))).isEqualTo(2)
+    }
+
+    @Test
+    fun `the middle date is labeled only when it sits halfway`() {
+        assertThat(axisIndexes(pricePoints(entries("1", "2")))).containsExactly(0, 1)
+        assertThat(axisIndexes(pricePoints(entries("1", "2", "3")))).containsExactly(0, 1, 2)
+        assertThat(axisIndexes(pricePoints(entries("1", "2", "3", "4")))).containsExactly(0, 3)
+    }
 }

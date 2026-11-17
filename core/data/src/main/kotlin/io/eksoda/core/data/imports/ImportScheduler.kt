@@ -33,6 +33,11 @@ class ImportScheduler @Inject constructor(private val workManager: WorkManager) 
     fun enqueueRetry(jobId: String, delayMillis: Long) =
         enqueue(jobId, delayMillis, ExistingWorkPolicy.APPEND_OR_REPLACE)
 
+    /** Stops the queued runs of a job that no longer exists (after a restore). */
+    fun cancel(jobId: String) {
+        workManager.cancelUniqueWork("import-$jobId")
+    }
+
     private fun enqueue(
         jobId: String,
         delayMillis: Long,

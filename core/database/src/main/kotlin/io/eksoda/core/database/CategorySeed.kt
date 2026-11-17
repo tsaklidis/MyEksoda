@@ -34,6 +34,13 @@ object CategorySeed {
     fun categoryId(slug: String): String =
         UUID.nameUUIDFromBytes("category:$slug".toByteArray()).toString()
 
+    private val SLUGS_BY_ID: Map<String, String> by lazy {
+        SYSTEM_CATEGORIES.associate { (slug, _) -> categoryId(slug) to slug }
+    }
+
+    /** The slug of a system category id; null for a household category. */
+    fun slugOf(id: String): String? = SLUGS_BY_ID[id]
+
     fun entities(now: Long): List<CategoryEntity> = SYSTEM_CATEGORIES.map { (slug, name) ->
         CategoryEntity(
             id = categoryId(slug),

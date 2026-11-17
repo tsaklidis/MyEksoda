@@ -49,6 +49,13 @@ data class PriceRow(
     @ColumnInfo(name = "normalized_unit_price_e4") val normalizedUnitPriceE4: Long?,
 )
 
+/** A product without a category, with the default category of the merchant it came from. */
+data class UncategorizedRow(
+    val id: String,
+    val name: String,
+    @ColumnInfo(name = "merchant_category_id") val merchantCategoryId: String?,
+)
+
 /** A line waiting for review, with its receipt. */
 data class ReviewRow(
     @Embedded val item: ReceiptItemEntity,
@@ -75,9 +82,15 @@ interface ProductDao {
     @Query("SELECT * FROM product WHERE id IN (:ids)")
     suspend fun getAll(ids: List<String>): List<ProductEntity>
 
-    /** Products without a category: id and name. */
-    @Query("SELECT id, name FROM product WHERE category_id IS NULL")
-    suspend fun uncategorized(): List<OptionRow>
+    /** Products without a category, with their first merchant's default category. */
+    @Query(
+        """SELECT product.id AS id, product.name AS name,
+            (SELECT merchant.default_category_id FROM merchant_product_mapping m
+             JOIN merchant ON merchant.id = m.merchant_id
+             WHERE m.product_id = product.id ORDER BY m.created_at LIMIT 1) AS merchant_category_id
+           FROM product WHERE product.category_id IS NULL""",
+    )
+    suspend fun uncategorized(): List<UncategorizedRow>
 
     /** Sets the category only if the product still has none. */
     @Query(

@@ -14,6 +14,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import io.eksoda.core.data.repository.AnalyticsRepository
 import io.eksoda.core.data.repository.AnalyticsRepositoryImpl
+import io.eksoda.core.data.repository.BackupRepository
+import io.eksoda.core.data.repository.BackupRepositoryImpl
 import io.eksoda.core.data.repository.CatalogRepository
 import io.eksoda.core.data.repository.CatalogRepositoryImpl
 import io.eksoda.core.data.repository.HouseholdRepository
@@ -100,4 +102,7 @@ interface RepositoryModule {
 
     @Binds
     fun bindSettingsRepository(implementation: SettingsRepositoryImpl): SettingsRepository
+
+    @Binds
+    fun bindBackupRepository(implementation: BackupRepositoryImpl): BackupRepository
 }

@@ -204,6 +204,7 @@ private fun PriceChangeBadge(stats: PriceStats) {
 internal fun PriceTrendCard(stats: PriceStats, priced: List<PriceEntry>) {
     val points = remember(priced) { pricePoints(priced) }
     if (points.size < 2) return
+    val distinct = remember(priced) { distinctPrices(priced) }
     val locale = appLocale()
     val colors = EksodaTheme.colors
     val dateFormat = dateFormatter("MMM yy", locale)
@@ -217,7 +218,7 @@ internal fun PriceTrendCard(stats: PriceStats, priced: List<PriceEntry>) {
         title = stringResource(chartTitle(stats.normalizedUnit)),
         action = {
             Text(
-                text = pluralStringResource(R.plurals.chart_points, points.size, points.size),
+                text = pluralStringResource(R.plurals.chart_points, distinct, distinct),
                 style = MaterialTheme.typography.bodySmall,
                 color = colors.ink2,
             )
@@ -234,7 +235,7 @@ internal fun PriceTrendCard(stats: PriceStats, priced: List<PriceEntry>) {
                 color = colors.compare,
                 average = stats.average,
                 markExtremes = true,
-                axisLabels = listOf(0, points.lastIndex / 2, points.lastIndex).map { index ->
+                axisLabels = axisIndexes(points).map { index ->
                     points[index].entry.issuedAt.format(dateFormat)
                         .replaceFirstChar { it.titlecase(locale) }
                 },

@@ -65,4 +65,14 @@ interface MerchantDao {
            WHERE id = :id""",
     )
     suspend fun setDefaultCategory(id: String, categoryId: String?, now: Long): Int
+
+    @Query("SELECT * FROM merchant WHERE default_category_id IS NULL")
+    suspend fun withoutDefaultCategory(): List<MerchantEntity>
+
+    /** Sets the default category only if the merchant still has none. */
+    @Query(
+        """UPDATE merchant SET default_category_id = :categoryId, updated_at = :now
+           WHERE id = :id AND default_category_id IS NULL""",
+    )
+    suspend fun setDefaultCategoryIfNone(id: String, categoryId: String, now: Long): Int
 }

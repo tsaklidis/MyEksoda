@@ -62,14 +62,20 @@ fun StatRow(items: List<StatItem>, modifier: Modifier = Modifier, divider: Boole
                 .padding(top = if (divider) 14.dp else 0.dp),
         ) {
             val count = items.size.coerceAtLeast(1)
-            val gaps = with(density) {
-                ((COLUMN_START + DIVIDER) * (count - 1) + COLUMN_END * count).toPx()
+            // As SideBySide lays them out: equal weights after the dividers, then each column's
+            // own padding (the first has no start padding).
+            val (slot, start, end) = with(density) {
+                Triple(
+                    (constraints.maxWidth - DIVIDER.toPx() * (count - 1)) / count,
+                    COLUMN_START.toPx(),
+                    COLUMN_END.toPx(),
+                )
             }
-            val column = (constraints.maxWidth - gaps) / count
-            val fits = remember(items, column, valueStyle, supportingStyle) {
+            val fits = remember(items, slot, valueStyle, supportingStyle) {
                 fun width(text: String, style: TextStyle) =
                     measurer.measure(text, style, maxLines = 1).size.width
-                items.all { item ->
+                items.withIndex().all { (index, item) ->
+                    val column = slot - end - if (index > 0) start else 0f
                     width(item.label, OverlineStyle) <= column &&
                         width(item.value, valueStyle) <= column &&
                         (

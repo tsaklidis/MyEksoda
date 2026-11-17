@@ -103,11 +103,12 @@ fun MainTabs(
     var history by rememberSaveable { mutableStateOf(listOf<Tab>()) }
     val select: (Tab) -> Unit = { entry ->
         if (entry != tab) {
-            history = (history - entry) + tab
+            // Home starts the history again: Back on Home always leaves the app.
+            history = if (entry == Tab.HOME) emptyList() else (history - entry) + tab
             tab = entry
         }
     }
-    BackHandler(enabled = history.isNotEmpty() || tab != Tab.HOME) {
+    BackHandler(enabled = tab != Tab.HOME) {
         val previous = history.lastOrNull() ?: Tab.HOME
         history = history.dropLast(1)
         tab = previous

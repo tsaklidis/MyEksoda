@@ -1,6 +1,7 @@
-// Android-only (not in the server): a system category for a new product from its name, so
-// spending by category is useful without assigning every product by hand. Owner decision
-// 2026-11-16; recorded in docs/android-standalone.md §16. The user can always change it.
+// Automatic categories (owner decisions 2026-11-16 and 2026-11-17, docs/android-standalone.md
+// §16): a system category for a new product from its name or brand, and a default category
+// for a merchant from its registered activity or name, so spending by category is useful
+// without assigning every product by hand. The user can always change either.
 package io.eksoda.engine.products
 
 import io.eksoda.engine.text.normalizeText
@@ -120,6 +121,61 @@ private val KEYWORDS: Map<String, List<String>> = mapOf(
     ),
 )
 
+/**
+ * Brands that make one kind of product, for names that start with the brand ("ΜΕΒΓΑΛ ΚΕΦΙΡ",
+ * "ZAGORI 1.5L"). Brands that make several kinds (ΔΕΛΤΑ: milk and juice) are left out.
+ */
+private val BRANDS: Map<String, List<String>> = mapOf(
+    "dairy-and-eggs" to listOf(
+        "ΜΕΒΓΑΛ", "MEVGAL", "FAGE", "ΦΑΓΕ", "ΔΩΔΩΝΗ", "DODONI", "ΝΟΥΝΟΥ", "ΚΟΛΙΟΣ", "ΤΥΡΑΣ",
+        "PRESIDENT", "KERRYGOLD", "LURPAK",
+    ),
+    "meat-and-fish" to listOf(
+        "ΝΙΚΑΣ",
+        "NIKAS",
+        "ΥΦΑΝΤΗΣ",
+        "IFANTIS",
+        "CRETA FARMS",
+        "ΜΙΜΙΚΟΣ",
+        "ΠΙΝΔΟΣ",
+    ),
+    "snacks-and-sweets" to listOf(
+        "ΙΟΝ", "LACTA", "MILKA", "KINDER", "ΠΑΥΛΙΔΗΣ", "ΠΑΠΑΔΟΠΟΥΛΟΥ", "MERENDA",
+        "ΜΕΡΕΝΤΑ", "HARIBO", "CHEETOS", "TSAKIRIS", "ΤΣΑΚΙΡΗΣ", "BAKE ROLLS", "7DAYS",
+        "TWIX", "SNICKERS", "BOUNTY", "MARS",
+    ),
+    "beverages" to listOf(
+        "ΕΨΑ", "ΛΟΥΞ", "LOUX", "AMITA", "ΑΜΙΤΑ", "ZAGORI", "ΖΑΓΟΡΙ", "ΑΥΡΑ", "AVRA",
+        "ΛΟΥΤΡΑΚΙ", "ΘΕΟΝΗ", "ΣΑΜΑΡΙΝΑ", "AMSTEL", "ΑΜΣΤΕΛ", "FIX", "ΦΙΞ", "ΜΥΘΟΣ",
+        "MYTHOS", "ΚΑΙΖΕΡ", "HEINEKEN", "ΒΕΡΓΙΝΑ", "LIPTON", "NESTEA", "JACOBS",
+        "ΛΟΥΜΙΔΗΣ", "ΜΠΡΑΒΟ", "BRAVO", "SPRITE", "PEPSI", "SCHWEPPES",
+    ),
+    "groceries" to listOf(
+        "ΜΙΣΚΟ", "MISKO", "BARILLA", "ΓΙΩΤΗΣ", "ΚΥΚΝΟΣ", "ΜΙΝΕΡΒΑ",
+        "KELLOGGS", "NESQUIK", "HELLMANNS", "HEINZ", "KNORR", "MAGGI", "UNCLE BENS",
+    ),
+    "cleaning-products" to listOf(
+        "KLINEX", "PERSIL", "CIF", "FINISH", "CALGON", "VANISH", "DUCK", "WC NET", "SOFLAN",
+        "ΣΟΦΛΑΝ", "LENOR", "COCCOLINO", "ΣΚΙΠ",
+    ),
+    "personal-care" to listOf(
+        "SIGNAL", "AIM", "ORAL B", "PANTENE", "ELVIVE", "GARNIER", "HEAD SHOULDERS", "PAMPERS",
+        "BABYLINO", "ALWAYS", "EVERYDAY", "ΣΕΠΤΟΝΑ", "SEPTONA", "PAPOUTSANIS", "ΠΑΠΟΥΤΣΑΝΗΣ",
+        "NOXZEMA", "REXONA", "AXE", "PALMOLIVE", "JOHNSONS",
+    ),
+    "household-items" to listOf(
+        "ZEWA",
+        "SOFTEX",
+        "ΣΟΦΤΕΞ",
+        "KLEENEX",
+        "DURACELL",
+        "VARTA",
+        "ΒΑΡΤΑ",
+        "ENERGIZER",
+    ),
+    "pet-supplies" to listOf("FRISKIES", "FELIX", "WHISKAS", "PEDIGREE", "PURINA", "ROYAL CANIN"),
+)
+
 /** Greek capitals that look like Latin ones, folded to Latin on both sides of a comparison. */
 private val LOOK_ALIKES: Map<Char, Char> = mapOf(
     'Α' to 'A', 'Β' to 'B', 'Ε' to 'E', 'Ζ' to 'Z', 'Η' to 'H', 'Ι' to 'I', 'Κ' to 'K',
@@ -132,10 +188,12 @@ private fun fold(word: String): String =
 private const val WHOLE_WORD_MAX = 3
 
 /** (slug, stem words) with the stems normalized like product names, longest stems first. */
-private val STEMS: List<Pair<String, List<String>>> = KEYWORDS.flatMap { (slug, words) ->
-    words.map { word -> slug to normalizeText(word).pySplit().map(::fold) }
-}.filter { it.second.isNotEmpty() }
+private val STEMS: List<Pair<String, List<String>>> = (KEYWORDS.entries + BRANDS.entries)
+    .flatMap { (slug, words) -> words.map { word -> slug to stem(word) } }
+    .filter { it.second.isNotEmpty() }
     .sortedByDescending { (_, parts) -> parts.sumOf { it.length } }
+
+private fun stem(word: String): List<String> = normalizeText(word).pySplit().map(::fold)
 
 private fun matches(parts: List<String>, words: List<String>, start: Int): Boolean {
     if (start + parts.size > words.size) return false
@@ -157,4 +215,106 @@ public fun suggestCategorySlug(name: String): String? {
         if (hit != null) return hit.first
     }
     return null
+}
+
+/** Eating out: at a café or restaurant every product is this, whatever its name. */
+public const val RESTAURANTS_AND_CAFES: String = "restaurants-and-cafes"
+
+/**
+ * The category for a new product bought at a merchant whose default category is
+ * [merchantSlug]: at a café or restaurant, eating out (a "FREDDO ESPRESSO" there is not a
+ * grocery); elsewhere what its [name] says, or null (analytics then uses the merchant's default
+ * category, which follows later changes of that default).
+ */
+public fun productCategorySlug(name: String, merchantSlug: String?): String? =
+    if (merchantSlug == RESTAURANTS_AND_CAFES) merchantSlug else suggestCategorySlug(name)
+
+/**
+ * Shops whose registered activity (the ΚΑΔ description on the receipt) or name says what they
+ * sell. Checked in this order; general stores (supermarkets, kiosks) come first and mean "no
+ * single category".
+ */
+private val GENERAL_STORES = listOf(
+    "ΜΗ ΕΞΕΙΔΙΚΕΥΜΕΝ", "ΥΠΕΡΑΓΟΡ", "SUPER MARKET", "SUPERMARKET", "ΠΕΡΙΠΤΕΡ", "ΠΑΝΤΟΠΩΛ",
+    "ΜΙΝΙ ΜΑΡΚΕΤ", "MINI MARKET", "ΜΙΚΤΟ ΛΙΑΝΙΚ",
+)
+
+private val SHOP_KINDS: List<Pair<String, List<String>>> = listOf(
+    RESTAURANTS_AND_CAFES to listOf(
+        "ΕΣΤΙΑΤΟΡ", "ΕΣΤΙΑΣ", "ΚΑΦΕΤΕΡ", "ΚΑΦΕΝΕΙ", "ΠΑΡΟΧΗΣ ΠΟΤΩΝ", "ΨΗΤΟΠΩΛ",
+        "ΣΟΥΒΛΑΤΖ", "ΤΑΒΕΡΝ", "ΟΥΖΕΡ", "ΠΙΤΣΑΡ", "ΚΡΕΠΕΡ", "ΚΥΛΙΚΕΙ", "ΣΝΑΚ ΜΠΑΡ",
+        "FAST FOOD", "ΜΕΖΕΔΟΠΩΛ", "ΓΥΡΑΔΙΚ", "EVEREST", "GREGORYS", "ΓΡΗΓΟΡΗΣ",
+        "COFFEE ISLAND", "MIKEL", "STARBUCKS", "GOODYS", "MCDONALD", "BURGER", "ΚΑΦΕ ΜΠΑΡ",
+    ),
+    "fuel-and-transport" to listOf(
+        "ΚΑΥΣΙΜ", "ΠΡΑΤΗΡΙ", "ΣΤΑΘΜΕΥΣ", "ΔΙΟΔ", "ΤΑΞΙ", "ΜΕΤΑΦΟΡ", "ΑΥΤΟΚΙΝΗΤΟΔΡ",
+        "SHELL", "EKO", "AVIN", "AEGEAN", "REVOIL", "ELIN", "CYCLON", "ETEKA",
+    ),
+    "pharmacy-and-health" to listOf(
+        "ΦΑΡΜΑΚ",
+        "ΟΡΘΟΠΕΔΙΚ",
+        "ΙΑΤΡ",
+        "ΟΔΟΝΤΙΑΤΡ",
+        "ΔΙΑΓΝΩΣΤ",
+        "ΟΠΤΙΚ",
+    ),
+    // Before sweets: the bakery activity codes also name cakes and sweets (ΚΑΔ 47.24, 10.71).
+    "bakery" to listOf(
+        "ΑΡΤΟΠΟΙ",
+        "ΑΡΤΟΖΑΧΑΡ",
+        "ΦΟΥΡΝ",
+        "ΑΡΤΟΣΚΕΥΑΣΜ",
+        "ΑΡΤΟΥ",
+        "ΨΩΜΙΟΥ",
+    ),
+    "snacks-and-sweets" to listOf("ΖΑΧΑΡΟΠΛΑΣΤ", "ΖΑΧΑΡΩΤ", "ΚΑΡΑΜΕΛΟΠΙΙΑΣ"),
+    "meat-and-fish" to listOf("ΚΡΕΟΠΩΛ", "ΚΡΕΑΤ", "ΙΧΘΥ", "ΨΑΡΙΩΝ", "ΠΟΥΛΕΡΙΚ"),
+    "fruits-and-vegetables" to listOf("ΟΠΩΡΟΚΗΠ", "ΟΠΩΡΟΠΩΛ", "ΜΑΝΑΒ", "ΛΑΧΑΝΙΚ"),
+    "clothing-and-footwear" to listOf("ΕΝΔΥΜ", "ΕΝΔΥΣ", "ΥΠΟΔΗΜ", "ΕΣΩΡΟΥΧ", "ZARA"),
+    // Before electronics: "ΗΛΕΚΤΡΙΚΗΣ ΕΝΕΡΓΕΙΑΣ" is a utility, "ΕΠΙΣΚΕΥΗ ΗΛΕΚΤΡΟΝΙΚΩΝ" a repair.
+    "services" to listOf(
+        "ΚΟΜΜΩΤ", "ΚΟΥΡΕΙ", "ΣΥΝΕΡΓΕΙ", "ΠΛΥΝΤΗΡΙ", "ΚΑΘΑΡΙΣΤΗΡΙ", "ΕΠΙΣΚΕΥ",
+        "ΤΑΧΥΔΡΟΜ", "ΑΣΦΑΛΙΣΤ", "ΕΚΠΑΙΔΕΥΣ", "ΦΡΟΝΤΙΣΤ", "ΕΝΕΡΓΕΙΑΣ", "ΥΔΡΕΥΣ",
+        "ΤΗΛΕΠΙΚΟΙΝ",
+    ),
+    "electronics-and-appliances" to listOf(
+        "ΗΛΕΚΤΡΙΚ",
+        "ΗΛΕΚΤΡΟΝ",
+        "ΥΠΟΛΟΓΙΣΤ",
+        "ΚΩΤΣΟΒΟΛΟΣ",
+        "PLAISIO",
+        "MEDIA MARKT",
+        "ΓΕΡΜΑΝΟΣ",
+    ),
+    "pet-supplies" to listOf("ΚΑΤΟΙΚΙΔ", "ΖΩΟΤΡΟΦ", "ΚΤΗΝΙΑΤΡ", "PET CITY", "PETSHOP"),
+    "personal-care" to listOf("ΚΑΛΛΥΝΤ", "ΑΡΩΜΑΤΟΠΩΛ", "HONDOS", "SEPHORA"),
+    "household-items" to listOf("ΣΙΔΗΡΙΚ", "ΧΡΩΜΑΤΩΝ", "ΕΠΙΠΛ", "ΟΙΚΙΑΚΩΝ ΕΙΔ", "ΚΙΓΚΑΛ"),
+)
+
+private val GENERAL_STEMS = GENERAL_STORES.map(::stem)
+private val SHOP_STEMS = SHOP_KINDS.map { (slug, words) -> slug to words.map(::stem) }
+
+/** Whether any of [stems] appears anywhere in [words]. */
+private fun containsAny(words: List<String>, stems: List<List<String>>): Boolean =
+    stems.any { parts -> words.indices.any { matches(parts, words, it) } }
+
+private fun shopKind(text: String): String? {
+    val words = normalizeText(text).pySplit().map(::fold)
+    if (words.isEmpty()) return null
+    if (containsAny(words, GENERAL_STEMS)) return GENERAL
+    return SHOP_STEMS.firstOrNull { (_, stems) -> containsAny(words, stems) }?.first
+}
+
+private const val GENERAL = "general"
+
+/**
+ * The system category slug a merchant's purchases default to, from its registered [activity]
+ * (more reliable) or else its [name]: a fuel station, café, pharmacy, bakery, butcher and so on.
+ * Null for general stores such as supermarkets, whose products are categorized one by one, and
+ * when nothing matches.
+ */
+public fun merchantCategorySlug(activity: String, name: String): String? {
+    val byActivity = shopKind(activity)
+    if (byActivity != null) return byActivity.takeUnless { it == GENERAL }
+    return shopKind(name)?.takeUnless { it == GENERAL }
 }

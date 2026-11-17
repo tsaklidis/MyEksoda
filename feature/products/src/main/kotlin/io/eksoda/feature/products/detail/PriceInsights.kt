@@ -34,14 +34,18 @@ internal data class PricePoint(val entry: PriceEntry, val price: BigDecimal)
 
 /**
  * The purchases to draw, oldest first: every change of price, so most distinct prices show. A run
- * of purchases at the same price is one point (its first purchase). When more than [max] points
- * remain, prices that differ from the last kept point by no more than a growing share of the
- * whole range are dropped, until [max] remain; the first, last, lowest and highest always stay.
+ * of purchases at the same price is one point (its first purchase), and the latest purchase is
+ * always the last point, so the line reaches today even when the price has not changed for a
+ * while (a product always bought at one price is a flat line from its first to its latest
+ * purchase). When more than [max] points remain, prices that differ from the last kept point by
+ * no more than a growing share of the whole range are dropped, until [max] remain; the first,
+ * last, lowest and highest always stay.
  */
 internal fun pricePoints(priced: List<PriceEntry>, max: Int = MAX_POINTS): List<PricePoint> {
     val oldestFirst = priced.reversed().map { PricePoint(it, checkNotNull(it.normalizedUnitPrice)) }
     val changes = oldestFirst.filterIndexed { index, point ->
-        index == 0 || point.price.compareTo(oldestFirst[index - 1].price) != 0
+        index == 0 || index == oldestFirst.lastIndex ||
+            point.price.compareTo(oldestFirst[index - 1].price) != 0
     }
     if (changes.size <= max) return changes
     // The first purchase at the lowest and at the highest price always stays.
@@ -65,6 +69,23 @@ internal fun pricePoints(priced: List<PriceEntry>, max: Int = MAX_POINTS): List<
         share = share.multiply(BigDecimal(2))
     }
     return points
+}
+
+/** How many different unit prices [priced] has (1,20 and 1,200 are one price). */
+internal fun distinctPrices(priced: List<PriceEntry>): Int =
+    priced.mapNotNull { it.normalizedUnitPrice?.stripTrailingZeros() }.toSet().size
+
+/**
+ * The points to label under the chart: the first, the middle (only when it sits exactly halfway,
+ * where an evenly spread middle label is drawn) and the last. Indexes into [points].
+ */
+internal fun axisIndexes(points: List<PricePoint>): List<Int> {
+    val last = points.lastIndex
+    return when {
+        last <= 0 -> listOf(0)
+        last % 2 == 0 -> listOf(0, last / 2, last)
+        else -> listOf(0, last)
+    }
 }
 
 /** "Lidl is 0,13 €/l cheaper than AB Vasilopoulos": the first two ranked merchants. */

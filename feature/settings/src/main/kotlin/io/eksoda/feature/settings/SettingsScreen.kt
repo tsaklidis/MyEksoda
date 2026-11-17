@@ -1,9 +1,12 @@
 package io.eksoda.feature.settings
 
 import android.Manifest
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import android.widget.Toast
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -192,12 +195,23 @@ fun SettingsScreen(
     }
 }
 
-/** Who made the app, with links to the author's GitHub profile and email. */
+/**
+ * Who made the app, with links to the author's GitHub profile and email. When no app can open a
+ * link (no browser or no mail app), the address is copied instead and a short message says so.
+ */
 @Composable
 private fun Credits() {
     val colors = EksodaTheme.colors
     val uriHandler = LocalUriHandler.current
-    val open = { uri: String -> runCatching { uriHandler.openUri(uri) } }
+    val context = LocalContext.current
+    val copied = stringResource(R.string.settings_link_copied)
+    val open = { uri: String, shown: String ->
+        runCatching { uriHandler.openUri(uri) }.onFailure {
+            context.getSystemService(ClipboardManager::class.java)
+                ?.setPrimaryClip(ClipData.newPlainText(shown, shown))
+            Toast.makeText(context, copied, Toast.LENGTH_SHORT).show()
+        }
+    }
     Column(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
         verticalArrangement = Arrangement.spacedBy(2.dp),
@@ -207,21 +221,20 @@ private fun Credits() {
             style = MaterialTheme.typography.bodySmall,
             color = colors.ink2,
         )
-        Text(AUTHOR, style = MaterialTheme.typography.bodyLarge)
+        Text(stringResource(R.string.settings_author), style = MaterialTheme.typography.bodyLarge)
     }
     LinkRow(
         label = stringResource(R.string.settings_github),
         value = GITHUB_LABEL,
-        onClick = { open(GITHUB_URL) },
+        onClick = { open(GITHUB_URL, GITHUB_URL) },
     )
     LinkRow(
         label = stringResource(R.string.settings_email),
         value = EMAIL,
-        onClick = { open("mailto:$EMAIL") },
+        onClick = { open("mailto:$EMAIL", EMAIL) },
     )
 }
 
-private const val AUTHOR = "Stefanos I. Tsaklidis"
 private const val GITHUB_URL = "https://github.com/tsaklidis"
 private const val GITHUB_LABEL = "github.com/tsaklidis"
 private const val EMAIL = "stefanos@tsaklidis.gr"

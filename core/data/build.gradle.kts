@@ -18,6 +18,8 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.process)
     implementation(libs.room.ktx)
+    // Backup manifest and rows (backup/), built as JSON trees without the compiler plugin.
+    implementation(libs.kotlinx.serialization.json)
 }
 
 kover {

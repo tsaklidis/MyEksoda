@@ -13,9 +13,9 @@ dependencies {
 }
 
 tasks.test {
-    // Parser tests read this repository's receipt fixtures (§10; the directory name is historical).
-    systemProperty("eksoda.testdata", rootDir.resolve("testdata/server").absolutePath)
-    inputs.dir(rootDir.resolve("testdata/server")).withPathSensitivity(PathSensitivity.RELATIVE)
+    // Parser tests read this repository's receipt fixtures, testdata/fixtures/<provider>/ (§10).
+    systemProperty("eksoda.testdata", rootDir.resolve("testdata").absolutePath)
+    inputs.dir(rootDir.resolve("testdata")).withPathSensitivity(PathSensitivity.RELATIVE)
 }
 
 kover {

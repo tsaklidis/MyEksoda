@@ -2,6 +2,7 @@ package io.eksoda.core.data.imports
 
 import io.eksoda.core.data.util.Fixed
 import io.eksoda.core.database.CategorySeed
+import io.eksoda.core.database.dao.MerchantDao
 import io.eksoda.core.database.dao.ProductDao
 import io.eksoda.core.database.entity.MerchantProductMappingEntity
 import io.eksoda.core.database.entity.ProductEntity
@@ -15,7 +16,7 @@ import io.eksoda.engine.products.isReusedCode
 import io.eksoda.engine.products.mappingKey
 import io.eksoda.engine.products.newProduct
 import io.eksoda.engine.products.normalize
-import io.eksoda.engine.products.suggestCategorySlug
+import io.eksoda.engine.products.productCategorySlug
 import io.eksoda.engine.text.normalizeText
 import java.time.Clock
 import java.util.UUID
@@ -28,6 +29,7 @@ import javax.inject.Inject
  */
 class ProductMatcher @Inject constructor(
     private val products: ProductDao,
+    private val merchants: MerchantDao,
     private val clock: Clock,
 ) {
     /**
@@ -72,14 +74,17 @@ class ProductMatcher @Inject constructor(
     ): ProductEntity {
         val proposal = newProduct(description, code, unit)
         val now = clock.millis()
+        val merchantSlug = merchants.get(merchantId)?.defaultCategoryId?.let(CategorySeed::slugOf)
         val product = ProductEntity(
             id = UUID.randomUUID().toString(),
             name = proposal.name,
             normalizedName = normalizeText(proposal.name).take(FieldSize.PRODUCT_NAME),
             packageQuantityE4 = Fixed.toLongOrNull(proposal.packageQuantity, Fixed.E4),
             packageUnit = proposal.packageUnit,
-            // Android-only: a system category guessed from the name (AutoCategory.kt).
-            categoryId = suggestCategorySlug(description)?.let(CategorySeed::categoryId),
+            // Android-only: a system category from the name, or eating out at a café or
+            // restaurant (AutoCategory.kt).
+            categoryId = productCategorySlug(description, merchantSlug)
+                ?.let(CategorySeed::categoryId),
             createdAt = now,
             updatedAt = now,
         )
