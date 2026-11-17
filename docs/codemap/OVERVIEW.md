@@ -12,10 +12,7 @@ reading them. It is written by hand; `SYMBOLS.md` next to it is generated
 4. A guide section, never the whole guide: `scripts/guide.sh 7.4` (standalone guide) or
    `scripts/guide.sh 6.4.2 android-app`. `scripts/guide.sh toc` lists the sections.
 
-**The app is Android-only and this repository is the only source of truth.** The old
-Python server (`~/eksoda`) is retired: never read, port from or sync from it. Mentions of it
-(`// Port of backend/...` comments, the guide's §2 and §9.1, `docs/android-app.md`) are history
-only (guide §0.0).
+**The app is standalone and Android-only. This repository is the only source of truth.**
 
 Keep this file current: when a change adds a module, a pipeline step, a pattern or a
 milestone result, update the matching section here in the same change, and run
