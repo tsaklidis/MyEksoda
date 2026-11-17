@@ -9,6 +9,7 @@ Eksoda is a standalone, privacy-first Android household expense app built around
 - **Encrypted storage:** All data is stored locally in an encrypted Room database (SQLCipher) secured by an Android Keystore wrapping key.
 - **Zero telemetry:** No Firebase, no analytics, no crash reporting SDKs, no tracking.
 - **Passphrase-protected backups:** Local backup files are encrypted using AES-256-GCM with PBKDF2-HMAC-SHA256 key derivation.
+- **Independent Recovery:** Includes [`decrypt_bu.py`](decrypt_bu.py), a Python utility to decrypt and inspect backup files independently of the Android app, ensuring your data is never locked in.
 
 ---
 
@@ -66,6 +67,15 @@ make check           # Runs lint, ktlint, typed detekt, tests, Kover coverage, a
 make test            # Runs unit tests
 make build           # Builds debug APK
 make codemap         # Regenerates documentation symbols map
+```
+
+## 📦 Backup Recovery (`decrypt_bu.py`)
+
+If you have an Eksoda backup file (`.eksoda`) and cannot access the Android app, you can decrypt and inspect your backup data independently using the Python recovery script:
+
+```bash
+pip install cryptography
+python3 decrypt_bu.py your_backup.eksoda [output_archive.zip]
 ```
 
 ## Documentation
