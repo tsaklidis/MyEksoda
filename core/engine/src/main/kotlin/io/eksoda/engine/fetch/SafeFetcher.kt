@@ -41,7 +41,8 @@ import javax.net.ssl.SSLException
 //    address from that vetted list, so no separate IP pinning is needed.
 // 3. No redirects; unexpected statuses fail.
 // 4. Connect/read timeouts plus an overall deadline (OkHttp's call timeout).
-// 5. Body capped *after* decompression; only text/html accepted.
+// 5. Body capped *after* decompression; only text/html accepted (or the types the provider
+//    asks for, e.g. myDATA XML).
 // 6. Fixed request headers: no cookies, credentials or client headers; no proxies, no cache.
 // 7. Politeness: one request at a time per host, at least 1 s apart.
 
@@ -102,6 +103,7 @@ public class SafeFetcher(
         url: ParsedUrl,
         allowedHosts: Set<String>,
         acceptStatuses: Set<Int>,
+        contentTypes: Set<String>,
     ): FetchedDocument {
         checkTarget(url, allowedHosts)
         val lock = hostLocks.getOrPut(url.host) { Mutex() }
@@ -112,7 +114,7 @@ public class SafeFetcher(
                 if (waitMillis > 0) delay(waitMillis)
             }
             try {
-                withContext(ioDispatcher) { execute(url, acceptStatuses) }
+                withContext(ioDispatcher) { execute(url, acceptStatuses, contentTypes) }
             } finally {
                 lastRequest[url.host] = clock()
             }
@@ -130,19 +132,19 @@ public class SafeFetcher(
         }
     }
 
-    private fun execute(url: ParsedUrl, accept: Set<Int>): FetchedDocument {
+    private fun execute(url: ParsedUrl, accept: Set<Int>, types: Set<String>): FetchedDocument {
         // OkHttp adds Accept-Encoding: gzip itself and decompresses, so the size cap below
         // counts decompressed bytes.
         val request = Request.Builder()
             .url(url.geturl())
             .header("User-Agent", USER_AGENT)
-            .header("Accept", "text/html")
+            .header("Accept", types.joinToString(", "))
             .header("Accept-Language", "el-GR,el;q=0.9")
             .get()
             .build()
         val call: Call = client.newCall(request)
         return try {
-            call.execute().use { response -> read(response, accept) }
+            call.execute().use { response -> read(response, accept, types) }
         } catch (exception: SSLException) {
             throw ProviderUnreachable("TLS handshake with ${url.host} failed").apply {
                 initCause(exception)
@@ -156,7 +158,7 @@ public class SafeFetcher(
         }
     }
 
-    private fun read(response: Response, accept: Set<Int>): FetchedDocument {
+    private fun read(response: Response, accept: Set<Int>, types: Set<String>): FetchedDocument {
         val status = response.code
         if (status != STATUS_OK && status !in accept) {
             when {
@@ -171,9 +173,7 @@ public class SafeFetcher(
         }
         val contentType = response.header("Content-Type").orEmpty()
         val mime = contentType.substringBefore(';').trim().lowercase(Locale.ROOT)
-        if (mime !=
-            "text/html"
-        ) {
+        if (mime !in types) {
             throw UnexpectedContentType("content type ${mime.ifEmpty { "missing" }}")
         }
         val declared = response.header("Content-Length").orEmpty().trim()

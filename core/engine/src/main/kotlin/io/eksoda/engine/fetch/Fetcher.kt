@@ -36,18 +36,26 @@ public class FetchedDocument(
     }
 }
 
+/** The content types of receipt pages: the default for [Fetcher.get]. */
+public val HTML_TYPES: Set<String> = setOf("text/html")
+
+/** The content types of myDATA XML documents (sources that offer the XML instead of a page). */
+public val XML_TYPES: Set<String> = setOf("application/xml", "text/xml")
+
 /**
  * Fetches receipt pages. [SafeFetcher] is the real one; tests use a fake that serves the
  * receipt fixtures.
  */
 public interface Fetcher {
     /**
-     * Fetches an HTML page. Statuses in [acceptStatuses] are returned, not raised, so a provider
-     * can interpret them (e.g. a provider that answers 418 for missing documents).
+     * Fetches an HTML page (or another document in [contentTypes], lowercase MIME types).
+     * Statuses in [acceptStatuses] are returned, not raised, so a provider can interpret them
+     * (e.g. a provider that answers 418 for missing documents).
      */
     public suspend fun get(
         url: ParsedUrl,
         allowedHosts: Set<String>,
         acceptStatuses: Set<Int> = emptySet(),
+        contentTypes: Set<String> = HTML_TYPES,
     ): FetchedDocument
 }

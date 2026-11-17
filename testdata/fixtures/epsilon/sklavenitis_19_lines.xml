@@ -1,0 +1,237 @@
+<InvoicesDoc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.aade.gr/myDATA/invoice/v1.0">
+  <invoice>
+    <uid>01E2092F7170010653716783FE64A5157CF069D7</uid>
+    <mark>400016074087707</mark>
+    <authenticationCode>000X00X00000XXXX000X00X000XXX00X00000X00</authenticationCode>
+    <issuer>
+      <vatNumber>800764388</vatNumber>
+      <country>GR</country>
+      <branch>115</branch>
+    </issuer>
+    <invoiceHeader>
+      <series>02</series>
+      <aa>117267</aa>
+      <issueDate>2026-11-17</issueDate>
+      <invoiceType>11.1</invoiceType>
+      <currency>EUR</currency>
+      <dispatchDate>2026-11-17</dispatchDate>
+    </invoiceHeader>
+    <paymentMethods>
+      <paymentMethodDetails>
+        <type>7</type>
+        <amount>51.07</amount>
+        <transactionId>00X00XX0000X0X00X0X0XXXXXX0X0XX0000XXX00</transactionId>
+        <tid>00000000</tid>
+        <ProvidersSignature>
+          <SigningAuthor>004</SigningAuthor>
+          <Signature>XXXXXXX00XXX0XXXXXXXXXXX0XXXXXXX00XX0XXXX0/XX0XXXXXXXXXXXX0XXXXXXX00XXXXXXX0XXXX/XXXX0XX0XXXXX=</Signature>
+        </ProvidersSignature>
+      </paymentMethodDetails>
+    </paymentMethods>
+    <invoiceDetails>
+      <lineNumber>1</lineNumber>
+      <itemDescr>ΠΙΑΤΕΛΑ ΓΥΑΛΙΝΗ SANTA 31Χ21CM</itemDescr>
+      <quantity>1</quantity>
+      <measurementUnit>1</measurementUnit>
+      <netValue>1.61</netValue>
+      <vatCategory>1</vatCategory>
+      <vatAmount>0.39</vatAmount>
+      <lineComments />
+    </invoiceDetails>
+    <invoiceDetails>
+      <lineNumber>2</lineNumber>
+      <itemDescr>ΤΑΡΑΝΔΟΣ ΔΙΑΚ ΣΥΝΘ 56ΕΚ 2ΧΡ 26A525AB</itemDescr>
+      <quantity>1</quantity>
+      <measurementUnit>1</measurementUnit>
+      <netValue>5.96</netValue>
+      <vatCategory>1</vatCategory>
+      <vatAmount>1.44</vatAmount>
+      <lineComments />
+    </invoiceDetails>
+    <invoiceDetails>
+      <lineNumber>3</lineNumber>
+      <itemDescr>ΤΣΙΠΟΥΡΑ 400/600 ΕΚΤΡΟΦΗΣ ΕΛΛΑΔΟΣ.</itemDescr>
+      <quantity>1.86</quantity>
+      <measurementUnit>2</measurementUnit>
+      <netValue>14.63</netValue>
+      <vatCategory>2</vatCategory>
+      <vatAmount>1.92</vatAmount>
+      <lineComments />
+    </invoiceDetails>
+    <invoiceDetails>
+      <lineNumber>4</lineNumber>
+      <itemDescr>ΓΑΛΑ ROYAL ΣΥΜΠ.4% ΜΕΡΙΔΕΣ ΔΙΧΤ.10Χ15G</itemDescr>
+      <quantity>1</quantity>
+      <measurementUnit>1</measurementUnit>
+      <netValue>0.73</netValue>
+      <vatCategory>2</vatCategory>
+      <vatAmount>0.09</vatAmount>
+      <lineComments />
+    </invoiceDetails>
+    <invoiceDetails>
+      <lineNumber>5</lineNumber>
+      <itemDescr>EVERYDAY UL.PL SUPER HYP ACTIVE ECON.18Τ</itemDescr>
+      <quantity>1</quantity>
+      <measurementUnit>1</measurementUnit>
+      <netValue>1.87</netValue>
+      <vatCategory>1</vatCategory>
+      <vatAmount>0.45</vatAmount>
+      <lineComments />
+    </invoiceDetails>
+    <invoiceDetails>
+      <lineNumber>6</lineNumber>
+      <itemDescr>ΡΟΦΗΜΑ NESQUIK ΣΑΚΟΥΛΑ 400G</itemDescr>
+      <quantity>1</quantity>
+      <measurementUnit>1</measurementUnit>
+      <netValue>1.98</netValue>
+      <vatCategory>2</vatCategory>
+      <vatAmount>0.26</vatAmount>
+      <lineComments />
+    </invoiceDetails>
+    <invoiceDetails>
+      <lineNumber>7</lineNumber>
+      <itemDescr>EVERYDAY HYPER UL.PL.MAXI NIGHT ECON.18Τ</itemDescr>
+      <quantity>1</quantity>
+      <measurementUnit>1</measurementUnit>
+      <netValue>1.87</netValue>
+      <vatCategory>1</vatCategory>
+      <vatAmount>0.45</vatAmount>
+      <lineComments />
+    </invoiceDetails>
+    <invoiceDetails>
+      <lineNumber>8</lineNumber>
+      <itemDescr>COCA COLA ZERO KOYTI 8X330ML 500ML ΔΩΡΟ </itemDescr>
+      <quantity>1</quantity>
+      <measurementUnit>1</measurementUnit>
+      <netValue>4.67</netValue>
+      <vatCategory>2</vatCategory>
+      <vatAmount>0.61</vatAmount>
+      <lineComments />
+    </invoiceDetails>
+    <invoiceDetails>
+      <lineNumber>9</lineNumber>
+      <itemDescr>ΓΑΛΑ ROYAL ΣΥΜΠ.4% ΜΕΡΙΔΕΣ ΔΙΧΤ.10Χ15G</itemDescr>
+      <quantity>1</quantity>
+      <measurementUnit>1</measurementUnit>
+      <netValue>0.73</netValue>
+      <vatCategory>2</vatCategory>
+      <vatAmount>0.09</vatAmount>
+      <lineComments />
+    </invoiceDetails>
+    <invoiceDetails>
+      <lineNumber>10</lineNumber>
+      <itemDescr>ΓΑΛΑ ΜΑΡΚΑΤΙ ΦΡΕΣΚΟ 1,5% 1L</itemDescr>
+      <quantity>1</quantity>
+      <measurementUnit>1</measurementUnit>
+      <netValue>1.11</netValue>
+      <vatCategory>2</vatCategory>
+      <vatAmount>0.14</vatAmount>
+      <lineComments />
+    </invoiceDetails>
+    <invoiceDetails>
+      <lineNumber>11</lineNumber>
+      <itemDescr>COTTAGE 4% ΛΙΠ.ΤΥΡΑΣ 180G</itemDescr>
+      <quantity>1</quantity>
+      <measurementUnit>1</measurementUnit>
+      <netValue>1.36</netValue>
+      <vatCategory>2</vatCategory>
+      <vatAmount>0.18</vatAmount>
+      <lineComments />
+    </invoiceDetails>
+    <invoiceDetails>
+      <lineNumber>12</lineNumber>
+      <itemDescr>COTTAGE 4% ΛΙΠ.ΤΥΡΑΣ 180G</itemDescr>
+      <quantity>1</quantity>
+      <measurementUnit>1</measurementUnit>
+      <netValue>1.36</netValue>
+      <vatCategory>2</vatCategory>
+      <vatAmount>0.18</vatAmount>
+      <lineComments />
+    </invoiceDetails>
+    <invoiceDetails>
+      <lineNumber>13</lineNumber>
+      <itemDescr>ΓΑΛΑ ΜΑΡΚΑΤΙ ΦΡΕΣΚΟ ΠΛΗΡΕΣ 1L</itemDescr>
+      <quantity>1</quantity>
+      <measurementUnit>1</measurementUnit>
+      <netValue>1.11</netValue>
+      <vatCategory>2</vatCategory>
+      <vatAmount>0.14</vatAmount>
+      <lineComments />
+    </invoiceDetails>
+    <invoiceDetails>
+      <lineNumber>14</lineNumber>
+      <itemDescr>ΜΥΖΗΘΡΑ ΞΗΡΗ ΜΕΒΓΑΛ ΤΡΙΜΜ.200G</itemDescr>
+      <quantity>1</quantity>
+      <measurementUnit>1</measurementUnit>
+      <netValue>2.2</netValue>
+      <vatCategory>2</vatCategory>
+      <vatAmount>0.28</vatAmount>
+      <lineComments />
+    </invoiceDetails>
+    <invoiceDetails>
+      <lineNumber>15</lineNumber>
+      <itemDescr>ΤΥΡΙ ΚΡΕΜΑ ΓΚΕΡΕΜΕΖΙ ΓΙΔ.ΜΕΣΟΓΕΙΑΚΟ 100G</itemDescr>
+      <quantity>1</quantity>
+      <measurementUnit>1</measurementUnit>
+      <netValue>2.57</netValue>
+      <vatCategory>2</vatCategory>
+      <vatAmount>0.33</vatAmount>
+      <lineComments />
+    </invoiceDetails>
+    <invoiceDetails>
+      <lineNumber>16</lineNumber>
+      <itemDescr>ΣΑΚΟΥΛΑ ΠΕΛΑΤΩΝ ΕΠΑΝΑΧΡ.ΠΕΡ.ΤΕΛ.ΜΕΓΑΛΗ</itemDescr>
+      <quantity>1</quantity>
+      <measurementUnit>1</measurementUnit>
+      <netValue>0.08</netValue>
+      <vatCategory>1</vatCategory>
+      <vatAmount>0.01</vatAmount>
+      <lineComments />
+    </invoiceDetails>
+    <invoiceDetails>
+      <lineNumber>17</lineNumber>
+      <recType>2</recType>
+      <itemDescr>Περιβαλλοντικό Τέλος&amp;Πλασ.σακ.</itemDescr>
+      <quantity>1</quantity>
+      <measurementUnit>1</measurementUnit>
+      <netValue>0.07</netValue>
+      <vatCategory>1</vatCategory>
+      <vatAmount>0.02</vatAmount>
+      <feesPercentCategory>8</feesPercentCategory>
+      <lineComments />
+    </invoiceDetails>
+    <invoiceDetails>
+      <lineNumber>18</lineNumber>
+      <itemDescr>ΣΑΚΟΥΛΑ ΠΕΛΑΤΩΝ ΕΠΑΝΑΧΡ.ΠΕΡ.ΤΕΛ.ΜΕΓΑΛΗ</itemDescr>
+      <quantity>1</quantity>
+      <measurementUnit>1</measurementUnit>
+      <netValue>0.08</netValue>
+      <vatCategory>1</vatCategory>
+      <vatAmount>0.01</vatAmount>
+      <lineComments />
+    </invoiceDetails>
+    <invoiceDetails>
+      <lineNumber>19</lineNumber>
+      <recType>2</recType>
+      <itemDescr>Περιβαλλοντικό Τέλος&amp;Πλασ.σακ.</itemDescr>
+      <quantity>1</quantity>
+      <measurementUnit>1</measurementUnit>
+      <netValue>0.07</netValue>
+      <vatCategory>1</vatCategory>
+      <vatAmount>0.02</vatAmount>
+      <feesPercentCategory>8</feesPercentCategory>
+      <lineComments />
+    </invoiceDetails>
+    <invoiceSummary>
+      <totalNetValue>44.06</totalNetValue>
+      <totalVatAmount>7.01</totalVatAmount>
+      <totalWithheldAmount>0</totalWithheldAmount>
+      <totalFeesAmount>0</totalFeesAmount>
+      <totalStampDutyAmount>0</totalStampDutyAmount>
+      <totalOtherTaxesAmount>0</totalOtherTaxesAmount>
+      <totalDeductionsAmount>0</totalDeductionsAmount>
+      <totalGrossValue>51.07</totalGrossValue>
+    </invoiceSummary>
+    <downloadingInvoiceUrl>https://epsilondigital-sklavenitis.epsilonnet.gr/fd/00000000000000000000000000000000:155</downloadingInvoiceUrl>
+  </invoice>
+</InvoicesDoc>

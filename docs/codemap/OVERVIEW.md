@@ -10,7 +10,8 @@ line range. Keep this file current when a change adds a module, a pipeline step 
 ## What the app promises
 
 Your receipts never leave the phone: no server, no account, no analytics, no crash reporting.
-The only network traffic is HTTPS GETs to the receipt providers (Impact, Entersoft, AADE).
+The only network traffic is HTTPS GETs to the receipt providers (Impact, Entersoft, AADE,
+Epsilon Digital).
 Data is in a SQLCipher database; Android cloud backup is off (`allowBackup=false`,
 `dataExtractionRules`); the user's own encrypted export is the only backup.
 
@@ -88,16 +89,24 @@ Engine entry point: `core/engine/.../engine/Engine.kt`: `resolve(rawUrl): Resolv
 sealed `ReceiptException` (`ReceiptException.kt`) with `code`, retry policy and
 `publicMessage` (never shown; UI maps `code` with `importErrorRes`).
 
-Providers: `engine/providers/{impact,entersoft,aadefhm}/` each with `Urls.kt`
+Providers: `engine/providers/{impact,entersoft,aadefhm,epsilon}/` each with `Urls.kt`
 (recognize), `Parser.kt` (layouts → `CanonicalReceipt`), `Sanitize.kt`; Impact also
 `Labels.kt`, `Views.kt`. Shared: `Base.kt` (`Provider`, `Layout`, `UrlIdentity`,
 `maskUrl`), `Registry.kt` (`REGISTRY`), `Html.kt` (`textOf`, Jsoup), `Sanitizing.kt`.
+Epsilon Digital (one host per merchant, `epsilondigital-<merchant>.epsilonnet.gr`) is not
+read from its viewer page (behind a Cloudflare Turnstile check) but from the receipt's detailed
+myDATA XML (`/filedocument/GetInvoiceDocDetailed/<uuid>`, Jsoup XML parser). The XML has no
+merchant name or time of day: names come from `TENANTS` in `epsilon/Urls.kt` (a new merchant
+host is one entry there), the time is the date only.
 Fixtures: `testdata/fixtures/<provider>/` (sample page + expected JSON), edited with the parser.
+`EpsilonTest` compares its fixture with the golden JSON and, on a difference, writes the
+actual output to `core/engine/build/golden/` for review.
 
 Fetcher: `engine/fetch/SafeFetcher.kt`, the only OkHttp client in the app: https/443 to
 allowlisted hosts, a `Dns` that rejects non-public addresses (`PublicAddress.kt`), no
 redirects/cookies/cache/proxy, timeouts 5/15/30 s, 2 MiB after decompression, `text/html`
-only, one request per host at least 1 s apart.
+only (a provider may ask for other types: `XML_TYPES`), one request per host at least 1 s
+apart.
 
 Text helpers (stored keys depend on their exact behavior; reuse them, don't reinvent):
 `text/PyStrings.kt` (`pySplit`, `pyStrip`, `pyIsDigit`, `pyRegex` = Unicode-aware regex),
