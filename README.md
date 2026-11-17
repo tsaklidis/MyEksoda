@@ -19,7 +19,6 @@ Eksoda is a standalone, privacy-first Android household expense app built around
 - **Smart Parsing & Classification:** Automatic line classification, normalization, package size detection, and category matching.
 - **Spending Insights:** Period-based analytics (weekly, monthly, custom ranges) with interactive charts.
 - **Product & Price History:** Track price evolution and find the cheapest merchants for any product.
-- **Household Management:** Organize expenses by household members.
 
 ---
 
@@ -65,6 +64,7 @@ make check           # Runs lint, ktlint, typed detekt, tests, Kover coverage, a
 make test            # Runs unit tests
 make build           # Builds debug APK
 make codemap         # Regenerates documentation symbols map
+make install_rc      # Install with adb
 ```
 
 ## 📦 Backup Recovery (`decrypt_bu.py`)
