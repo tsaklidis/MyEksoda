@@ -1,6 +1,36 @@
 # Eksoda for Android
 
+[![CI](https://github.com/tsaklidis/MyEksoda/actions/workflows/ci.yml/badge.svg)](https://github.com/tsaklidis/MyEksoda/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/tsaklidis/MyEksoda?include_prereleases&label=latest)](https://github.com/tsaklidis/MyEksoda/releases)
+
 Eksoda is a standalone, privacy-first Android household expense app built around Greek e-receipts. Simply scan the QR code on a receipt, and Eksoda downloads the official e-receipt data directly from the issuing company. It tracks your spending, itemized product costs over time, and price comparisons across merchants.
+
+## 📲 Install
+
+Eksoda is not on Google Play: each version is published as an APK on the
+[Releases](https://github.com/tsaklidis/MyEksoda/releases) page. It needs Android 8.0 or newer.
+
+1. On your phone, open the [Releases](https://github.com/tsaklidis/MyEksoda/releases) page and,
+   under **Assets** of the newest release, tap `eksoda-<version>.apk` to download it.
+2. Open the downloaded file (from the download notification or the Files app).
+3. If Android asks, allow your browser or Files app to **install unknown apps**, then go back
+   and tap **Install**.
+4. Google Play Protect may warn that the app is from an unknown developer, because it does not
+   come from Google Play. Tap **More details → Install anyway**.
+
+**Updating:** install the newer APK the same way, over the installed app. Your data is kept.
+Do not uninstall first: your receipts exist only on your phone, and uninstalling deletes them.
+Export a backup now and then (**Settings → Export data**) to be safe.
+
+**Verifying (optional):** each release lists the APK's SHA-256 checksum and the signing
+certificate. Every release is signed with the same key (certificate SHA-256
+`D3:72:B3:59:A9:53:5D:8D:70:D0:06:0C:BC:03:6C:02:EB:82:E5:19:B9:17:35:A1:D3:3B:1A:8F:8B:DB:5E:CB`),
+which you can check with `apksigner verify --print-certs eksoda-<version>.apk`.
+
+> Tip: [Obtainium](https://github.com/ImranR98/Obtainium) can watch this repository's releases
+> and update the app for you.
+
+---
 
 ## 🔒 Privacy First
 
@@ -65,6 +95,8 @@ make test            # Runs unit tests
 make build           # Builds debug APK
 make codemap         # Regenerates documentation symbols map
 make install_rc      # Install with adb
+make new_release     # Check, bump the version and build the signed eksoda-<version>.apk
+make release_key     # Once per machine: create the release signing key in ~/.eksoda
 ```
 
 ## 📦 Backup Recovery (`decrypt_bu.py`)
