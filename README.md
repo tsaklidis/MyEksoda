@@ -1,6 +1,7 @@
 # Eksoda for Android
 
 [![CI](https://github.com/tsaklidis/MyEksoda/actions/workflows/ci.yml/badge.svg)](https://github.com/tsaklidis/MyEksoda/actions/workflows/ci.yml)
+![Codecov](https://img.shields.io/codecov/c/github/tsaklidis/MyEksoda?logo=codecov)
 [![Latest release](https://img.shields.io/github/v/release/tsaklidis/MyEksoda?include_prereleases&label=latest)](https://github.com/tsaklidis/MyEksoda/releases)
 
 Eksoda is a standalone, privacy-first Android household expense app built around Greek e-receipts. Simply scan the QR code on a receipt, and Eksoda downloads the official e-receipt data directly from the issuing company. It tracks your spending, itemized product costs over time, and price comparisons across merchants.
