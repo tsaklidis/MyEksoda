@@ -5,7 +5,7 @@
 # 2. version.properties: versionCode + 1, and versionName bumped (patch by default).
 # 3. The release APK is built, signed with the release key (`make release_key`).
 # 4. The signature is checked against that key, and the APK is copied to the project root as
-#    eksoda-<version>.apk (ignored by git: it goes to a GitHub release, not the repository).
+#    eksoda-<version>.apk, replacing the previous release's APK (older ones stay in git history).
 #
 # Any failure after the bump puts version.properties back. Nothing is committed, tagged or
 # uploaded: the next steps are printed at the end.
@@ -95,8 +95,17 @@ APK_SHA256="$("$APKSIGNER" verify --print-certs "$BUILT_APK" |
 [[ -n "$KEY_SHA256" && "$APK_SHA256" == "$KEY_SHA256" ]] ||
     fail "the APK is not signed with the release key (APK: ${APK_SHA256:-none})"
 
+# Only the current release's APK stays in the root.
+PREVIOUS=()
+for apk in eksoda-*.apk; do
+    [[ -e "$apk" && "$apk" != "$OUTPUT" ]] && PREVIOUS+=("$apk")
+done
 cp "$BUILT_APK" "$OUTPUT"
 DONE=1
+if [[ ${#PREVIOUS[@]} -gt 0 ]]; then
+    rm -f "${PREVIOUS[@]}"
+    echo "new_release: removed the previous APK: ${PREVIOUS[*]}"
+fi
 
 echo
 echo "Release $NEW_NAME ($NEW_CODE): $OUTPUT"
@@ -104,6 +113,5 @@ echo "  SHA-256 of the file:  $(shasum -a 256 "$OUTPUT" | cut -d ' ' -f 1)"
 echo "  Signing certificate:  $APK_SHA256"
 echo
 echo "Next steps (not done for you):"
-echo "  git commit -m \"Release $NEW_NAME\" $VERSION_FILE && git tag v$NEW_NAME && git push --follow-tags"
-echo "  Create a GitHub release v$NEW_NAME and attach $OUTPUT"
-echo "  (with the gh CLI: gh release create v$NEW_NAME $OUTPUT --prerelease --generate-notes)"
+echo "  git add -A $VERSION_FILE 'eksoda-*.apk'"
+echo "  git commit -m \"Release $NEW_NAME\" && git tag v$NEW_NAME && git push --follow-tags"
