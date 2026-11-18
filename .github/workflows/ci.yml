@@ -3,8 +3,9 @@
 # Robolectric), so no emulator is needed; tests tagged `live` (real network) are excluded by the
 # build unless -Plive is passed, and CI never passes it.
 #
-# No secrets: CI builds only the debug APK. Release APKs are built locally (`make new_release`)
-# with the release key, which never leaves the maintainer's machine.
+# The only secret is CODECOV_TOKEN, for the coverage upload. CI builds only the debug APK: release
+# APKs are built locally (`make new_release`) with the release key, which never leaves the
+# maintainer's machine.
 name: CI
 
 on:
@@ -52,6 +53,18 @@ jobs:
 
       - name: make check
         run: make check
+
+      # `make check` only verifies coverage; this writes the report, reusing its test results.
+      # Only core:engine applies Kover so far.
+      - name: Coverage report
+        run: ./gradlew :core:engine:koverXmlReport
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: core/engine/build/reports/kover/report.xml
+          flags: engine
 
       - name: Upload reports
         if: failure()
