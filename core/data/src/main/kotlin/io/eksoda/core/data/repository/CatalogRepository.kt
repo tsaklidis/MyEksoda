@@ -1,5 +1,6 @@
 package io.eksoda.core.data.repository
 
+import io.eksoda.core.model.Category
 import io.eksoda.core.model.CategorySummary
 import io.eksoda.core.model.MerchantSummary
 import io.eksoda.core.model.Store
@@ -10,7 +11,11 @@ import kotlinx.coroutines.flow.Flow
  * [io.eksoda.core.model.CatalogException].
  */
 interface CatalogRepository {
+    /** Categories with their product counts (the categories screen). */
     fun getCategories(): Flow<List<CategorySummary>>
+
+    /** Categories without counts, for pickers and filters (not re-run on product edits). */
+    fun getCategoryList(): Flow<List<Category>>
 
     /** The new category's id. */
     suspend fun createCategory(name: String): Result<String>

@@ -18,6 +18,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.Call
 import okhttp3.CookieJar
 import okhttp3.Dns
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -77,13 +78,23 @@ internal class PublicDns(private val system: Dns = Dns.SYSTEM) : Dns {
     }
 }
 
-public class SafeFetcher(
-    private val limits: FetchLimits = FetchLimits(),
-    dns: Dns = Dns.SYSTEM,
-    private val clock: () -> Long = System::nanoTime,
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+public class SafeFetcher internal constructor(
+    private val limits: FetchLimits,
+    dns: Dns,
+    private val clock: () -> Long,
+    private val ioDispatcher: CoroutineDispatcher,
+    /** Tests only: answers requests in place of the network (before DNS and connecting). */
+    interceptor: Interceptor?,
 ) : Fetcher {
+    public constructor(
+        limits: FetchLimits = FetchLimits(),
+        dns: Dns = Dns.SYSTEM,
+        clock: () -> Long = System::nanoTime,
+        ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    ) : this(limits, dns, clock, ioDispatcher, interceptor = null)
+
     private val client: OkHttpClient = OkHttpClient.Builder()
+        .apply { if (interceptor != null) addInterceptor(interceptor) }
         .dns(PublicDns(dns))
         .proxy(Proxy.NO_PROXY)
         .cookieJar(CookieJar.NO_COOKIES)

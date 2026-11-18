@@ -120,9 +120,15 @@ Text helpers (stored keys depend on their exact behavior; reuse them, don't rein
 - **Decimals:** columns are fixed-point `Long` with a suffix: `_minor` (2), `_e2` (2),
   `_e4` (4), `_e6` (6). Convert only with `core/data/util/Fixed.kt`
   (`Fixed.toLong(v, Fixed.E4)`, `Fixed.toDecimal(l, Fixed.MINOR)`).
-- **Long lists** (receipts, products) page with `listPagingConfig` (`repository/ListPaging.kt`):
-  no placeholders, pages loaded one page ahead. The product list has one query per ordering
+- **Long lists** (receipts, products, review, imports) page with `listPagingConfig`
+  (`repository/ListPaging.kt`): no placeholders, pages loaded one page ahead. Filters go in
+  the query, not in Kotlin over a loaded list. The product list has one query per ordering
   (`ProductDao.pagingByName` walks the `normalized_name` index; never a `CASE` in ORDER BY).
+- **Counts and pickers** get their own light query (`ImportJobDao.observePendingCount`,
+  `CatalogRepository.getCategoryList`, `ReceiptOptionsRepository`), never a full row list
+  mapped and thrown away. One-shot reads are `suspend` queries (`HouseholdDao.get`), never
+  `observe().first()`. A ViewModel that derives two flows from one cold repository flow
+  shares it (`shareIn`) instead of collecting it twice.
 - **Writes** touching receipts/products/mappings: `WriteCoordinator.write { }` (Mutex +
   transaction). Reads: `Flow` from Room; lists use Paging (`PagingSource` in the DAO,
   `Pager` in the repository).

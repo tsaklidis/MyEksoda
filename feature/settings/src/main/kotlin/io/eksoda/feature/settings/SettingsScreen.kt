@@ -21,10 +21,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.outlined.Category
+import androidx.compose.material.icons.outlined.Code
+import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.FileDownload
+import androidx.compose.material.icons.outlined.FileUpload
+import androidx.compose.material.icons.outlined.Language
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Storefront
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -34,14 +44,19 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
@@ -163,79 +178,149 @@ fun SettingsScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            SectionCard(title = stringResource(R.string.settings_language)) {
-                Column(modifier = Modifier.selectableGroup()) {
-                    LANGUAGES.forEachIndexed { index, (tag, label) ->
-                        if (index > 0) HorizontalDivider(color = colors.line)
-                        LanguageRow(
-                            label = stringResource(label),
-                            selected = tag == language,
-                            onClick = { if (tag != language) onLanguageSelect(tag) },
-                        )
-                    }
-                }
-            }
-            SectionCard(title = stringResource(R.string.settings_notifications)) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 56.dp)
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            stringResource(R.string.settings_notify_imports),
-                            style = MaterialTheme.typography.bodyLarge,
-                        )
-                        Text(
-                            stringResource(R.string.settings_notify_imports_hint),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colors.ink2,
-                        )
-                    }
-                    Switch(checked = state.notifyImports, onCheckedChange = onNotifyImportsChange)
-                }
-            }
-            SectionCard(title = stringResource(R.string.settings_backup)) {
-                Text(
-                    text = stringResource(R.string.settings_backup_hint),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = colors.ink2,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            // Settings opens from the household button on Home, so the household comes first;
+            // then what is used most (organizing), preferences, the data, and the app itself.
+            state.household?.let { household -> HouseholdCard(household) }
+            SectionCard(title = stringResource(R.string.settings_catalog)) {
+                LinkRow(
+                    label = stringResource(R.string.settings_categories),
+                    icon = Icons.Outlined.Category,
+                    onClick = onCategoriesClick,
                 )
                 HorizontalDivider(color = colors.line)
                 LinkRow(
+                    label = stringResource(R.string.settings_merchants),
+                    icon = Icons.Outlined.Storefront,
+                    onClick = onMerchantsClick,
+                )
+            }
+            PreferencesCard(
+                language = language,
+                notifyImports = state.notifyImports,
+                onLanguageSelect = onLanguageSelect,
+                onNotifyImportsChange = onNotifyImportsChange,
+            )
+            SectionCard(title = stringResource(R.string.settings_data)) {
+                Hint(stringResource(R.string.settings_data_hint))
+                HorizontalDivider(color = colors.line)
+                LinkRow(
                     label = stringResource(R.string.settings_backup_export),
+                    supporting = stringResource(R.string.settings_backup_export_hint),
+                    icon = Icons.Outlined.FileUpload,
                     onClick = { onEvent(SettingsEvent.ExportClicked) },
                 )
                 HorizontalDivider(color = colors.line)
                 LinkRow(
                     label = stringResource(R.string.settings_backup_import),
+                    supporting = stringResource(R.string.settings_backup_import_hint),
+                    icon = Icons.Outlined.FileDownload,
                     onClick = { onEvent(SettingsEvent.ImportClicked) },
                 )
             }
-            SectionCard(title = stringResource(R.string.settings_catalog)) {
-                LinkRow(stringResource(R.string.settings_categories), onCategoriesClick)
-                HorizontalDivider(color = colors.line)
-                LinkRow(stringResource(R.string.settings_merchants), onMerchantsClick)
-            }
-            state.household?.let { household -> HouseholdCard(household) }
             SectionCard(title = stringResource(R.string.settings_about)) {
                 ValueRow(stringResource(R.string.settings_version), version, number = true)
                 HorizontalDivider(color = colors.line)
                 Credits()
-                HorizontalDivider(color = colors.line)
-                Text(
-                    text = stringResource(R.string.settings_privacy),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = colors.ink2,
-                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 14.dp),
-                )
             }
         }
     }
+}
+
+/** Language (one row, a picker on tap) and the import notifications. */
+@Composable
+private fun PreferencesCard(
+    language: String,
+    notifyImports: Boolean,
+    onLanguageSelect: (String) -> Unit,
+    onNotifyImportsChange: (Boolean) -> Unit,
+) {
+    var picking by rememberSaveable { mutableStateOf(false) }
+    val current = LANGUAGES.firstOrNull { it.first == language }?.second
+        ?: R.string.settings_language_system
+    SectionCard(title = stringResource(R.string.settings_preferences)) {
+        LinkRow(
+            label = stringResource(R.string.settings_language),
+            value = stringResource(current),
+            icon = Icons.Outlined.Language,
+            onClick = { picking = true },
+        )
+        HorizontalDivider(color = EksodaTheme.colors.line)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 56.dp)
+                .toggleable(
+                    value = notifyImports,
+                    role = Role.Switch,
+                    onValueChange = onNotifyImportsChange,
+                )
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            RowIcon(Icons.Outlined.Notifications)
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    stringResource(R.string.settings_notify_imports),
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+                Text(
+                    stringResource(R.string.settings_notify_imports_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = EksodaTheme.colors.ink2,
+                )
+            }
+            Switch(checked = notifyImports, onCheckedChange = null)
+        }
+    }
+    if (picking) {
+        LanguageDialog(
+            selected = language,
+            onSelect = { tag ->
+                picking = false
+                if (tag != language) onLanguageSelect(tag)
+            },
+            onDismiss = { picking = false },
+        )
+    }
+}
+
+@Composable
+private fun LanguageDialog(selected: String, onSelect: (String) -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.settings_language)) },
+        text = {
+            Column(modifier = Modifier.selectableGroup()) {
+                LANGUAGES.forEach { (tag, label) ->
+                    LanguageRow(
+                        label = stringResource(label),
+                        selected = tag == selected,
+                        onClick = { onSelect(tag) },
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.settings_cancel)) }
+        },
+    )
+}
+
+@Composable
+private fun Hint(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodySmall,
+        color = EksodaTheme.colors.ink2,
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+    )
+}
+
+/** The leading icon of a row: decorative, the row's text says what it is. */
+@Composable
+private fun RowIcon(icon: ImageVector) {
+    Icon(icon, contentDescription = null, tint = EksodaTheme.colors.ink2)
 }
 
 /**
@@ -269,11 +354,13 @@ private fun Credits() {
     LinkRow(
         label = stringResource(R.string.settings_github),
         value = GITHUB_LABEL,
+        icon = Icons.Outlined.Code,
         onClick = { open(GITHUB_URL, GITHUB_URL) },
     )
     LinkRow(
         label = stringResource(R.string.settings_email),
         value = EMAIL,
+        icon = Icons.Outlined.Email,
         onClick = { open("mailto:$EMAIL", EMAIL) },
     )
 }
@@ -289,14 +376,14 @@ private val LANGUAGES = listOf(
     AppLanguage.SYSTEM to R.string.settings_language_system,
 )
 
+/** A choice in the language dialog, which pads its content itself. */
 @Composable
 private fun LanguageRow(label: String, selected: Boolean, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 52.dp)
-            .selectable(selected = selected, onClick = onClick, role = Role.RadioButton)
-            .padding(horizontal = 16.dp),
+            .selectable(selected = selected, onClick = onClick, role = Role.RadioButton),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
@@ -304,30 +391,52 @@ private fun LanguageRow(label: String, selected: Boolean, onClick: () -> Unit) {
     }
 }
 
+/** A row that opens something: an icon, the label (with a line under it), a value, a chevron. */
 @Composable
-private fun LinkRow(label: String, onClick: () -> Unit, value: String? = null) {
+private fun LinkRow(
+    label: String,
+    icon: ImageVector,
+    onClick: () -> Unit,
+    value: String? = null,
+    supporting: String? = null,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 52.dp)
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-        if (value != null) {
-            Text(
-                value,
-                style = MaterialTheme.typography.bodyMedium,
-                color = EksodaTheme.colors.compare,
-                modifier = Modifier.padding(end = 4.dp),
+        RowIcon(icon)
+        Column(modifier = Modifier.weight(1f)) {
+            Text(label, style = MaterialTheme.typography.bodyLarge)
+            if (supporting != null) {
+                Text(
+                    supporting,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = EksodaTheme.colors.ink2,
+                )
+            }
+        }
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            if (value != null) {
+                Text(
+                    value,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = EksodaTheme.colors.compare,
+                )
+            }
+            Icon(
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = EksodaTheme.colors.ink2,
             )
         }
-        Icon(
-            Icons.AutoMirrored.Filled.KeyboardArrowRight,
-            contentDescription = null,
-            tint = EksodaTheme.colors.ink2,
-        )
     }
 }
 

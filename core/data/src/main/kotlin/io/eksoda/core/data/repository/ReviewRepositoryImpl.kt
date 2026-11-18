@@ -1,7 +1,6 @@
 package io.eksoda.core.data.repository
 
 import androidx.paging.Pager
-import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
 import io.eksoda.core.data.db.WriteCoordinator
@@ -33,7 +32,7 @@ class ReviewRepositoryImpl @Inject constructor(
 ) : ReviewRepository {
 
     override fun getReviewItems(): Flow<PagingData<ReviewItem>> =
-        Pager(PagingConfig(pageSize = PAGE_SIZE)) { products.pagingReview() }.flow
+        Pager(listPagingConfig(PAGE_SIZE)) { products.pagingReview() }.flow
             .map { page ->
                 val zone = householdZone.current()
                 page.map { row ->

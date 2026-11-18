@@ -106,8 +106,11 @@ class ReceiptRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun getImportJobs(): Flow<List<ImportJob>> =
-        jobs.observeAll().map { rows -> rows.map { it.toModel() } }
+    override fun getImportJobs(status: ImportStatus?): Flow<PagingData<ImportJob>> =
+        Pager(listPagingConfig(PAGE_SIZE)) { jobs.pagingRows(status?.code) }.flow
+            .map { page -> page.map { it.toModel() } }
+
+    override val pendingImportCount: Flow<Int> = jobs.observePendingCount()
 
     override suspend fun retryImport(id: String): Result<Unit> = runCatching {
         check(importService.retry(id)) { "only a failed import can be retried" }

@@ -6,9 +6,10 @@
     <string name="settings_language_greek">Ελληνικά</string>
     <string name="settings_language_english">English</string>
     <string name="settings_language_system">Γλώσσα συστήματος</string>
-    <string name="settings_notifications">Ειδοποιήσεις</string>
-    <string name="settings_notify_imports">Ολοκληρωμένες εισαγωγές</string>
-    <string name="settings_notify_imports_hint">Ειδοποίηση όταν ολοκληρώνεται η εισαγωγή μιας απόδειξης ενώ η εφαρμογή είναι κλειστή. Ο σύνδεσμος της απόδειξης δεν εμφανίζεται ποτέ.</string>
+    <string name="settings_preferences">Προτιμήσεις</string>
+    <string name="settings_cancel">Ακύρωση</string>
+    <string name="settings_notify_imports">Ειδοποιήσεις εισαγωγής</string>
+    <string name="settings_notify_imports_hint">Όταν ολοκληρώνεται η εισαγωγή μιας απόδειξης ενώ η εφαρμογή είναι κλειστή. Ο σύνδεσμος της απόδειξης δεν εμφανίζεται ποτέ.</string>
     <string name="settings_catalog">Οργάνωση</string>
     <string name="settings_categories">Κατηγορίες</string>
     <string name="settings_merchants">Καταστήματα</string>
@@ -24,7 +25,8 @@
     <string name="settings_link_copied">Δεν βρέθηκε εφαρμογή για να ανοίξει. Η διεύθυνση αντιγράφηκε.</string>
     <string name="settings_github">GitHub</string>
     <string name="settings_email">Email</string>
-    <string name="settings_privacy">Όλα τα δεδομένα μένουν κρυπτογραφημένα σε αυτήν την συσκευή. Το Eksoda συνδέεται μόνο με τους ιστότοπους των αποδείξεων και δεν στέλνει στατιστικά χρήσης.</string>
+    <string name="settings_data">Δεδομένα και απόρρητο</string>
+    <string name="settings_data_hint">Όλα μένουν κρυπτογραφημένα σε αυτό το κινητό. Δεν υπάρχει διακομιστής: το Eksoda συνδέεται μόνο με τους ιστότοπους των αποδείξεων και δεν στέλνει στατιστικά χρήσης. Κάντε πού και πού εξαγωγή αντιγράφου ασφαλείας και φυλάξτε το σε ασφαλές μέρος.</string>
 
     <string name="backup_exported_title">Αντίγραφο ασφαλείας</string>
     <string name="backup_exported_text">Το αντίγραφο ασφαλείας δημιουργήθηκε και αποθηκεύτηκε με επιτυχία.</string>
@@ -59,10 +61,10 @@
     <string name="backup_restore_made">Δημιουργήθηκε στις %1$s</string>
     <string name="backup_restore_range">Από %1$s έως %2$s</string>
     <string name="backup_restore_warning">Όλα τα τωρινά δεδομένα σε αυτήν τη συσκευή θα αντικατασταθούν από τα δεδομένα του αρχείου. Αυτό δεν αναιρείται.</string>
-    <string name="settings_backup">Αντίγραφο ασφαλείας</string>
-    <string name="settings_backup_hint">Δεν υπάρχει διακομιστής: τα δεδομένα υπάρχουν μόνο σε αυτήν τη συσκευή. Κάντε εξαγωγή σε κρυπτογραφημένο αρχείο και φυλάξτε το σε ασφαλές μέρος.</string>
     <string name="settings_backup_export">Εξαγωγή δεδομένων</string>
+    <string name="settings_backup_export_hint">Κρυπτογραφημένο αρχείο, με κωδικό που επιλέγετε εσείς</string>
     <string name="settings_backup_import">Εισαγωγή δεδομένων</string>
+    <string name="settings_backup_import_hint">Αντικαθιστά όλα τα δεδομένα σε αυτό το κινητό</string>
     <string name="backup_restore_confirm">Επαναφορά</string>
     <string name="backup_ok">OK</string>
 

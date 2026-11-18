@@ -1,5 +1,6 @@
 package io.eksoda.core.data.repository
 
+import io.eksoda.core.data.di.DefaultDispatcher
 import io.eksoda.core.data.util.Fixed
 import io.eksoda.core.database.EksodaDatabase
 import io.eksoda.core.database.dao.AnalyticsDao
@@ -24,10 +25,11 @@ import io.eksoda.engine.analytics.LineTotal
 import io.eksoda.engine.analytics.combineCategoryBuckets
 import io.eksoda.engine.analytics.runningTotals
 import io.eksoda.engine.analytics.totalBySameDay
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.Clock
@@ -39,6 +41,7 @@ import javax.inject.Singleton
 /**
  * Spending analytics over the local database: the included receipts are
  * active, not excluded, and in the household's currency; credit notes count as negative.
+ * The math and model building run on the Default dispatcher, never on the caller's (often Main).
  */
 @Singleton
 class AnalyticsRepositoryImpl @Inject constructor(
@@ -48,6 +51,7 @@ class AnalyticsRepositoryImpl @Inject constructor(
     private val households: HouseholdDao,
     private val householdZone: HouseholdZone,
     private val clock: Clock,
+    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : AnalyticsRepository {
 
     override fun changes(): Flow<Unit> = database.invalidationTracker
@@ -64,10 +68,13 @@ class AnalyticsRepositoryImpl @Inject constructor(
 
     override suspend fun today(): LocalDate = LocalDate.now(clock.withZone(householdZone.current()))
 
-    private suspend fun currency(): String =
-        households.observe().first()?.defaultCurrency ?: DEFAULT_CURRENCY
+    private suspend fun currency(): String = households.get()?.defaultCurrency ?: DEFAULT_CURRENCY
 
-    override suspend fun getSummary(period: Period): Result<SpendingSummary> = runCatching {
+    /** [block] on the Default dispatcher, its failure as a failed [Result]. */
+    private suspend fun <T> compute(block: suspend () -> T): Result<T> =
+        withContext(defaultDispatcher) { runCatching { block() } }
+
+    override suspend fun getSummary(period: Period): Result<SpendingSummary> = compute {
         val currency = currency()
         val previousLast = period.start.minusDays(1)
         val days = period.end.toEpochDay() - period.start.toEpochDay()
@@ -83,7 +90,7 @@ class AnalyticsRepositoryImpl @Inject constructor(
     private suspend fun totals(first: LocalDate, last: LocalDate, currency: String): PeriodTotals =
         analytics.totals(first.toString(), last.toString(), currency).toModel(first, last)
 
-    override suspend fun getMonthlyTrend(months: Int): Result<MonthlyTrend> = runCatching {
+    override suspend fun getMonthlyTrend(months: Int): Result<MonthlyTrend> = compute {
         val currency = currency()
         val thisMonth = YearMonth.from(today())
         val firstMonth = thisMonth.minusMonths((months - 1).toLong())
@@ -102,44 +109,43 @@ class AnalyticsRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun getSpendingByCategory(period: Period): Result<CategorySpending> =
-        runCatching {
-            val currency = currency()
-            val start = period.start.toString()
-            val end = period.end.toString()
-            val (buckets, spending) = combineCategoryBuckets(
-                lines = analytics.categoryLines(start, end, currency).map {
-                    LineTotal(it.lineType, it.categoryId, money(it.totalMinor))
-                },
-                receiptsByDefault = analytics.receiptTotalsByDefaultCategory(start, end, currency)
-                    .map { DefaultCategoryTotal(it.defaultCategoryId, money(it.totalMinor)) },
-                linesByDefault = analytics.lineTotalsByDefaultCategory(start, end, currency)
-                    .map { DefaultCategoryTotal(it.defaultCategoryId, money(it.totalMinor)) },
-            )
-            val byId = categories.all().associate {
-                it.id to Category(it.id, it.name, it.slug, it.isSystem)
-            }
-            CategorySpending(
-                from = period.start,
-                to = period.end,
-                currency = currency,
-                total = spending,
-                buckets = buckets.map { bucket ->
-                    SpendingBucket(
-                        kind = SpendingBucketKind.entries.first { it.code == bucket.kind },
-                        category = bucket.categoryId?.let(byId::get),
-                        total = bucket.total,
-                        share = percentOf(bucket.total, spending),
-                    )
-                }.sortedWith(
-                    compareByDescending<SpendingBucket> { it.total }
-                        .thenBy { it.category?.slug ?: it.kind.code },
-                ),
-            )
+    override suspend fun getSpendingByCategory(period: Period): Result<CategorySpending> = compute {
+        val currency = currency()
+        val start = period.start.toString()
+        val end = period.end.toString()
+        val (buckets, spending) = combineCategoryBuckets(
+            lines = analytics.categoryLines(start, end, currency).map {
+                LineTotal(it.lineType, it.categoryId, money(it.totalMinor))
+            },
+            receiptsByDefault = analytics.receiptTotalsByDefaultCategory(start, end, currency)
+                .map { DefaultCategoryTotal(it.defaultCategoryId, money(it.totalMinor)) },
+            linesByDefault = analytics.lineTotalsByDefaultCategory(start, end, currency)
+                .map { DefaultCategoryTotal(it.defaultCategoryId, money(it.totalMinor)) },
+        )
+        val byId = categories.all().associate {
+            it.id to Category(it.id, it.name, it.slug, it.isSystem)
         }
+        CategorySpending(
+            from = period.start,
+            to = period.end,
+            currency = currency,
+            total = spending,
+            buckets = buckets.map { bucket ->
+                SpendingBucket(
+                    kind = SpendingBucketKind.entries.first { it.code == bucket.kind },
+                    category = bucket.categoryId?.let(byId::get),
+                    total = bucket.total,
+                    share = percentOf(bucket.total, spending),
+                )
+            }.sortedWith(
+                compareByDescending<SpendingBucket> { it.total }
+                    .thenBy { it.category?.slug ?: it.kind.code },
+            ),
+        )
+    }
 
     override suspend fun getSpendingByMerchant(period: Period): Result<List<MerchantSpending>> =
-        runCatching {
+        compute {
             val rows = analytics.merchantTotals(
                 period.start.toString(),
                 period.end.toString(),
@@ -162,7 +168,7 @@ class AnalyticsRepositoryImpl @Inject constructor(
         period: Period,
         byCount: Boolean,
         limit: Int,
-    ): Result<List<TopProduct>> = runCatching {
+    ): Result<List<TopProduct>> = compute {
         analytics.topProducts(
             period.start.toString(),
             period.end.toString(),
@@ -172,7 +178,7 @@ class AnalyticsRepositoryImpl @Inject constructor(
         ).map { TopProduct(it.productId, it.productName, it.receipts, money(it.spendMinor)) }
     }
 
-    override suspend fun getMonthPace(): Result<MonthPace> = runCatching {
+    override suspend fun getMonthPace(): Result<MonthPace> = compute {
         val currency = currency()
         val today = today()
         val month = YearMonth.from(today)

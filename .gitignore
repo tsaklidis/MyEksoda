@@ -7,6 +7,9 @@ captures/
 .externalNativeBuild/
 .cxx/
 
+# Release APKs (make new_release): they are attached to GitHub releases, not committed
+/eksoda-*.apk
+
 # Local SDK path and signing material
 local.properties
 *.jks

@@ -4,6 +4,7 @@ import android.database.sqlite.SQLiteConstraintException
 import io.eksoda.core.data.util.Fixed
 import io.eksoda.core.database.CategorySeed
 import io.eksoda.core.database.dao.MerchantDao
+import io.eksoda.core.database.dao.MerchantRef
 import io.eksoda.core.database.dao.ReceiptDao
 import io.eksoda.core.database.entity.MerchantEntity
 import io.eksoda.core.database.entity.ReceiptEntity
@@ -78,7 +79,8 @@ class Persister @Inject constructor(
                 existing.grossTotalMinor,
             )
         }
-        receipts.insertItems(canonical.lines.map { line -> item(receipt.id, merchant.id, line) })
+        val ref = MerchantRef(merchant.id, merchant.defaultCategoryId)
+        receipts.insertItems(canonical.lines.map { line -> item(receipt.id, ref, line) })
         return Persisted(receipt.id, OUTCOME_CREATED, merchant.displayName, grossMinor)
     }
 
@@ -305,12 +307,16 @@ class Persister @Inject constructor(
         )
     }
 
-    private suspend fun item(receiptId: String, merchantId: String, line: Line): ReceiptItemEntity {
+    private suspend fun item(
+        receiptId: String,
+        merchant: MerchantRef,
+        line: Line,
+    ): ReceiptItemEntity {
         val normalized = normalizeText(line.description)
         val lineType = classify(line, normalized)
         val code = line.merchantProductCode?.ifEmpty { null }
         val product = if (lineType == LineType.PRODUCT) {
-            matcher.match(merchantId, line.description, normalized, code, line.unit)
+            matcher.match(merchant, line.description, normalized, code, line.unit)
         } else {
             null
         }

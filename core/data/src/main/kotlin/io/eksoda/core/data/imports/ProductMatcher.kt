@@ -2,7 +2,7 @@ package io.eksoda.core.data.imports
 
 import io.eksoda.core.data.util.Fixed
 import io.eksoda.core.database.CategorySeed
-import io.eksoda.core.database.dao.MerchantDao
+import io.eksoda.core.database.dao.MerchantRef
 import io.eksoda.core.database.dao.ProductDao
 import io.eksoda.core.database.entity.MerchantProductMappingEntity
 import io.eksoda.core.database.entity.ProductEntity
@@ -28,23 +28,23 @@ import javax.inject.Inject
  */
 class ProductMatcher @Inject constructor(
     private val products: ProductDao,
-    private val merchants: MerchantDao,
     private val clock: Clock,
 ) {
     /**
      * The mapping's product, a new product and mapping for a new item, or null when the
-     * code-reuse guard sends the line to review.
+     * code-reuse guard sends the line to review. The caller passes [merchant] in, so an import
+     * does not read the merchant again for every line.
      */
     suspend fun match(
-        merchantId: String,
+        merchant: MerchantRef,
         description: String,
         normalized: String,
         code: String?,
         unit: Unit?,
     ): ProductEntity? {
         val key = mappingKey(code, normalized)
-        val mapping = products.findMapping(merchantId, key)
-            ?: return createProductAndMapping(merchantId, description, normalized, code, unit)
+        val mapping = products.findMapping(merchant.id, key)
+            ?: return createProductAndMapping(merchant, description, normalized, code, unit)
         if (code != null && isReusedCode(normalized, mapping.normalizedDescription)) return null
         if (mapping.lastSeenDescription != description) {
             // A code mapping follows the item's latest description (the guard compares to it).
@@ -65,7 +65,7 @@ class ProductMatcher @Inject constructor(
     }
 
     private suspend fun createProductAndMapping(
-        merchantId: String,
+        merchant: MerchantRef,
         description: String,
         normalized: String,
         code: String?,
@@ -73,7 +73,7 @@ class ProductMatcher @Inject constructor(
     ): ProductEntity {
         val proposal = newProduct(description, code, unit)
         val now = clock.millis()
-        val merchantSlug = merchants.get(merchantId)?.defaultCategoryId?.let(CategorySeed::slugOf)
+        val merchantSlug = merchant.defaultCategoryId?.let(CategorySeed::slugOf)
         val product = ProductEntity(
             id = UUID.randomUUID().toString(),
             name = proposal.name,
@@ -91,7 +91,7 @@ class ProductMatcher @Inject constructor(
         products.insertMapping(
             MerchantProductMappingEntity(
                 id = UUID.randomUUID().toString(),
-                merchantId = merchantId,
+                merchantId = merchant.id,
                 merchantProductCode = code,
                 normalizedDescription = normalized,
                 lastSeenDescription = description,

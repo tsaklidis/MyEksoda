@@ -27,7 +27,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -108,18 +107,17 @@ class ProductDetailViewModel @Inject constructor(
 
     val state: StateFlow<ProductDetailUiState> = combine(
         products.getProduct(productId),
-        products.getPriceHistory(productId),
-        unit.flatMapLatest { products.getComparison(productId, it) },
-        catalog.getCategories().map { list -> list.map { it.category } },
+        products.getPrices(productId, unit),
+        catalog.getCategoryList(),
         form,
-    ) { product, history, comparison, categories, formState ->
+    ) { product, prices, categories, formState ->
         if (product == null) {
             ProductDetailUiState.Missing
         } else {
             ProductDetailUiState.Loaded(
                 product = product,
-                history = history,
-                comparison = comparison,
+                history = prices.history,
+                comparison = prices.comparison,
                 categories = categories,
                 form = formState,
                 thisMonth = YearMonth.now(clock),

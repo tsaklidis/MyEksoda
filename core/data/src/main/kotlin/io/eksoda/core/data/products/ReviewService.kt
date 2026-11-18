@@ -116,9 +116,9 @@ class ReviewService @Inject constructor(
     }
 
     private suspend fun match(item: ReceiptItemEntity): ProductEntity? {
-        val merchantId = checkNotNull(products.merchantOf(item.receiptId))
+        val merchant = checkNotNull(products.merchantRefOf(item.receiptId))
         return matcher.match(
-            merchantId,
+            merchant,
             item.description,
             item.normalizedDescription,
             item.merchantProductCode,

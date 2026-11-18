@@ -1,3 +1,6 @@
+import java.io.File
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.eksoda.android.application)
     alias(libs.plugins.eksoda.android.compose)
@@ -5,14 +8,45 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+/** A properties file, or null when it does not exist (read through Gradle, so it is cached). */
+fun loadProperties(file: File): Properties? =
+    providers.fileContents(layout.projectDirectory.file(file.absolutePath)).asText.orNull
+        ?.let { text -> Properties().apply { load(text.reader()) } }
+
+/** The app version, which `make new_release` bumps. */
+val appVersion: Properties =
+    checkNotNull(loadProperties(rootProject.file("version.properties"))) {
+        "version.properties is missing"
+    }
+
+/**
+ * The release signing key, kept outside the repository (`make release_key` creates it):
+ * ~/.eksoda/keystore.properties, or the file named by the `eksoda.keystore` Gradle property.
+ */
+val releaseKey: Properties? = loadProperties(
+    providers.gradleProperty("eksoda.keystore").orNull?.let(::File)
+        ?: File(providers.systemProperty("user.home").get(), ".eksoda/keystore.properties"),
+)
+
 android {
     namespace = "io.eksoda"
 
     defaultConfig {
         applicationId = "io.eksoda"
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = appVersion.getProperty("versionCode").toInt()
+        versionName = appVersion.getProperty("versionName")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        releaseKey?.let { key ->
+            create("release") {
+                storeFile = File(key.getProperty("storeFile"))
+                storePassword = key.getProperty("storePassword")
+                keyAlias = key.getProperty("keyAlias")
+                keyPassword = key.getProperty("keyPassword")
+            }
+        }
     }
 
     buildTypes {
@@ -20,9 +54,12 @@ android {
             applicationIdSuffix = ".debug"
         }
         release {
-            // R8, signing and reproducible builds are not set up yet.
+            // R8 and reproducible builds are not set up yet.
             isMinifyEnabled = false
-            signingConfig = signingConfigs.getByName("debug")
+            // The release key when this machine has it. Without it, the debug key, for local
+            // installs only: `make new_release` refuses to publish such an APK.
+            signingConfig =
+                signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",

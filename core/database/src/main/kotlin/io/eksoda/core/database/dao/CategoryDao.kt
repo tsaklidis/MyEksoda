@@ -23,6 +23,10 @@ interface CategoryDao {
     )
     fun observeRows(): Flow<List<CategoryRow>>
 
+    /** As [observeRows] without the product counts, for pickers and filters. */
+    @Query("SELECT * FROM category ORDER BY name")
+    fun observeAll(): Flow<List<CategoryEntity>>
+
     @Query("SELECT * FROM category WHERE id = :id")
     suspend fun get(id: String): CategoryEntity?
 

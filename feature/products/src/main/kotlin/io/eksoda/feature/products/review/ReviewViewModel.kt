@@ -25,7 +25,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -83,7 +82,7 @@ class ReviewViewModel @Inject constructor(
 
     val state: StateFlow<ReviewUiState> = combine(
         review.getReviewCount(),
-        catalog.getCategories().map { list -> list.map { it.category } },
+        catalog.getCategoryList(),
         form,
     ) { count, categories, formState ->
         ReviewUiState(count, categories, formState.saving, formState.failed, formState.error)

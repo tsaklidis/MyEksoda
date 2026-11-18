@@ -56,3 +56,6 @@ public enum class ComparisonReason { NO_PRICES, UNKNOWN_UNIT, ONE_MERCHANT }
 
 /** A product's price observations, newest first, with statistics per unit and currency. */
 public data class PriceHistory(val entries: List<PriceEntry>, val stats: List<PriceStats>)
+
+/** A product's price history and its comparison across merchants, from the same prices. */
+public data class ProductPrices(val history: PriceHistory, val comparison: PriceComparison)

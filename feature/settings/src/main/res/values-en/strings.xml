@@ -6,9 +6,10 @@
     <string name="settings_language_greek">Ελληνικά</string>
     <string name="settings_language_english">English</string>
     <string name="settings_language_system">System language</string>
-    <string name="settings_notifications">Notifications</string>
-    <string name="settings_notify_imports">Finished imports</string>
-    <string name="settings_notify_imports_hint">Notify me when a receipt finishes importing while the app is closed. The receipt link is never shown.</string>
+    <string name="settings_preferences">Preferences</string>
+    <string name="settings_cancel">Cancel</string>
+    <string name="settings_notify_imports">Import notifications</string>
+    <string name="settings_notify_imports_hint">When a receipt finishes importing while the app is closed. The receipt link is never shown.</string>
     <string name="settings_catalog">Organize</string>
     <string name="settings_categories">Categories</string>
     <string name="settings_merchants">Shops</string>
@@ -22,7 +23,8 @@
     <string name="settings_link_copied">No app could open it. The address was copied.</string>
     <string name="settings_github">GitHub</string>
     <string name="settings_email">Email</string>
-    <string name="settings_privacy">All data stays encrypted on this phone. Eksoda connects only to the receipt websites and sends no usage statistics.</string>
+    <string name="settings_data">Data and privacy</string>
+    <string name="settings_data_hint">Everything stays encrypted on this phone. There is no server: Eksoda connects only to the receipt websites and sends no usage statistics. Export a backup now and then and keep it somewhere safe.</string>
 
     <string name="backup_exported_title">Backup created</string>
     <string name="backup_exported_text">The backup was created and saved successfully.</string>
@@ -57,10 +59,10 @@
     <string name="backup_restore_made">Created on %1$s</string>
     <string name="backup_restore_range">From %1$s to %2$s</string>
     <string name="backup_restore_warning">All current data on this device will be replaced by the data in the file. This cannot be undone.</string>
-    <string name="settings_backup">Backup</string>
-    <string name="settings_backup_hint">There is no server: your data exists only on this device. Export it to an encrypted file and keep it somewhere safe.</string>
     <string name="settings_backup_export">Export data</string>
+    <string name="settings_backup_export_hint">An encrypted file, locked with a passphrase you choose</string>
     <string name="settings_backup_import">Import data</string>
+    <string name="settings_backup_import_hint">Replaces all the data on this device</string>
     <string name="backup_restore_confirm">Restore</string>
     <string name="backup_ok">OK</string>
 

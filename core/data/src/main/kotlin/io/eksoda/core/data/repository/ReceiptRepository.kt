@@ -2,6 +2,7 @@ package io.eksoda.core.data.repository
 
 import androidx.paging.PagingData
 import io.eksoda.core.model.ImportJob
+import io.eksoda.core.model.ImportStatus
 import io.eksoda.core.model.ImportSubmission
 import io.eksoda.core.model.Receipt
 import io.eksoda.core.model.ReceiptDetail
@@ -23,8 +24,14 @@ interface ReceiptRepository {
      */
     suspend fun importReceipt(url: String): Result<ImportSubmission>
 
-    /** Import jobs, newest first. Updates by itself when a job changes (no polling). */
-    fun getImportJobs(): Flow<List<ImportJob>>
+    /**
+     * Import jobs newest first, only those with [status] when it is set. Updates by itself when
+     * a job changes (no polling).
+     */
+    fun getImportJobs(status: ImportStatus?): Flow<PagingData<ImportJob>>
+
+    /** How many imports are still running. */
+    val pendingImportCount: Flow<Int>
 
     suspend fun retryImport(id: String): Result<Unit>
 

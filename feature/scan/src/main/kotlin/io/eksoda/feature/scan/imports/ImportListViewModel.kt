@@ -2,18 +2,20 @@ package io.eksoda.feature.scan.imports
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.eksoda.core.data.repository.ReceiptRepository
 import io.eksoda.core.model.ImportJob
 import io.eksoda.core.model.ImportStatus
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -25,12 +27,6 @@ enum class ImportFilter(val status: ImportStatus?) {
     DONE(ImportStatus.COMPLETED),
 }
 
-data class ImportListUiState(
-    val imports: List<ImportJob> = emptyList(),
-    val filter: ImportFilter = ImportFilter.ALL,
-    val loading: Boolean = true,
-)
-
 sealed interface ImportListEvent {
     data class FilterChanged(val filter: ImportFilter) : ImportListEvent
 
@@ -41,32 +37,27 @@ sealed interface ImportListEffect {
     data object RetryFailed : ImportListEffect
 }
 
-/** The local import jobs. Room updates the list when a job changes, so nothing polls. */
+/**
+ * The local import jobs, paged and filtered by status in the query. Room updates the list when
+ * a job changes, so nothing polls.
+ */
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ImportListViewModel @Inject constructor(private val receipts: ReceiptRepository) :
     ViewModel() {
-    private val filter = MutableStateFlow(ImportFilter.ALL)
+    private val _filter = MutableStateFlow(ImportFilter.ALL)
+    val filter: StateFlow<ImportFilter> = _filter.asStateFlow()
 
-    val state: StateFlow<ImportListUiState> =
-        combine(receipts.getImportJobs(), filter) { jobs, current ->
-            ImportListUiState(
-                imports = current.status?.let { status -> jobs.filter { it.status == status } }
-                    ?: jobs,
-                filter = current,
-                loading = false,
-            )
-        }.stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS),
-            ImportListUiState(),
-        )
+    val items: Flow<PagingData<ImportJob>> = _filter
+        .flatMapLatest { receipts.getImportJobs(it.status) }
+        .cachedIn(viewModelScope)
 
     private val _effects = Channel<ImportListEffect>(Channel.BUFFERED)
     val effects: Flow<ImportListEffect> = _effects.receiveAsFlow()
 
     fun onEvent(event: ImportListEvent) {
         when (event) {
-            is ImportListEvent.FilterChanged -> filter.value = event.filter
+            is ImportListEvent.FilterChanged -> _filter.value = event.filter
 
             is ImportListEvent.Retry -> viewModelScope.launch {
                 if (receipts.retryImport(event.jobId).isFailure) {
@@ -74,9 +65,5 @@ class ImportListViewModel @Inject constructor(private val receipts: ReceiptRepos
                 }
             }
         }
-    }
-
-    private companion object {
-        const val STOP_TIMEOUT_MS = 5_000L
     }
 }

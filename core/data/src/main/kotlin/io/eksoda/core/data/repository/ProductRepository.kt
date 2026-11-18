@@ -1,11 +1,10 @@
 package io.eksoda.core.data.repository
 
 import androidx.paging.PagingData
-import io.eksoda.core.model.PriceComparison
-import io.eksoda.core.model.PriceHistory
 import io.eksoda.core.model.Product
 import io.eksoda.core.model.ProductDraft
 import io.eksoda.core.model.ProductFilter
+import io.eksoda.core.model.ProductPrices
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -18,10 +17,12 @@ interface ProductRepository {
     /** Null once the product is gone (merged into another, for example). */
     fun getProduct(id: String): Flow<Product?>
 
-    fun getPriceHistory(id: String): Flow<PriceHistory>
-
-    /** Prices per merchant in [unit], or in the unit with the most entries when null. */
-    fun getComparison(id: String, unit: String?): Flow<PriceComparison>
+    /**
+     * The price history, and prices per merchant in the unit selected by [unit] (the unit with
+     * the most entries while it is null). One price query feeds both, and a unit change only
+     * recomputes the comparison.
+     */
+    fun getPrices(id: String, unit: Flow<String?>): Flow<ProductPrices>
 
     /** The new product's id. */
     suspend fun createProduct(draft: ProductDraft): Result<String>

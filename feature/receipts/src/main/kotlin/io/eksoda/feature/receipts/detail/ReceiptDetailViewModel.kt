@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -71,7 +72,14 @@ class ReceiptDetailViewModel @Inject constructor(
 ) : ViewModel() {
     private val receiptId: String = checkNotNull(savedStateHandle[RECEIPT_ID])
 
+    /**
+     * Shared, because both the state and the store options follow it: collecting the cold flow
+     * twice would run the receipt queries and parse its JSON twice per change. A failure reads
+     * as a missing receipt (caught before sharing, so it never reaches the scope).
+     */
     private val detail = receipts.getReceipt(receiptId)
+        .catch { emit(null) }
+        .shareIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), replay = 1)
 
     private val stores = detail
         .map { it?.receipt?.merchant?.id }

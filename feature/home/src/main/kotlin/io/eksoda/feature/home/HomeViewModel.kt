@@ -6,7 +6,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.eksoda.core.data.repository.AnalyticsRepository
 import io.eksoda.core.data.repository.ReceiptRepository
 import io.eksoda.core.model.CategorySpending
-import io.eksoda.core.model.ImportStatus
 import io.eksoda.core.model.MonthPace
 import io.eksoda.core.model.Period
 import io.eksoda.core.model.Receipt
@@ -70,7 +69,7 @@ class HomeViewModel @Inject constructor(
 
     val uiState: StateFlow<HomeUiState> = combine(
         figures.map<Figures, Figures?> { it }.onStart { emit(null) },
-        receipts.getImportJobs().map { jobs -> jobs.count { it.status == ImportStatus.PENDING } },
+        receipts.pendingImportCount,
         receipts.getRecentReceipts(RECENT_COUNT),
     ) { figures, importing, recent ->
         HomeUiState(

@@ -5,7 +5,6 @@ import io.eksoda.core.database.dao.HouseholdDao
 import io.eksoda.core.database.entity.HouseholdEntity
 import io.eksoda.core.model.Household
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.time.Clock
 import java.time.ZoneId
@@ -16,8 +15,7 @@ import javax.inject.Singleton
 /** The household timezone, for `issued_local_date` and display. Europe/Athens until onboarding sets one. */
 @Singleton
 class HouseholdZone @Inject constructor(private val households: HouseholdDao) {
-    suspend fun current(): ZoneId =
-        households.observe().first()?.timezone?.let(ZoneId::of) ?: DEFAULT
+    suspend fun current(): ZoneId = households.get()?.timezone?.let(ZoneId::of) ?: DEFAULT
 
     companion object {
         val DEFAULT: ZoneId = ZoneId.of("Europe/Athens")
@@ -39,7 +37,7 @@ class HouseholdRepositoryImpl @Inject constructor(
     ): Result<Household> = runCatching {
         ZoneId.of(timezone) // rejects an unknown zone
         coordinator.write {
-            check(households.observe().first() == null) { "the household exists already" }
+            check(households.get() == null) { "the household exists already" }
             val now = clock.millis()
             val entity =
                 HouseholdEntity(
@@ -66,7 +64,7 @@ class HouseholdRepositoryImpl @Inject constructor(
     ): Result<Unit> = runCatching {
         ZoneId.of(timezone)
         coordinator.write {
-            val current = checkNotNull(households.observe().first()) { "no household yet" }
+            val current = checkNotNull(households.get()) { "no household yet" }
             households.update(
                 current.copy(
                     name = name.trim(),

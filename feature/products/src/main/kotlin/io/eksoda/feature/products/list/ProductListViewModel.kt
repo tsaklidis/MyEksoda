@@ -7,6 +7,7 @@ import androidx.paging.cachedIn
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.eksoda.core.data.repository.CatalogRepository
 import io.eksoda.core.data.repository.ProductRepository
+import io.eksoda.core.data.repository.ReceiptOptionsRepository
 import io.eksoda.core.data.repository.ReviewRepository
 import io.eksoda.core.model.CatalogError
 import io.eksoda.core.model.Category
@@ -71,6 +72,7 @@ sealed interface ProductListEffect {
 class ProductListViewModel @Inject constructor(
     private val products: ProductRepository,
     catalog: CatalogRepository,
+    options: ReceiptOptionsRepository,
     review: ReviewRepository,
 ) : ViewModel() {
     /** Everything but the search text, which is debounced. */
@@ -86,8 +88,8 @@ class ProductListViewModel @Inject constructor(
 
     val state: StateFlow<ProductListUiState> = combine(
         filter,
-        catalog.getCategories().map { list -> list.map { it.category } },
-        catalog.getMerchants().map { list -> list.map { Merchant(it.id, it.name) } },
+        catalog.getCategoryList(),
+        options.merchantOptions().map { list -> list.map { Merchant(it.id, it.name) } },
         review.getReviewCount(),
         form,
     ) { current, categories, merchants, count, formState ->

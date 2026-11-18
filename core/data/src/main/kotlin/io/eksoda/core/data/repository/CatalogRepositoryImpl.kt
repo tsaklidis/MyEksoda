@@ -42,6 +42,9 @@ class CatalogRepositoryImpl @Inject constructor(
     override fun getCategories(): Flow<List<CategorySummary>> =
         categories.observeRows().map { rows -> rows.map { it.toModel() } }
 
+    override fun getCategoryList(): Flow<List<Category>> = categories.observeAll()
+        .map { rows -> rows.map { Category(it.id, it.name, it.slug, it.isSystem) } }
+
     override suspend fun createCategory(name: String): Result<String> = runCatching {
         val (text, slug) = checkedName(name)
         coordinator.write {

@@ -1,5 +1,6 @@
 package io.eksoda.core.database.dao
 
+import androidx.paging.PagingSource
 import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Insert
@@ -45,7 +46,10 @@ interface ImportJobDao {
     )
     suspend fun findByIdentity(providerCode: String, urlIdentity: String): ImportJobEntity?
 
-    /** Jobs newest first, with the merchant and total of an imported receipt. */
+    /**
+     * Jobs newest first, with the merchant and total of an imported receipt; only those with
+     * [status] when it is set. Paged, so the list never loads every import ever made.
+     */
     @Query(
         """SELECT import_job.id, import_job.provider_code, import_job.source_host,
            import_job.status, import_job.outcome, import_job.next_attempt_at,
@@ -54,9 +58,14 @@ interface ImportJobDao {
            receipt.gross_total_minor AS total_minor, receipt.currency AS currency
            FROM import_job LEFT JOIN receipt ON receipt.id = import_job.receipt_id
            LEFT JOIN merchant ON merchant.id = receipt.merchant_id
-           ORDER BY import_job.created_at DESC""",
+           WHERE (:status IS NULL OR import_job.status = :status)
+           ORDER BY import_job.created_at DESC, import_job.id""",
     )
-    fun observeAll(): Flow<List<ImportJobRow>>
+    fun pagingRows(status: String?): PagingSource<Int, ImportJobRow>
+
+    /** The jobs still importing (Home's counter). */
+    @Query("SELECT COUNT(*) FROM import_job WHERE status = 'pending'")
+    fun observePendingCount(): Flow<Int>
 
     @Query("SELECT * FROM import_job WHERE status = 'pending'")
     suspend fun pending(): List<ImportJobEntity>

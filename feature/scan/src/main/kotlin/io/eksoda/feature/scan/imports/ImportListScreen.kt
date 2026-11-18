@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -41,6 +40,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import io.eksoda.core.designsystem.theme.EksodaTheme
 import io.eksoda.core.model.ImportJob
 import io.eksoda.core.model.ImportOutcome
@@ -63,7 +66,8 @@ fun ImportListRoute(
     onReceiptClick: (String) -> Unit,
     viewModel: ImportListViewModel = hiltViewModel(),
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val filter by viewModel.filter.collectAsStateWithLifecycle()
+    val items = viewModel.items.collectAsLazyPagingItems()
     val snackbarHostState = remember { SnackbarHostState() }
     val retryFailed = stringResource(R.string.imports_retry_failed)
     LaunchedEffect(viewModel) {
@@ -74,7 +78,8 @@ fun ImportListRoute(
         }
     }
     ImportListScreen(
-        state = state,
+        filter = filter,
+        items = items,
         onEvent = viewModel::onEvent,
         onBack = onBack,
         onReceiptClick = onReceiptClick,
@@ -86,7 +91,8 @@ fun ImportListRoute(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ImportListScreen(
-    state: ImportListUiState,
+    filter: ImportFilter,
+    items: LazyPagingItems<ImportJob>,
     onEvent: (ImportListEvent) -> Unit,
     onBack: () -> Unit,
     onReceiptClick: (String) -> Unit,
@@ -109,21 +115,24 @@ fun ImportListScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-            FilterRow(selected = state.filter, onSelect = {
+            FilterRow(selected = filter, onSelect = {
                 onEvent(ImportListEvent.FilterChanged(it))
             })
             Box(modifier = Modifier.fillMaxSize()) {
+                val refresh = items.loadState.refresh
                 when {
-                    state.loading -> DelayedProgressIndicator(Modifier.align(Alignment.Center))
+                    refresh is LoadState.Loading && items.itemCount == 0 ->
+                        DelayedProgressIndicator(Modifier.align(Alignment.Center))
 
-                    state.imports.isEmpty() -> EmptyState(
+                    items.itemCount == 0 && refresh is LoadState.NotLoading -> EmptyState(
                         title = stringResource(R.string.imports_empty),
                         description = stringResource(R.string.imports_empty_hint),
                         icon = Icons.Default.Inbox,
                     )
 
                     else -> LazyColumn(modifier = Modifier.fillMaxSize()) {
-                        items(state.imports, key = { it.id }) { job ->
+                        items(count = items.itemCount, key = items.itemKey { it.id }) { index ->
+                            val job = items[index] ?: return@items
                             Column(modifier = Modifier.animateItem()) {
                                 ImportRow(
                                     job = job,

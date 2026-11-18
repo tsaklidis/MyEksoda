@@ -26,6 +26,7 @@ import io.eksoda.core.model.Product
 import io.eksoda.core.model.ProductDraft
 import io.eksoda.core.model.ProductFilter
 import io.eksoda.core.model.ProductOrdering
+import io.eksoda.core.model.ProductPrices
 import io.eksoda.core.model.Store
 import io.eksoda.engine.products.Comparison
 import io.eksoda.engine.products.NO_PRICES
@@ -36,6 +37,7 @@ import io.eksoda.engine.products.priceStats
 import io.eksoda.engine.text.normalizeText
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import java.time.Instant
@@ -72,20 +74,18 @@ class ProductRepositoryImpl @Inject constructor(
     override fun getProduct(id: String): Flow<Product?> =
         products.observeRow(id).map { it?.toModel() }
 
-    /** Statistics are computed over every entry, off the main thread. */
-    override fun getPriceHistory(id: String): Flow<PriceHistory> = products.observePrices(id)
-        .map { rows ->
+    /** Statistics and the comparison are computed over every entry, off the main thread. */
+    override fun getPrices(id: String, unit: Flow<String?>): Flow<ProductPrices> {
+        val history = products.observePrices(id).map { rows ->
             val zone = householdZone.current()
-            PriceHistory(
-                entries = rows.map { it.toEntry(zone) },
-                stats = priceStats(rows.mapNotNull { it.toObservation() }).map { it.toModel() },
-            )
+            val observations = rows.mapNotNull { it.toObservation() }
+            val entries = rows.map { it.toEntry(zone) }
+            PriceHistory(entries, priceStats(observations).map { it.toModel() }) to observations
+        }
+        return combine(history, unit) { (prices, observations), selected ->
+            ProductPrices(prices, compare(observations, selected).toModel())
         }.flowOn(defaultDispatcher)
-
-    override fun getComparison(id: String, unit: String?): Flow<PriceComparison> =
-        products.observePrices(id)
-            .map { rows -> compare(rows.mapNotNull { it.toObservation() }, unit).toModel() }
-            .flowOn(defaultDispatcher)
+    }
 
     override suspend fun createProduct(draft: ProductDraft): Result<String> = runCatching {
         coordinator.write { review.createProduct(draft).id }

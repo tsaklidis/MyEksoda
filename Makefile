@@ -6,7 +6,11 @@ GRADLE := ./gradlew
 # detekt with type resolution: the debug variant of Android modules, main and test of JVM modules.
 DETEKT := detektDebug detektDebugUnitTest :core:engine:detektMain :core:engine:detektTest :core:model:detektMain :core:model:detektTest
 
-.PHONY: build test lint coverage no-telemetry check install format clean codemap
+.PHONY: build test lint coverage no-telemetry check install install_rc format clean codemap \
+	release_key new_release
+
+# Version part new_release bumps: patch (0.1.0 -> 0.1.1), minor (-> 0.2.0) or major (-> 1.0.0).
+BUMP ?= patch
 
 build:  ## Debug APK
 	$(GRADLE) assembleDebug
@@ -41,6 +45,12 @@ format:  ## Apply ktlint formatting
 
 codemap:  ## Regenerate docs/codemap/SYMBOLS.md (declaration index)
 	python3 scripts/codemap.py
+
+release_key:  ## Once: create the release signing key in ~/.eksoda (then back it up)
+	bash scripts/release_key.sh
+
+new_release:  ## Check, bump the version (BUMP=patch|minor|major), build eksoda-<version>.apk in the root
+	bash scripts/new_release.sh $(BUMP)
 
 clean:
 	$(GRADLE) clean

@@ -62,6 +62,12 @@ data class UncategorizedRow(
     @ColumnInfo(name = "merchant_category_id") val merchantCategoryId: String?,
 )
 
+/** A merchant's id and default category: what matching a line needs from it. */
+data class MerchantRef(
+    val id: String,
+    @ColumnInfo(name = "default_category_id") val defaultCategoryId: String?,
+)
+
 /** A line waiting for review, with its receipt. */
 data class ReviewRow(
     @Embedded val item: ReceiptItemEntity,
@@ -196,6 +202,13 @@ interface ProductDao {
 
     @Query("SELECT merchant_id FROM receipt WHERE id = :receiptId")
     suspend fun merchantOf(receiptId: String): String?
+
+    /** The receipt's merchant with its default category, for matching a line. */
+    @Query(
+        """SELECT merchant.id, merchant.default_category_id FROM receipt
+           JOIN merchant ON merchant.id = receipt.merchant_id WHERE receipt.id = :receiptId""",
+    )
+    suspend fun merchantRefOf(receiptId: String): MerchantRef?
 
     // --- review -----------------------------------------------------------------------------
 

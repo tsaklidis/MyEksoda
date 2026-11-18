@@ -14,6 +14,10 @@ interface HouseholdDao {
     @Query("SELECT * FROM household LIMIT 1")
     fun observe(): Flow<HouseholdEntity?>
 
+    /** A one-shot read of [observe], without setting up an invalidation observer. */
+    @Query("SELECT * FROM household LIMIT 1")
+    suspend fun get(): HouseholdEntity?
+
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(household: HouseholdEntity)
 
