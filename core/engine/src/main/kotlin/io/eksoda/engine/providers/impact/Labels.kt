@@ -18,14 +18,23 @@ internal object Labels {
         ) + ADDRESS_FIELDS,
         "identity" to setOf("InvoiceType", "IssuerFormatedInvoiceSeriesNumber", "DateIssued"),
         "line" to setOf(
-            "Code", "Description1", "Quantity", "MeasurementUnit", "UnitPrice",
+            "Code", "Description1", "Quantity", "MeasurementUnit", "UnitPrice", LINE_DISCOUNT,
             "NetTotal", LINE_NET_TOTAL_ELISE, "VatCategory", "VATTotal", "Total",
         ),
         // The tip is checked against the tax view's (read from here only without one).
         "payment" to setOf("PaymentMethodType", "Amount", "TipAmount"),
-        "summary" to setOf("CurrencyCode", "TotalNetAmount", "TotalVATAmount", "TotalGrossValue"),
+        "summary" to setOf(
+            "CurrencyCode",
+            "TotalAllowances",
+            "TotalNetAmount",
+            "TotalVATAmount",
+            "TotalGrossValue",
+        ),
         "certification" to setOf("Mark", "Uid", "ServiceSupplier"),
     )
+
+    /** The line discount in euros, headed "Έκπτ. 1" (observed 2026-11-21). */
+    const val LINE_DISCOUNT = "Amount"
 
     /** The line net on white-label hosts (s1ecos, observed 2026-11-21); Impact's is `NetTotal`. */
     const val LINE_NET_TOTAL_ELISE = "EliseCore-Details-NetTotal"

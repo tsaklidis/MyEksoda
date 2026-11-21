@@ -175,7 +175,7 @@ private fun warningRes(code: String): Int = when (code) {
     "discount_mismatch" -> R.string.warning_discount
     "vat_rate_mismatch" -> R.string.warning_vat_rate
     "total_mismatch", "receipt_amount_mismatch" -> R.string.warning_total
-    "total_discount_mismatch" -> R.string.warning_total_discount
+    "total_discount_mismatch", "line_discounts_mismatch" -> R.string.warning_total_discount
     "vat_breakdown_mismatch", "vat_breakdown_rate_mismatch" -> R.string.warning_vat_breakdown
     "payment_mismatch" -> R.string.warning_payment
     else -> R.string.warning_other

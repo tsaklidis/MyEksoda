@@ -29,6 +29,7 @@ import java.math.RoundingMode
 // R14 VAT breakdown rate        breakdown net × rate = breakdown VAT, allowing per-line rounding
 // R15 document kind             the document type is recognized
 // R16 total discount            total before discount − discount = gross
+// R17 line discounts            Σ line discounts = total discount (when lines carry discounts)
 // +   provider notices          conditions the provider detected (e.g. signature mismatch)
 
 public val LINE_TOLERANCE: BigDecimal = BigDecimal("0.01")
@@ -81,6 +82,7 @@ public fun validate(receipt: CanonicalReceipt): List<ValidationIssue> {
     issues += currency(receipt)
     issues += documentKind(receipt)
     issues += totalDiscount(receipt)
+    issues += lineDiscounts(receipt)
     issues += receipt.notices.map { issue(it.code, it.message) }
     return issues
 }
@@ -357,6 +359,24 @@ private fun totalDiscount(receipt: CanonicalReceipt): List<ValidationIssue> { //
             null,
             expected,
             t.gross,
+        ),
+    )
+}
+
+private fun lineDiscounts(receipt: CanonicalReceipt): List<ValidationIssue> { // R17
+    val total = receipt.totals.discount ?: return emptyList()
+    val discounts = receipt.lines.mapNotNull { it.discount }
+    // Without line discounts the total may be a receipt-level one: nothing to compare.
+    if (discounts.isEmpty()) return emptyList()
+    val sum = discounts.fold(ZERO) { acc, discount -> acc + discount }
+    if (!off(sum, total, TOTAL_TOLERANCE)) return emptyList()
+    return listOf(
+        issue(
+            "line_discounts_mismatch",
+            "The line discounts do not add up to the receipt's discount total.",
+            null,
+            sum,
+            total,
         ),
     )
 }

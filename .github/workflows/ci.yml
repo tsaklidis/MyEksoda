@@ -54,17 +54,24 @@ jobs:
       - name: make check
         run: make check
 
-      # `make check` only verifies coverage; this writes the report, reusing its test results.
-      # Only core:engine applies Kover so far.
-      - name: Coverage report
-        run: ./gradlew :core:engine:koverXmlReport
+      # `make check` only verifies coverage; this writes the reports, reusing its test results.
+      # core:engine and core:data apply Kover so far.
+      - name: Coverage reports
+        run: ./gradlew :core:engine:koverXmlReport :core:data:koverXmlReportDebug
 
-      - name: Upload coverage reports to Codecov
+      - name: Upload core:engine coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: core/engine/build/reports/kover/report.xml
           flags: engine
+
+      - name: Upload core:data coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: core/data/build/reports/kover/reportDebug.xml
+          flags: data
 
       - name: Upload reports
         if: failure()

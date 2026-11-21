@@ -1,0 +1,27 @@
+# Coverage checks on pull requests (reports uploaded by .github/workflows/ci.yml: core:engine,
+# flag "engine", and core:data, flag "data"; the feature modules are not measured yet).
+#
+# - patch:   at least 90% of the lines a pull request adds or changes must be covered by tests,
+#            so a new feature or fix ships with its tests.
+# - project: the total may not drop by more than 0.5% from the base commit.
+#
+# The checks block a merge only when "codecov/patch" and "codecov/project" are required status
+# checks in the repository's branch protection for master.
+codecov:
+  require_ci_to_pass: true
+
+coverage:
+  precision: 1
+  round: down
+  status:
+    patch:
+      default:
+        target: 90%
+    project:
+      default:
+        target: auto
+        threshold: 0.5%
+
+comment:
+  layout: "diff, files"
+  require_changes: false

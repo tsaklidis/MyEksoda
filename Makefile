@@ -21,9 +21,8 @@ test:  ## JVM unit tests: engine and model (JUnit 5), Android modules on Robolec
 lint:  ## ktlint (Spotless), detekt with type resolution, Android Lint
 	$(GRADLE) spotlessCheck $(DETEKT) lintDebug
 
-# core:data (>= 80%) joins in L3, when it has code to cover. Kover reads 0 of 0 lines as 0%.
-coverage:  ## Kover thresholds: core:engine >= 90%
-	$(GRADLE) :core:engine:koverVerify
+coverage:  ## Kover thresholds: core:engine >= 90%, core:data >= 60% (target 80%)
+	$(GRADLE) :core:engine:koverVerify :core:data:koverVerifyDebug
 
 no-telemetry:  ## Fails if a telemetry, analytics or crash SDK is on the app's classpath
 	$(GRADLE) :app:checkNoTelemetry
@@ -31,7 +30,7 @@ no-telemetry:  ## Fails if a telemetry, analytics or crash SDK is on the app's c
 check:  ## Everything above in one Gradle run. Must pass before a task counts as done.
 	$(GRADLE) spotlessCheck $(DETEKT) lintDebug \
 		:core:engine:test :core:model:test testDebugUnitTest \
-		:core:engine:koverVerify \
+		:core:engine:koverVerify :core:data:koverVerifyDebug \
 		:app:checkNoTelemetry assembleDebug
 
 install:  ## Install the debug app on the running emulator or device

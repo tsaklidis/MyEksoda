@@ -11,6 +11,7 @@ captures/
 local.properties
 *.jks
 *.keystore
+*.apk
 keystore.properties
 
 # IDEs and OS
