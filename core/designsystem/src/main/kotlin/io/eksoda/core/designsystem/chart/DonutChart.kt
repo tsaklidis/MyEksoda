@@ -42,7 +42,7 @@ data class RankedItem(
 
 /**
  * Colors by rank, not by category (docs/design/ui-redesign.md §4): the [named] largest
- * categories get terracotta, periwinkle, light terracotta, deep periwinkle and deep terracotta;
+ * categories get ink, blue, light ink, deep blue and deep ink;
  * the rest are grouped in one gray slice; buckets come last in the dark bucket gray. The list
  * under the chart uses the same colors, in the same order.
  */

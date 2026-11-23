@@ -40,7 +40,7 @@ data class RangeRow(
     val minimum: BigDecimal,
     val average: BigDecimal,
     val maximum: BigDecimal,
-    /** The cheapest row: periwinkle; the others are neutral. */
+    /** The cheapest row: blue; the others are neutral. */
     val highlighted: Boolean,
 )
 

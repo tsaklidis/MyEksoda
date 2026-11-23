@@ -37,7 +37,7 @@ data class StatItem(
     val label: String,
     val value: String,
     val supporting: String? = null,
-    /** The label's color: periwinkle for a lowest, terracotta for a highest; else ink-2. */
+    /** The label's color: blue for a lowest, ink for a highest; else ink-2. */
     val labelColor: Color = Color.Unspecified,
 )
 

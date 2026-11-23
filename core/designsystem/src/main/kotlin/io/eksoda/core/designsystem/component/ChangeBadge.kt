@@ -17,8 +17,8 @@ import io.eksoda.core.designsystem.theme.BadgeShape
 import io.eksoda.core.designsystem.theme.EksodaTheme
 
 /**
- * A change in words with an arrow (docs/design/ui-redesign.md §3): "▼ 8% less" in periwinkle on
- * its tint, "▲ 4% more" in terracotta on its tint, and "— First month with receipts" neutral.
+ * A change in words with an arrow (docs/design/ui-redesign.md §3): "▼ 8% less" in blue on
+ * its tint, "▲ 4% more" in ink on its tint, and "— First month with receipts" neutral.
  * Color is never the only signal: the arrow and the words carry the meaning. The caller formats
  * [text] for the locale; its numbers are drawn in IBM Plex Mono.
  */

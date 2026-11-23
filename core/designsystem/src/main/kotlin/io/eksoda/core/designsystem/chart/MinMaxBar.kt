@@ -27,7 +27,7 @@ import java.math.BigDecimal
 
 /**
  * A price range (docs/design/ui-redesign.md §3, after the station page of logs.tsaklidis.gr): a
- * 2 dp track from periwinkle (lowest) to terracotta (highest), an ink dot at the average, and
+ * 2 dp track from blue (lowest) to ink (highest), an ink dot at the average, and
  * "Min 1,15" and "Max 1,45" at its ends, and "avg 1,27 · 34 buys" on its own line below, so
  * the three never crowd one line. The caller formats the texts for the locale.
  */

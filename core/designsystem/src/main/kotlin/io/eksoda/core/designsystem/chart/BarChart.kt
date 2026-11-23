@@ -40,13 +40,13 @@ data class BarDatum(
     /** The axis label: "Jun", "15". */
     val label: String,
     val value: BigDecimal?,
-    /** The current, unfinished period: striped terracotta. */
+    /** The current, unfinished period: striped ink. */
     val partial: Boolean = false,
 )
 
 /**
  * Bars per period (docs/design/ui-redesign.md §4): past periods neutral, the selected one
- * periwinkle, the current partial period striped terracotta, empty periods keep their slot, and
+ * blue, the current partial period striped ink, empty periods keep their slot, and
  * [average] as a dashed neutral line. Tapping a bar calls [onSelect]; the caller shows the
  * callout (month, amount, "▲ n% above average"). [contentDescription] reads the chart aloud.
  */
@@ -143,7 +143,7 @@ fun BarChart(
     }
 }
 
-/** A bar with 3 dp top corners; striped terracotta when partial. */
+/** A bar with 3 dp top corners; striped ink when partial. */
 private fun DrawScope.drawBar(
     colors: EksodaColors,
     left: Float,

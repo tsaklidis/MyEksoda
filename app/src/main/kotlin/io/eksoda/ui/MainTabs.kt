@@ -40,8 +40,8 @@ import io.eksoda.core.designsystem.component.EksodaNavigationBar
 import io.eksoda.core.designsystem.component.EksodaNavigationBarItem
 import io.eksoda.core.designsystem.component.EksodaNavigationRail
 import io.eksoda.core.designsystem.component.EksodaNavigationRailItem
-import io.eksoda.core.designsystem.component.ScanButton
-import io.eksoda.core.designsystem.component.ScanNavigationBarItem
+import io.eksoda.core.designsystem.component.AddButton
+import io.eksoda.core.designsystem.component.AddNavigationBarItem
 import io.eksoda.core.model.Period
 import io.eksoda.feature.home.HomeRoute
 import io.eksoda.feature.insights.InsightsRoute
@@ -83,7 +83,7 @@ private val TABS_AFTER_SCAN = listOf(Tab.RECEIPTS, Tab.PRODUCTS)
 private val RAIL_WIDTH = 600.dp
 
 /**
- * The tabs with the redesign's bottom bar on phones (the raised terracotta Scan button in the
+ * The tabs with the redesign's bottom bar on phones (the raised ink Scan button in the
  * middle) and a rail on wider screens (Scan on top). Each tab keeps its own saved state (scroll
  * position, search text) while another is shown.
  */
@@ -180,7 +180,7 @@ fun MainTabs(
                     TABS_BEFORE_SCAN.forEach { entry ->
                         TabItem(entry, selected = entry == tab) { select(entry) }
                     }
-                    ScanNavigationBarItem(label = scanLabel, onClick = onScanClick)
+                    AddNavigationBarItem(label = scanLabel, onClick = onScanClick)
                     TABS_AFTER_SCAN.forEach { entry ->
                         TabItem(entry, selected = entry == tab) { select(entry) }
                     }
@@ -191,7 +191,7 @@ fun MainTabs(
             val railInsets = WindowInsets.systemBars.only(WindowInsetsSides.Start)
             Row(modifier = Modifier.fillMaxSize()) {
                 EksodaNavigationRail(
-                    header = { ScanButton(label = scanLabel, onClick = onScanClick) },
+                    header = { AddButton(label = scanLabel, onClick = onScanClick) },
                 ) {
                     Tab.entries.forEach { entry ->
                         EksodaNavigationRailItem(

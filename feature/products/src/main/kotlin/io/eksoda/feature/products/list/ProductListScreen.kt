@@ -159,7 +159,7 @@ fun ProductListScreen(
                 title = { Text(stringResource(R.string.products_title)) },
                 scrollBehavior = scrollBehavior,
                 actions = {
-                    // Items to match are attention items: terracotta, never red (ui-redesign.md §1).
+                    // Items to match are attention items: ink, never red (ui-redesign.md §1).
                     val badgeColor = EksodaTheme.colors.spend
                     IconButton(onClick = onReviewClick) {
                         BadgedBox(

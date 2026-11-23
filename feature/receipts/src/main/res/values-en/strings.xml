@@ -138,4 +138,7 @@
     <string name="swipe_deleted">Receipt deleted</string>
     <string name="undo">Undo</string>
     <string name="receipts_title">Receipts</string>
+    <string name="manual_edit">Edit</string>
+    <string name="detail_manual">You added this by hand. It has no product lines.</string>
+    <string name="manual_by_hand">By hand</string>
 </resources>

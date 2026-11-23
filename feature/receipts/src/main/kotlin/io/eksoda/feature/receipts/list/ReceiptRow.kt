@@ -32,9 +32,9 @@ import io.eksoda.core.model.PaymentMethod
 import io.eksoda.core.model.Receipt
 import io.eksoda.core.ui.component.FromOtherPhoneMark
 import io.eksoda.core.ui.component.MoneyText
-import io.eksoda.core.ui.text.categoryName
 import io.eksoda.core.ui.motion.SharedKeys
 import io.eksoda.core.ui.motion.sharedBoundsIfAvailable
+import io.eksoda.core.ui.text.categoryName
 import io.eksoda.core.ui.text.dayLabel
 import io.eksoda.feature.receipts.R
 import java.time.LocalDate
@@ -174,7 +174,7 @@ private fun ReceiptBadges(receipt: Receipt) {
 }
 
 /**
- * Status tags (docs/design/ui-redesign.md §1): attention items in terracotta on its tint;
+ * Status tags (docs/design/ui-redesign.md §1): attention items in ink on its tint;
  * neutral facts (cancelled, refund) in ink-2 on the inset color; muted ones (not in stats)
  * outlined only. Red is kept for errors and destructive actions.
  */

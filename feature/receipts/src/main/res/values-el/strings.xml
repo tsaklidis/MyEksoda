@@ -134,4 +134,7 @@
     <string name="swipe_deleted">Η απόδειξη διαγράφηκε</string>
     <string name="undo">Αναίρεση</string>
     <string name="receipts_title">Αποδείξεις</string>
+    <string name="manual_edit">Επεξεργασία</string>
+    <string name="detail_manual">Το προσθέσατε με το χέρι. Δεν έχει γραμμές προϊόντων.</string>
+    <string name="manual_by_hand">Με το χέρι</string>
 </resources>

@@ -7,93 +7,100 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
-// The palette of the UI (docs/design/ui-redesign.md §1): a neutral base, light or dark, and two
-// accents, each with one meaning. Terracotta: this period, spending, "spent more", "pricier",
-// attention items, Scan. Periwinkle: the previous period, selection, "spent less", "cheaper",
-// links, the active tab. No green anywhere; red only for errors and destructive actions.
-// Each accent is tuned per base so text in it keeps 4.5:1.
+// The palette of the UI (docs/design/ui-redesign.md §1): monochrome, light or charcoal dark, with
+// one blue accent and red for one meaning only. Ink: this period, spending, buttons, Scan.
+// Blue: the previous period, selection, "cheaper", links, progress toward a budget. Red: over a
+// budget or a limit, and errors. No green anywhere. Contrast comes from text and icons, not from
+// colored boxes. The blue is tuned per base so text in it keeps 4.5:1.
 
 private object Dark {
-    val Background = Color(0xFF0B0D11)
-    val Panel = Color(0xFF101319)
-    val Inset = Color(0xFF14181F)
-    val Tile = Color(0xFF171B22)
-    val Raised = Color(0xFF1A1F27)
-    val Line = Color(0xFF1F242D)
-    val ChartNeutral = Color(0xFF2A303A)
-    val Bucket = Color(0xFF363C46)
-    val Guide = Color(0xFF6B737D)
-    val Ink = Color(0xFFE8EAED)
-    val Ink2 = Color(0xFFA2AAB4)
+    val Background = Color(0xFF17181C)
+    val Panel = Color(0xFF222429)
+    val Inset = Color(0xFF2A2C32)
+    val Tile = Color(0xFF2E3036)
+    val Raised = Color(0xFF2A2C32)
+    val Line = Color(0xFF34363C)
+    val ChartNeutral = Color(0xFF3A3D44)
+    val Bucket = Color(0xFF5C6068)
+    val Guide = Color(0xFF8E919A)
+    val Ink = Color(0xFFF5F6F8)
+    val Ink2 = Color(0xFF9A9DA6)
 
-    val Terracotta = Color(0xFFE2795A)
-    val TerracottaText = Color(0xFFEE9A7F)
-    val TerracottaLight = Color(0xFFF2B8A3)
-    val TerracottaDeep = Color(0xFFA24B30)
-    val TerracottaStripe = Color(0xFF9A4E36)
-    val TerracottaTint = Color(0xFF22150F)
-    val TerracottaBorder = Color(0xFF4A2A20)
+    val InkLight = Color(0xFF9A9DA6)
+    val InkDeep = Color(0xFFC9CBD2)
+    val InkStripe = Color(0xFF5C6068)
+    val InkTint = Color(0xFF2E3036)
+    val InkBorder = Color(0xFF44464D)
 
-    val Periwinkle = Color(0xFF8F8FD0)
-    val PeriwinkleText = Color(0xFFA9A9E0)
-    val PeriwinkleDeep = Color(0xFF5F5FA8)
-    val PeriwinkleTint = Color(0xFF15172A)
-    val PeriwinkleBorder = Color(0xFF2E3256)
-    val NavIndicator = Color(0xFF1C1E33)
+    val Blue = Color(0xFF6C84FF)
+    val BlueText = Color(0xFFA9B8FF)
+    val BlueDeep = Color(0xFF4C61C9)
+    val BlueTint = Color(0xFF262E5C)
+    val BlueBorder = Color(0xFF34428C)
+    val NavIndicator = Color(0xFF2E3036)
+
+    val Over = Color(0xFFFF6369)
+    val OverText = Color(0xFFFF6369)
+    val OverTint = Color(0xFF4A1F22)
 }
 
 /**
- * The light base: a warm off-white page with white cards on hairlines. The accents are deeper
- * than in the dark palette so that, as text, they keep 4.5:1 on white and on the page.
+ * The light base: a cool gray page with white cards. The blue and the red are deeper than in the
+ * dark palette so that, as text, they keep 4.5:1 on white and on the page.
  */
 private object Light {
-    val Background = Color(0xFFF4F4F1)
+    val Background = Color(0xFFF5F5F7)
     val Panel = Color(0xFFFFFFFF)
-    val Inset = Color(0xFFF2F2EF)
-    val Tile = Color(0xFFEFEFEB)
+    val Inset = Color(0xFFF5F5F7)
+    val Tile = Color(0xFFEFF0F3)
     val Raised = Color(0xFFFFFFFF)
-    val Line = Color(0xFFE4E4E0)
-    val ChartNeutral = Color(0xFFDCDDD8)
-    val Bucket = Color(0xFFC6C8C2)
-    val Guide = Color(0xFF9A9FA6)
-    val Ink = Color(0xFF16181D)
-    val Ink2 = Color(0xFF5D6470)
+    val Line = Color(0xFFE6E7EB)
+    val ChartNeutral = Color(0xFFE2E3E8)
+    val Bucket = Color(0xFFC9CBD2)
+    val Guide = Color(0xFF8A8D95)
+    val Ink = Color(0xFF0E0F12)
+    val Ink2 = Color(0xFF6B6E76)
 
-    val Terracotta = Color(0xFFB5522F)
-    val TerracottaText = Color(0xFFA2492A)
-    val TerracottaLight = Color(0xFFE5A188)
-    val TerracottaDeep = Color(0xFF7E3820)
-    val TerracottaStripe = Color(0xFFEDBFAE)
-    val TerracottaTint = Color(0xFFFBEDE7)
-    val TerracottaBorder = Color(0xFFF0CDBF)
+    val InkLight = Color(0xFF8A8D95)
+    val InkDeep = Color(0xFF3F424A)
+    val InkStripe = Color(0xFFD5D7DD)
+    val InkTint = Color(0xFFEFF0F3)
+    val InkBorder = Color(0xFFD7D9DE)
 
-    val Periwinkle = Color(0xFF4F52A8)
-    val PeriwinkleText = Color(0xFF43469A)
-    val PeriwinkleDeep = Color(0xFF9294D8)
-    val PeriwinkleTint = Color(0xFFEEEEFA)
-    val PeriwinkleBorder = Color(0xFFD3D4F0)
-    val NavIndicator = Color(0xFFE7E7F6)
+    val Blue = Color(0xFF3B5BFD)
+    val BlueText = Color(0xFF2A44D6)
+    val BlueDeep = Color(0xFF8CA0FF)
+    val BlueTint = Color(0xFFE8ECFF)
+    val BlueBorder = Color(0xFFC9D3FF)
+    val NavIndicator = Color(0xFFEFF0F3)
+
+    val Over = Color(0xFFE5484D)
+    val OverText = Color(0xFFC62F35)
+    val OverTint = Color(0xFFFDECEC)
 }
 
 /**
- * The dark scheme. Dynamic color is off: the palette carries meanings that wallpaper colors
- * would break. `outline` (#6B737D) is for lines only: it fails 4.5:1 as text.
+ * The charcoal dark scheme. Dynamic color is off: the palette carries meanings that wallpaper
+ * colors would break. Buttons are ink (see EksodaButton); `primary` is the blue accent, for
+ * switches, progress and links.
  */
 internal val DarkScheme: ColorScheme = darkColorScheme(
-    primary = Dark.Terracotta,
+    primary = Dark.Blue,
     onPrimary = Dark.Background,
-    primaryContainer = Dark.TerracottaTint,
-    onPrimaryContainer = Dark.TerracottaText,
-    inversePrimary = Dark.PeriwinkleDeep,
-    secondary = Dark.Periwinkle,
+    primaryContainer = Dark.BlueTint,
+    onPrimaryContainer = Dark.BlueText,
+    inversePrimary = Dark.BlueDeep,
+    secondary = Dark.Blue,
     onSecondary = Dark.Background,
     secondaryContainer = Dark.NavIndicator,
-    onSecondaryContainer = Dark.PeriwinkleText,
-    // Attention items (review badges, warnings) are terracotta too.
-    tertiary = Dark.Terracotta,
+    onSecondaryContainer = Dark.Ink,
+    // Attention items (review badges, warnings) are ink: color is kept for blue and red.
+    tertiary = Dark.Ink,
     onTertiary = Dark.Background,
-    tertiaryContainer = Dark.TerracottaTint,
-    onTertiaryContainer = Dark.TerracottaText,
+    tertiaryContainer = Dark.InkTint,
+    onTertiaryContainer = Dark.Ink,
+    error = Dark.OverText,
+    onError = Dark.Background,
     background = Dark.Background,
     onBackground = Dark.Ink,
     surface = Dark.Background,
@@ -117,22 +124,24 @@ internal val DarkScheme: ColorScheme = darkColorScheme(
 
 /**
  * The light scheme: the same roles as [DarkScheme] on the light base. Sheets and dialogs are
- * white (the surface containers), the page is off-white.
+ * white (the surface containers), the page is light gray.
  */
 internal val LightScheme: ColorScheme = lightColorScheme(
-    primary = Light.Terracotta,
+    primary = Light.Blue,
     onPrimary = Color.White,
-    primaryContainer = Light.TerracottaTint,
-    onPrimaryContainer = Light.TerracottaText,
-    inversePrimary = Light.PeriwinkleDeep,
-    secondary = Light.Periwinkle,
+    primaryContainer = Light.BlueTint,
+    onPrimaryContainer = Light.BlueText,
+    inversePrimary = Light.BlueDeep,
+    secondary = Light.Blue,
     onSecondary = Color.White,
     secondaryContainer = Light.NavIndicator,
-    onSecondaryContainer = Light.PeriwinkleText,
-    tertiary = Light.Terracotta,
-    onTertiary = Color.White,
-    tertiaryContainer = Light.TerracottaTint,
-    onTertiaryContainer = Light.TerracottaText,
+    onSecondaryContainer = Light.Ink,
+    tertiary = Light.Ink,
+    onTertiary = Light.Background,
+    tertiaryContainer = Light.InkTint,
+    onTertiaryContainer = Light.Ink,
+    error = Light.OverText,
+    onError = Color.White,
     background = Light.Background,
     onBackground = Light.Ink,
     surface = Light.Background,
@@ -160,9 +169,9 @@ internal val LightScheme: ColorScheme = lightColorScheme(
  */
 @Immutable
 data class EksodaColors(
-    /** This period, spending, "more", "pricier", attention. */
+    /** This period, spending, "more", "pricier", attention: the ink scale. */
     val spend: Color,
-    /** Terracotta text on tints. */
+    /** Spend text on tints. */
     val spendText: Color,
     val spendLight: Color,
     val spendDeep: Color,
@@ -170,13 +179,18 @@ data class EksodaColors(
     val spendStripe: Color,
     val spendTint: Color,
     val spendBorder: Color,
-    /** The previous period, selection, "less", "cheaper", unit prices, links. */
+    /** The previous period, selection, "less", "cheaper", unit prices, links: the blue accent. */
     val compare: Color,
-    /** Periwinkle text on tints. */
+    /** Blue text on tints. */
     val compareText: Color,
     val compareDeep: Color,
     val compareTint: Color,
     val compareBorder: Color,
+    /** Over a budget or a limit: bars, figures, the month underline. Never for spending as such. */
+    val over: Color,
+    /** Red text: "12 € over". */
+    val overText: Color,
+    val overTint: Color,
     /** The selected tab's pill. */
     val navIndicator: Color,
     /** Cards. */
@@ -202,23 +216,26 @@ data class EksodaColors(
     /** Whether this is the dark palette (system bar icons, a few contrast choices). */
     val isDark: Boolean,
 ) {
-    /** Chart colors by rank: 1 terracotta, 2 periwinkle, 3 light, 4 deep periwinkle, 5 deep. */
+    /** Chart colors by rank: 1 ink, 2 blue, 3 gray, 4 light blue, 5 dark gray. */
     val rank: List<Color> = listOf(spend, compare, spendLight, compareDeep, spendDeep)
 }
 
 internal val DarkEksodaColors = EksodaColors(
-    spend = Dark.Terracotta,
-    spendText = Dark.TerracottaText,
-    spendLight = Dark.TerracottaLight,
-    spendDeep = Dark.TerracottaDeep,
-    spendStripe = Dark.TerracottaStripe,
-    spendTint = Dark.TerracottaTint,
-    spendBorder = Dark.TerracottaBorder,
-    compare = Dark.Periwinkle,
-    compareText = Dark.PeriwinkleText,
-    compareDeep = Dark.PeriwinkleDeep,
-    compareTint = Dark.PeriwinkleTint,
-    compareBorder = Dark.PeriwinkleBorder,
+    spend = Dark.Ink,
+    spendText = Dark.Ink,
+    spendLight = Dark.InkLight,
+    spendDeep = Dark.InkDeep,
+    spendStripe = Dark.InkStripe,
+    spendTint = Dark.InkTint,
+    spendBorder = Dark.InkBorder,
+    compare = Dark.Blue,
+    compareText = Dark.BlueText,
+    compareDeep = Dark.BlueDeep,
+    compareTint = Dark.BlueTint,
+    compareBorder = Dark.BlueBorder,
+    over = Dark.Over,
+    overText = Dark.OverText,
+    overTint = Dark.OverTint,
     navIndicator = Dark.NavIndicator,
     panel = Dark.Panel,
     inset = Dark.Inset,
@@ -234,18 +251,21 @@ internal val DarkEksodaColors = EksodaColors(
 )
 
 internal val LightEksodaColors = EksodaColors(
-    spend = Light.Terracotta,
-    spendText = Light.TerracottaText,
-    spendLight = Light.TerracottaLight,
-    spendDeep = Light.TerracottaDeep,
-    spendStripe = Light.TerracottaStripe,
-    spendTint = Light.TerracottaTint,
-    spendBorder = Light.TerracottaBorder,
-    compare = Light.Periwinkle,
-    compareText = Light.PeriwinkleText,
-    compareDeep = Light.PeriwinkleDeep,
-    compareTint = Light.PeriwinkleTint,
-    compareBorder = Light.PeriwinkleBorder,
+    spend = Light.Ink,
+    spendText = Light.Ink,
+    spendLight = Light.InkLight,
+    spendDeep = Light.InkDeep,
+    spendStripe = Light.InkStripe,
+    spendTint = Light.InkTint,
+    spendBorder = Light.InkBorder,
+    compare = Light.Blue,
+    compareText = Light.BlueText,
+    compareDeep = Light.BlueDeep,
+    compareTint = Light.BlueTint,
+    compareBorder = Light.BlueBorder,
+    over = Light.Over,
+    overText = Light.OverText,
+    overTint = Light.OverTint,
     navIndicator = Light.NavIndicator,
     panel = Light.Panel,
     inset = Light.Inset,
