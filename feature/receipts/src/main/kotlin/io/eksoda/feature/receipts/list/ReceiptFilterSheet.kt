@@ -381,6 +381,8 @@ private fun ToggleRow(label: Int, checked: Boolean, onChange: (Boolean) -> Unit)
         checked = checked,
         onCheckedChange = onChange,
         contentPadding = PaddingValues(vertical = 4.dp),
+        // The sheet is dense: the touch target, not a list row's height.
+        minHeight = 48.dp,
     )
 }
 

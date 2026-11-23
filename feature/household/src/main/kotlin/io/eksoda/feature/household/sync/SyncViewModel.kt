@@ -20,6 +20,8 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.IOException
+import java.security.GeneralSecurityException
 import javax.inject.Inject
 
 data class SyncUiState(
@@ -91,6 +93,9 @@ sealed interface SyncEffect {
     data object Left : SyncEffect
 
     data object LeaveFailed : SyncEffect
+
+    /** Sync could not be turned on or off; it stays as it was. */
+    data object SwitchFailed : SyncEffect
 }
 
 /**
@@ -127,8 +132,7 @@ class SyncViewModel @Inject constructor(private val sync: SyncRepository) : View
 
     fun onEvent(event: SyncScreenEvent) {
         when (event) {
-            is SyncScreenEvent.EnabledChanged ->
-                viewModelScope.launch { sync.setEnabled(event.enabled) }
+            is SyncScreenEvent.EnabledChanged -> setEnabled(event.enabled)
 
             // The outcome shows in the history.
             SyncScreenEvent.SyncNowClicked -> viewModelScope.launch { sync.syncNow() }
@@ -157,6 +161,22 @@ class SyncViewModel @Inject constructor(private val sync: SyncRepository) : View
             SyncScreenEvent.LeaveConfirmed -> leave()
 
             SyncScreenEvent.DialogDismissed -> local.update { it.copy(dialog = SyncDialog.None) }
+        }
+    }
+
+    /**
+     * The switch. When the settings file cannot be written, or (turning sync on) the household
+     * key cannot be made in the Keystore, sync stays as it was and a message says so.
+     */
+    private fun setEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            try {
+                sync.setEnabled(enabled)
+            } catch (ignored: IOException) {
+                _effects.send(SyncEffect.SwitchFailed)
+            } catch (ignored: GeneralSecurityException) {
+                _effects.send(SyncEffect.SwitchFailed)
+            }
         }
     }
 

@@ -78,6 +78,7 @@ fun SyncRoute(onBack: () -> Unit, viewModel: SyncViewModel = hiltViewModel()) {
                 SyncEffect.CodeFailed -> resources.getString(R.string.sync_code_failed)
                 SyncEffect.Left -> resources.getString(R.string.sync_left)
                 SyncEffect.LeaveFailed -> resources.getString(R.string.sync_leave_failed)
+                SyncEffect.SwitchFailed -> resources.getString(R.string.sync_switch_failed)
             }
             snackbarHostState.showSnackbar(message)
         }

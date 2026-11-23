@@ -3,13 +3,7 @@ package io.eksoda.core.designsystem.component
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
@@ -18,19 +12,20 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.constrainHeight
 import androidx.compose.ui.unit.dp
 import io.eksoda.core.designsystem.theme.ButtonShape
 import io.eksoda.core.designsystem.theme.EksodaTheme
@@ -41,9 +36,11 @@ import io.eksoda.core.designsystem.theme.EksodaTheme
  *
  * A label is never cut (§2). Side by side, a label that does not fit wraps to a second line, and
  * the segments keep one height, so the selected one stays a whole pill when only its neighbor
- * wraps. When a label would need more lines, or has a word wider than its segment (it would be
- * broken mid-word), the options stack instead, one per row at the full width (three units on a
- * narrow phone, a large font scale).
+ * wraps. When a label would need a third line, or would break a word in the middle, the options
+ * stack instead, one per row at the full width (three units on a narrow phone, large text).
+ *
+ * The choice is made while measuring, with the exact width each label gets side by side, so it
+ * agrees with how the labels are then laid out.
  */
 @Composable
 fun SegmentedToggle(
@@ -55,44 +52,70 @@ fun SegmentedToggle(
     val colors = EksodaTheme.colors
     val style = MaterialTheme.typography.labelLarge
     val measurer = rememberTextMeasurer()
-    BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
-        val labelWidth = with(LocalDensity.current) {
-            ((maxWidth - WellPadding * 2) / options.size.coerceAtLeast(1) - LabelPadding * 2)
-                .roundToPx()
-        }
-        val stacked = remember(options, labelWidth, style, measurer) {
-            constraints.hasBoundedWidth &&
-                options.any { !fitsInSegment(measurer, it, style, labelWidth) }
-        }
-        val well = Modifier
+    Layout(
+        content = {
+            options.forEachIndexed { index, option ->
+                Segment(
+                    label = option,
+                    selected = index == selectedIndex,
+                    onClick = { onSelect(index) },
+                    style = style,
+                )
+            }
+        },
+        modifier = modifier
             .fillMaxWidth()
             .clip(ButtonShape)
             .background(MaterialTheme.colorScheme.background)
             .border(1.dp, colors.line, ButtonShape)
             .padding(WellPadding)
-            .selectableGroup()
-        if (stacked) {
-            Column(modifier = well) {
-                options.forEachIndexed { index, option ->
-                    Segment(
-                        label = option,
-                        selected = index == selectedIndex,
-                        onClick = { onSelect(index) },
-                        style = style,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
+            .selectableGroup(),
+    ) { measurables, constraints ->
+        if (measurables.isEmpty()) {
+            return@Layout layout(constraints.minWidth, constraints.minHeight) {}
+        }
+        if (!constraints.hasBoundedWidth) {
+            // No width to share (a horizontally scrolling parent): each segment takes its own.
+            val placeables = measurables.map { it.measure(Constraints()) }
+            val height = placeables.maxOf { it.height }
+            return@Layout layout(placeables.sumOf { it.width }, height) {
+                var x = 0
+                placeables.forEach { placeable ->
+                    placeable.placeRelative(x, (height - placeable.height) / 2)
+                    x += placeable.width
+                }
+            }
+        }
+        val width = constraints.maxWidth
+        val widths = shareWidth(width, measurables.size)
+        // The label's own padding, rounded per side as Modifier.padding rounds it.
+        val labelPadding = LabelPadding.roundToPx() * 2
+        val sideBySide = options.indices.all { index ->
+            val labelWidth = (widths[index] - labelPadding).coerceAtLeast(0)
+            fitsSideBySide(measurer, options[index], style, labelWidth)
+        }
+        if (sideBySide) {
+            // One height for all, so the selected pill is whole when only a neighbor wraps.
+            val height = measurables.indices
+                .maxOf { measurables[it].maxIntrinsicHeight(widths[it]) }
+                .let { constraints.constrainHeight(it) }
+            val placeables = measurables.mapIndexed { index, measurable ->
+                measurable.measure(Constraints.fixed(widths[index], height))
+            }
+            layout(width, height) {
+                var x = 0
+                placeables.forEach { placeable ->
+                    placeable.placeRelative(x, 0)
+                    x += placeable.width
                 }
             }
         } else {
-            Row(modifier = well.height(IntrinsicSize.Min)) {
-                options.forEachIndexed { index, option ->
-                    Segment(
-                        label = option,
-                        selected = index == selectedIndex,
-                        onClick = { onSelect(index) },
-                        style = style,
-                        modifier = Modifier.weight(1f).fillMaxHeight(),
-                    )
+            val placeables = measurables.map { it.measure(Constraints.fixedWidth(width)) }
+            layout(width, constraints.constrainHeight(placeables.sumOf { it.height })) {
+                var y = 0
+                placeables.forEach { placeable ->
+                    placeable.placeRelative(0, y)
+                    y += placeable.height
                 }
             }
         }
@@ -100,16 +123,10 @@ fun SegmentedToggle(
 }
 
 @Composable
-private fun Segment(
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-    style: TextStyle,
-    modifier: Modifier,
-) {
+private fun Segment(label: String, selected: Boolean, onClick: () -> Unit, style: TextStyle) {
     val colors = EksodaTheme.colors
     Box(
-        modifier = modifier
+        modifier = Modifier
             .heightIn(min = 40.dp)
             .clip(SegmentShape)
             .background(if (selected) colors.line else Color.Transparent)
@@ -126,23 +143,30 @@ private fun Segment(
     }
 }
 
-/**
- * Whether [label] fits a side-by-side segment [width] px wide: in at most [MAX_LABEL_LINES]
- * lines, with no word wider than the segment (it would be broken in the middle).
- */
-private fun fitsInSegment(
+/** [total] px over [count] segments as a Row with equal weights shares it: whole pixels. */
+private fun shareWidth(total: Int, count: Int): List<Int> =
+    List(count) { index -> total / count + if (index < total % count) 1 else 0 }
+
+/** Whether [label], laid out [width] px wide, fits a side-by-side segment. */
+private fun fitsSideBySide(
     measurer: TextMeasurer,
     label: String,
     style: TextStyle,
     width: Int,
 ): Boolean {
-    if (width <= 0) return false
-    val wrapped = measurer.measure(label, style, constraints = Constraints(maxWidth = width))
-    if (wrapped.lineCount > MAX_LABEL_LINES) return false
-    return label.split(' ').filter { it.isNotEmpty() }.all { word ->
-        measurer.measure(word, style, softWrap = false, maxLines = 1).size.width <= width
-    }
+    val layout = measurer.measure(label, style, constraints = Constraints(maxWidth = width))
+    return layout.lineCount <= MAX_LABEL_LINES && !breaksAWord(layout, label)
 }
+
+/**
+ * Whether a line of [layout] ends inside a word: a letter or digit on both sides of the break. A
+ * break at a space, a hyphen or a slash is where a reader expects one.
+ */
+internal fun breaksAWord(layout: TextLayoutResult, text: String): Boolean =
+    (0 until layout.lineCount - 1).any { line ->
+        val end = layout.getLineEnd(line)
+        end in 1 until text.length && text[end - 1].isLetterOrDigit() && text[end].isLetterOrDigit()
+    }
 
 private val SegmentShape = RoundedCornerShape(8.dp)
 private val WellPadding = 3.dp

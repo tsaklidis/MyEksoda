@@ -28,6 +28,9 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
     private val appViewModel: AppViewModel by viewModels()
 
+    /** "Hide app content" has been applied to this activity's window at least once. */
+    private var windowFlagSet = false
+
     /** The chosen app language before Android 13 (AppLanguage); 13+ applies it itself. */
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(AppLanguage.wrap(newBase))
@@ -41,18 +44,20 @@ class MainActivity : ComponentActivity() {
             navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
         )
         super.onCreate(savedInstanceState)
-        // The splash stays until the encrypted database has opened, instead of an empty screen,
-        // and until "Hide app content" is known, so no content is drawn before the window is
-        // secure.
-        splash.setKeepOnScreenCondition {
-            appViewModel.state.value == AppState.LOADING || appViewModel.hideContent.value == null
-        }
         // Settings → "Hide app content": no screenshots, and a blank card in recent apps. A
         // window flag, not UI state, so it is set here rather than from the composition. The
         // main dispatcher is immediate: when the value is already known (after a configuration
-        // change) the flag is set before setContent, ahead of the first frame.
+        // change) the flag is set here, before setContent.
         lifecycleScope.launch {
-            appViewModel.hideContent.filterNotNull().collect { window.setSecure(it) }
+            appViewModel.hideContent.filterNotNull().collect {
+                window.setSecure(it)
+                windowFlagSet = true
+            }
+        }
+        // The splash stays until the encrypted database has opened, instead of an empty screen,
+        // and until the window flag is set (not only known), so no content is drawn first.
+        splash.setKeepOnScreenCondition {
+            appViewModel.state.value == AppState.LOADING || !windowFlagSet
         }
         // After a configuration change the launch was already handled (it lives in the ViewModel).
         if (savedInstanceState == null) handle(intent)

@@ -11,6 +11,7 @@ import io.eksoda.core.data.db.WriteCoordinator
 import io.eksoda.core.database.dao.ImportJobDao
 import io.eksoda.engine.ErrorCode
 import kotlinx.coroutines.flow.first
+import java.io.IOException
 import java.time.Clock
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -55,7 +56,13 @@ class ImportStartup @Inject constructor(
             }
         }
         requeued.forEach { scheduler.enqueue(it.id) }
-        preferences.edit { it[LAST_VERSION_KEY] = appVersion.code }
+        try {
+            preferences.edit { it[LAST_VERSION_KEY] = appVersion.code }
+        } catch (ignored: IOException) {
+            // The settings file cannot be written: the next start looks again, which is harmless
+            // (`app_version_at_failure` keeps each job to one retry per version). The pending
+            // imports are still queued below.
+        }
     }
 
     private companion object {

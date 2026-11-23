@@ -177,7 +177,8 @@ Text helpers (stored keys depend on their exact behavior; reuse them, don't rein
   `HouseholdZone.current()` for dates.
 - DI: `di/AppModule.kt` (Engine, WorkManager, DataStore from `settingsDataStore`: a corrupt
   preferences file is replaced with `safePreferences`, a failed read gets them and is retried,
-  for every reader; content hidden, sync off, backfill not re-run), `@ApplicationScope`,
+  for every reader; content hidden, sync off, backfill not re-run; a write still throws
+  `IOException`, so every `edit` caller catches it), `@ApplicationScope`,
   `RepositoryModule` @Binds; `di/SyncModule.kt` for sync), `di/DatabaseModule.kt` (DB + one
   `@Provides` per DAO),
   `di/CoreModule.kt` (`Clock`, `@IoDispatcher`, `@DefaultDispatcher`). Parsing and analytics

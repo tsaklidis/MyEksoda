@@ -9,10 +9,16 @@ import io.eksoda.core.data.products.AutoCategoryBackfill
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.retryWhen
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.withTimeoutOrNull
 import java.io.File
 import java.io.IOException
 import kotlin.time.Duration
@@ -25,7 +31,10 @@ import kotlin.time.Duration.Companion.seconds
  * app and never weakens privacy; it falls back to [safePreferences]:
  * - a corrupt file is replaced with them (what it held is lost either way);
  * - a read that fails is answered with them and retried, so every reader keeps receiving
- *   updates once the file reads again. Writes still fail; their callers handle that.
+ *   updates once the file reads again ([FailSafePreferences]).
+ *
+ * Writes still fail with an IOException; every caller handles it (a message, or nothing lost).
+ * A key whose default would do harm when the file is lost belongs in [safePreferences].
  */
 internal fun settingsDataStore(
     scope: CoroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
@@ -55,29 +64,46 @@ internal fun safePreferences(): Preferences = preferencesOf(
     AutoCategoryBackfill.DONE_KEY to AutoCategoryBackfill.VERSION,
 )
 
-/** Answers a failed read with [safePreferences] and retries it, with a growing pause. */
+/**
+ * Answers a failed read with [safePreferences] and reads again after a pause: 1 s, 2 s, 4 s … up
+ * to a minute while the reads keep failing, from 1 s again after one that works. A write that
+ * goes through ends the pause at once (it read the file), so a switch the user turns shows
+ * without waiting.
+ */
 internal class FailSafePreferences(private val delegate: DataStore<Preferences>) :
     DataStore<Preferences> {
-    override val data: Flow<Preferences> = delegate.data
-        .retryWhen { cause, attempt ->
-            if (cause !is IOException) return@retryWhen false
-            emit(safePreferences())
-            delay(retryDelay(attempt))
-            true
-        }
-        .distinctUntilChanged()
+    /** How many writes went through. */
+    private val writes = MutableStateFlow(0L)
+
+    override val data: Flow<Preferences> = flow {
+        // Each reader keeps its own count of failures in a row.
+        var failures = 0
+        var writesSeen = writes.value
+        val reads = delegate.data
+            .onEach {
+                failures = 0
+                writesSeen = writes.value
+            }
+            .retryWhen { cause, _ ->
+                if (cause !is IOException) return@retryWhen false
+                emit(safePreferences())
+                withTimeoutOrNull(retryDelay(failures++)) { writes.first { it != writesSeen } }
+                writesSeen = writes.value
+                true
+            }
+        emitAll(reads)
+    }.distinctUntilChanged()
 
     override suspend fun updateData(transform: suspend (t: Preferences) -> Preferences) =
-        delegate.updateData(transform)
+        delegate.updateData(transform).also { writes.update { count -> count + 1 } }
 
     private companion object {
         val FIRST_RETRY = 1.seconds
         val MAX_RETRY = 1.minutes
-        const val MAX_DOUBLINGS = 6L
+        const val MAX_DOUBLINGS = 6
 
-        /** 1 s, 2 s, 4 s … up to a minute. */
-        fun retryDelay(attempt: Long): Duration =
-            (FIRST_RETRY * (1 shl attempt.coerceAtMost(MAX_DOUBLINGS).toInt()))
-                .coerceAtMost(MAX_RETRY)
+        /** 1 s, 2 s, 4 s … up to a minute (2⁶ s is past it, so the shift never overflows). */
+        fun retryDelay(failures: Int): Duration =
+            (FIRST_RETRY * (1 shl failures.coerceAtMost(MAX_DOUBLINGS))).coerceAtMost(MAX_RETRY)
     }
 }

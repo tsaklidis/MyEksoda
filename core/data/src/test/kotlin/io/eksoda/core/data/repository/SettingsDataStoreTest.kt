@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalCoroutinesApi::class)
+
 package io.eksoda.core.data.repository
 
 import androidx.datastore.core.DataStore
@@ -15,15 +17,25 @@ import io.eksoda.core.data.imports.ImportNotifier
 import io.eksoda.core.data.products.AutoCategoryBackfill
 import io.eksoda.core.data.sync.SyncPreferences
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.currentTime
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Rule
@@ -88,16 +100,48 @@ class SettingsDataStoreTest {
     @Test
     fun `a failed read gives the safe values, then the stored ones once the file reads again`() =
         runTest {
-            val inner = FlakyStore(failures = 2, stored = emptyPreferences())
+            val inner = FlakyStore(failures = 2)
             val settings = SettingsRepositoryImpl(FailSafePreferences(inner))
-            // The pauses between attempts run on the test's virtual clock.
+            // The pauses between attempts run on the test's virtual clock: 1 s, then 2 s.
             assertThat(settings.hideContent.take(2).toList()).isEqualTo(listOf(true, false))
             assertThat(inner.reads).isEqualTo(3)
+            assertThat(currentTime).isEqualTo(3_000L)
         }
 
     @Test
+    fun `a write that goes through during the pause shows at once`() = runTest {
+        val store = FailSafePreferences(FlakyStore(failures = 1))
+        val seen = record(SettingsRepositoryImpl(store).hideContent)
+        runCurrent()
+        assertThat(seen).isEqualTo(listOf(0L to true))
+
+        // The user turns hiding off: the write reads the file, so it reads again now.
+        store.edit { it[SettingsRepositoryImpl.HIDE_CONTENT_KEY] = false }
+        runCurrent()
+        assertThat(seen).isEqualTo(listOf(0L to true, 0L to false))
+    }
+
+    @Test
+    fun `after a read that works, the pause starts again from one second`() = runTest {
+        val inner = FlakyStore(failures = 2)
+        val seen = record(SettingsRepositoryImpl(FailSafePreferences(inner)).hideContent)
+        // advanceUntilIdle() would skip the background collector: step the clock instead.
+        advanceTimeBy(3_000L)
+        runCurrent()
+        assertThat(seen).isEqualTo(listOf(0L to true, 3_000L to false))
+
+        // The file stops reading again: one second, not the four that would come next.
+        inner.outage()
+        runCurrent()
+        advanceTimeBy(1_000L)
+        runCurrent()
+        assertThat(seen)
+            .isEqualTo(listOf(0L to true, 3_000L to false, 3_000L to true, 4_000L to false))
+    }
+
+    @Test
     fun `a failed read does not end the flow, so later changes still arrive`() = runTest {
-        val inner = FlakyStore(failures = 1, stored = emptyPreferences())
+        val inner = FlakyStore(failures = 1)
         val store = FailSafePreferences(inner)
         val settings = SettingsRepositoryImpl(store)
         val seen = mutableListOf<Boolean>()
@@ -132,17 +176,33 @@ class SettingsDataStoreTest {
     }
 }
 
-/** A store whose first [failures] reads fail with an I/O error. */
-private class FlakyStore(private var failures: Int, stored: Preferences) : DataStore<Preferences> {
-    private val state = MutableStateFlow(stored)
+/** Each value of [flow] with the virtual time it arrived at, collected in the background. */
+private fun <T> TestScope.record(flow: Flow<T>): List<Pair<Long, T>> {
+    val seen = mutableListOf<Pair<Long, T>>()
+    backgroundScope.launch { flow.collect { seen += currentTime to it } }
+    return seen
+}
+
+/**
+ * A store whose first [failures] reads fail with an I/O error, and whose open reads fail on
+ * [outage]. Writes always go through.
+ */
+private class FlakyStore(private var failures: Int) : DataStore<Preferences> {
+    private val state = MutableStateFlow(emptyPreferences())
+    private val outages = MutableSharedFlow<Unit>()
     var reads = 0
         private set
 
     override val data: Flow<Preferences> = flow {
         reads++
-        if (failures-- > 0) throw IOException("cannot read")
-        state.collect { emit(it) }
+        if (failures > 0) {
+            failures--
+            throw IOException("cannot read")
+        }
+        emitAll(merge(state, outages.map { throw IOException("stopped reading") }))
     }
+
+    suspend fun outage() = outages.emit(Unit)
 
     override suspend fun updateData(
         transform: suspend (t: Preferences) -> Preferences,
