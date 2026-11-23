@@ -112,7 +112,7 @@ private fun MainNavHost(launch: AppLaunch?, onLaunchHandled: () -> Unit) {
                     )
                 }
                 composable<SyncDestination> { SyncRoute(onBack = back) }
-                composable<BudgetsDestination> { BudgetsRoute(onBack = back) }
+                composable<BudgetsDestination> { BudgetsRoute(onBack = back, onBillsClick = {}) }
                 composable<CategoryDetailDestination> {
                     CategoryDetailRoute(
                         onBack = back,

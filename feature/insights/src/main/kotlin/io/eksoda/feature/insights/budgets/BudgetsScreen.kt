@@ -9,11 +9,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.outlined.Category
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -34,27 +37,34 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.eksoda.core.designsystem.component.SectionCard
-import io.eksoda.core.designsystem.text.monoNumbers
+import io.eksoda.core.designsystem.component.SwitchRow
 import io.eksoda.core.designsystem.theme.EksodaTheme
-import io.eksoda.core.model.Category
+import io.eksoda.core.model.EverydayBudget
 import io.eksoda.core.model.Money
 import io.eksoda.core.ui.component.AmountDialog
 import io.eksoda.core.ui.component.DelayedProgressIndicator
+import io.eksoda.core.ui.component.MoneyText
 import io.eksoda.core.ui.text.appLocale
-import io.eksoda.core.ui.text.categoryName
 import io.eksoda.core.ui.text.formatMoney
+import io.eksoda.core.ui.text.monthName
 import io.eksoda.feature.insights.R
 import java.math.BigDecimal
+import java.time.YearMonth
 
 @Composable
-fun BudgetsRoute(onBack: () -> Unit, viewModel: BudgetsViewModel = hiltViewModel()) {
+fun BudgetsRoute(
+    onBack: () -> Unit,
+    onBillsClick: () -> Unit,
+    viewModel: BudgetsViewModel = hiltViewModel(),
+) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val saveFailed = stringResource(R.string.budgets_save_failed)
@@ -65,15 +75,15 @@ fun BudgetsRoute(onBack: () -> Unit, viewModel: BudgetsViewModel = hiltViewModel
             }
         }
     }
-    BudgetsScreen(state, viewModel::onEvent, onBack, snackbarHostState)
+    BudgetsScreen(state, viewModel::onEvent, onBack, onBillsClick, snackbarHostState)
 }
 
-/** Which budget the dialog edits: the whole month's ([categoryId] null) or a category's. */
-private data class Editing(val categoryId: String?)
+private enum class Editing { DEFAULT, THIS_MONTH }
 
 /**
- * The monthly budgets: one for the whole month, and one per category. Categories with a budget
- * come first; a row opens a dialog to set, change or remove its amount.
+ * The everyday budget: one amount for every month, and a switch to make the current month
+ * different (a trip, a big month). Past months keep theirs; bills and category limits are set
+ * elsewhere, which the notes at the bottom say.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,11 +91,11 @@ fun BudgetsScreen(
     state: BudgetsUiState,
     onEvent: (BudgetsEvent) -> Unit,
     onBack: () -> Unit,
+    onBillsClick: () -> Unit,
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     val colors = EksodaTheme.colors
-    var editing by rememberSaveable { mutableStateOf<String?>(null) }
-    var editingTotal by rememberSaveable { mutableStateOf(false) }
+    var editing by rememberSaveable { mutableStateOf<Editing?>(null) }
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
@@ -106,17 +116,15 @@ fun BudgetsScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
-        if (state.loading) {
+        val everyday = state.everyday
+        if (state.loading || everyday == null) {
             Box(Modifier.fillMaxSize().padding(padding), Alignment.Center) {
                 DelayedProgressIndicator()
             }
             return@Scaffold
         }
-        // Sorted by the name the user sees (system categories are translated).
-        val names = state.categories.associate { it.category.id to categoryName(it.category) }
-        val sorted = state.categories.sortedWith(
-            compareBy<CategoryBudget> { it.amount == null }.thenBy { names[it.category.id] },
-        )
+        val locale = appLocale()
+        val month = monthName(everyday.month, locale)
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -125,148 +133,171 @@ fun BudgetsScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Text(
-                stringResource(R.string.budgets_intro),
-                style = MaterialTheme.typography.bodyMedium,
-                color = colors.ink2,
-                modifier = Modifier.padding(horizontal = 4.dp),
-            )
             SectionCard {
-                BudgetRow(
-                    name = stringResource(R.string.budgets_whole_month),
-                    supporting = stringResource(R.string.budgets_whole_month_hint),
-                    amount = state.total,
-                    currency = state.currency,
-                    onClick = { editingTotal = true },
+                AmountRow(
+                    label = stringResource(R.string.budgets_every_month),
+                    supporting = stringResource(R.string.budgets_every_month_hint),
+                    amount = everyday.default,
+                    currency = everyday.currency,
+                    onClick = { editing = Editing.DEFAULT },
                 )
             }
-            SectionCard(title = stringResource(R.string.budgets_categories)) {
-                if (state.categories.any { it.amount != null }) {
-                    CategoriesSum(state)
+            SectionCard {
+                SwitchRow(
+                    label = stringResource(R.string.budgets_this_month, month),
+                    supporting = stringResource(R.string.budgets_this_month_hint),
+                    checked = everyday.changed,
+                    onCheckedChange = { on ->
+                        if (on) {
+                            editing = Editing.THIS_MONTH
+                        } else {
+                            onEvent(
+                                BudgetsEvent.SetThisMonth(null),
+                            )
+                        }
+                    },
+                )
+                if (everyday.changed) {
                     HorizontalDivider(color = colors.line)
-                }
-                sorted.forEachIndexed { index, item ->
-                    if (index > 0) HorizontalDivider(color = colors.line)
-                    BudgetRow(
-                        name = names[item.category.id].orEmpty(),
-                        amount = item.amount,
-                        currency = state.currency,
-                        onClick = { editing = item.category.id },
+                    AmountRow(
+                        label = stringResource(R.string.budgets_month_only, month),
+                        supporting = everyday.default?.let { default ->
+                            stringResource(
+                                R.string.budgets_back_to,
+                                monthName(everyday.month.plusMonths(1), locale),
+                                formatMoney(Money(default, everyday.currency), locale),
+                            )
+                        },
+                        amount = everyday.thisMonth,
+                        currency = everyday.currency,
+                        onClick = { editing = Editing.THIS_MONTH },
+                        accent = true,
                     )
                 }
             }
-        }
-    }
-    val editingCategory = editing?.let { id ->
-        state.categories.firstOrNull { it.category.id == id }
-    }
-    val target = when {
-        editingTotal -> Editing(null) to state.total
-        editingCategory != null -> Editing(editingCategory.category.id) to editingCategory.amount
-        else -> null
-    }
-    target?.let { (scope, amount) ->
-        val close = {
-            editing = null
-            editingTotal = false
-        }
-        val locale = appLocale()
-        val money = { value: BigDecimal -> formatMoney(Money(value, state.currency), locale) }
-        val categoryError = stringResource(R.string.budgets_error_category)
-        val totalError = stringResource(R.string.budgets_error_total)
-        // The categories are parts of the month: together within its budget.
-        val validate: (BigDecimal) -> String? = { typed ->
-            val categoryId = scope.categoryId
-            if (categoryId == null) {
-                totalError.format(locale, money(state.categoriesTotal))
-                    .takeIf { typed < state.categoriesTotal }
-            } else {
-                state.limits[categoryId]?.takeIf { typed > it }
-                    ?.let { categoryError.format(locale, money(it)) }
+            SectionCard {
+                LinkRow(
+                    label = stringResource(R.string.budgets_bills),
+                    supporting = stringResource(R.string.budgets_bills_hint),
+                    onClick = onBillsClick,
+                )
+            }
+            Column(
+                modifier = Modifier.padding(horizontal = 6.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Note(Icons.Outlined.Lock, stringResource(R.string.budgets_note_past))
+                Note(Icons.Outlined.Category, stringResource(R.string.budgets_note_limits))
             }
         }
-        AmountDialog(
-            title = stringResource(R.string.budgets_dialog_title),
-            description = editingCategory?.let { categoryName(it.category) }
-                ?: stringResource(R.string.budgets_whole_month),
-            initial = amount,
-            currency = state.currency,
-            onConfirm = {
-                close()
-                onEvent(BudgetsEvent.Set(scope.categoryId, it))
-            },
-            onDismiss = close,
-            validate = validate,
-            onRemove = amount?.let {
-                {
-                    close()
-                    onEvent(BudgetsEvent.Set(scope.categoryId, null))
-                }
-            },
-        )
+        editing?.let { which ->
+            EditDialog(which, everyday, month, onEvent, onClose = { editing = null })
+        }
     }
 }
 
-/** "Together 450 € of the month's 800 €", or without a whole-month budget "Together 450 €". */
+/** The amount dialog for the default ([Editing.DEFAULT]) or this month's amount. */
 @Composable
-private fun CategoriesSum(state: BudgetsUiState) {
-    val locale = appLocale()
-    val sum = formatMoney(Money(state.categoriesTotal, state.currency), locale)
-    val total = state.total
-    Text(
-        monoNumbers(
-            if (total == null) {
-                stringResource(R.string.budgets_categories_sum, sum)
-            } else {
-                stringResource(
-                    R.string.budgets_categories_sum_of,
-                    sum,
-                    formatMoney(Money(total, state.currency), locale),
-                )
-            },
-        ),
-        style = MaterialTheme.typography.bodySmall,
-        color = EksodaTheme.colors.ink2,
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+private fun EditDialog(
+    which: Editing,
+    everyday: EverydayBudget,
+    month: String,
+    onEvent: (BudgetsEvent) -> Unit,
+    onClose: () -> Unit,
+) {
+    val default = which == Editing.DEFAULT
+    val set = { amount: BigDecimal? ->
+        onClose()
+        onEvent(if (default) BudgetsEvent.SetDefault(amount) else BudgetsEvent.SetThisMonth(amount))
+    }
+    val removable = if (default) everyday.default != null else everyday.changed
+    AmountDialog(
+        title = stringResource(R.string.budgets_dialog_title),
+        description = if (default) {
+            stringResource(R.string.budgets_every_month)
+        } else {
+            stringResource(R.string.budgets_month_only, month)
+        },
+        initial = if (default) everyday.default else everyday.thisMonth ?: everyday.default,
+        currency = everyday.currency,
+        onConfirm = { set(it) },
+        onDismiss = onClose,
+        onRemove = if (removable) ({ set(null) }) else null,
     )
 }
 
 @Composable
-private fun BudgetRow(
-    name: String,
+private fun AmountRow(
+    label: String,
+    supporting: String?,
     amount: BigDecimal?,
     currency: String,
     onClick: () -> Unit,
-    supporting: String? = null,
+    accent: Boolean = false,
 ) {
     val colors = EksodaTheme.colors
-    val locale = appLocale()
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 52.dp)
+            .heightIn(min = 56.dp)
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(name, style = MaterialTheme.typography.bodyLarge)
+            Text(label, style = MaterialTheme.typography.bodyLarge)
             if (supporting != null) {
                 Text(supporting, style = MaterialTheme.typography.bodySmall, color = colors.ink2)
             }
         }
-        Text(
-            amount?.let { monoNumbers(formatMoney(Money(it, currency), locale)) }
-                ?: AnnotatedString(stringResource(R.string.budgets_none)),
-            style = MaterialTheme.typography.bodyMedium,
-            color = if (amount != null) colors.compare else colors.ink2,
-        )
+        if (amount != null) {
+            MoneyText(
+                Money(amount, currency),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = if (accent) colors.compareText else colors.ink,
+            )
+        } else {
+            Text(
+                stringResource(R.string.budgets_none),
+                style = MaterialTheme.typography.bodyMedium,
+                color = colors.ink2,
+            )
+        }
+    }
+}
+
+@Composable
+private fun LinkRow(label: String, supporting: String, onClick: () -> Unit) {
+    val colors = EksodaTheme.colors
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 56.dp)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(label, style = MaterialTheme.typography.bodyLarge)
+            Text(supporting, style = MaterialTheme.typography.bodySmall, color = colors.ink2)
+        }
         Icon(
             Icons.AutoMirrored.Filled.KeyboardArrowRight,
             contentDescription = null,
             tint = colors.ink2,
         )
+    }
+}
+
+@Composable
+private fun Note(icon: ImageVector, text: String) {
+    val colors = EksodaTheme.colors
+    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Icon(icon, contentDescription = null, tint = colors.ink2, modifier = Modifier.size(16.dp))
+        Text(text, style = MaterialTheme.typography.bodySmall, color = colors.ink2)
     }
 }
 
@@ -277,17 +308,17 @@ private fun BudgetsScreenPreview() {
         BudgetsScreen(
             state = BudgetsUiState(
                 loading = false,
-                total = BigDecimal("800"),
-                categories = listOf(
-                    CategoryBudget(
-                        Category("c1", "Groceries", "groceries", true),
-                        BigDecimal("350"),
-                    ),
-                    CategoryBudget(Category("c2", "Coffee", "coffee", false), null),
+                everyday = EverydayBudget(
+                    currency = "EUR",
+                    month = YearMonth.of(2026, 11),
+                    default = BigDecimal("700"),
+                    changed = true,
+                    thisMonth = BigDecimal("850"),
                 ),
             ),
             onEvent = {},
             onBack = {},
+            onBillsClick = {},
         )
     }
 }

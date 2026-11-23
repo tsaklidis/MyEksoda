@@ -3,12 +3,24 @@ package io.eksoda.core.model
 import java.math.BigDecimal
 import java.time.YearMonth
 
-/** A monthly budget: for the whole month when [category] is null, else for that category. */
-public data class Budget(val category: Category?, val amount: BigDecimal)
+/**
+ * The everyday budget for the current [month]: its [default] (every month) and the month's own
+ * amount when it was changed for this month only ([changed]).
+ */
+public data class EverydayBudget(
+    val currency: String,
+    val month: YearMonth,
+    val default: BigDecimal?,
+    val changed: Boolean,
+    val thisMonth: BigDecimal?,
+) {
+    /** What holds this month. */
+    val amount: BigDecimal? get() = if (changed) thisMonth else default
+}
 
 public enum class BudgetLevel { UNDER, NEAR, OVER }
 
-/** One budget against this month's spending so far. */
+/** One budget against a month's spending (so far, for the current month). */
 public data class BudgetProgress(
     /** Null for the whole month's budget. */
     val category: Category?,
@@ -21,14 +33,18 @@ public data class BudgetProgress(
     val level: BudgetLevel,
 )
 
-/** This month's budgets. Amounts are in [currency]. */
+/** A month's budgets. Amounts are in [currency]. */
 public data class MonthBudgets(
     val currency: String,
     val month: YearMonth,
-    /** How far into the month today is, in percent: where the bars mark "today". */
+    /** Whether [month] is the current month (its spending is so far). */
+    val current: Boolean,
+    /** Whether the everyday budget was changed for this month only. */
+    val changed: Boolean,
+    /** How far into the month today is, in percent (100 for a past month). */
     val elapsedPercent: BigDecimal,
     val total: BudgetProgress?,
-    /** The categories with a budget, most used first. */
+    /** The categories with a limit that month, most used first. */
     val categories: List<BudgetProgress>,
 ) {
     val isEmpty: Boolean get() = total == null && categories.isEmpty()

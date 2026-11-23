@@ -96,18 +96,10 @@
     <string name="insights_epayments_note">Το ποσό αυτό βγαίνει μόνο από τις αποδείξεις που έχετε καταχωρίσει στην εφαρμογή. Η εφορία μετράει όλες τις ηλεκτρονικές πληρωμές σας (και όσες δεν έχετε σκανάρει εδώ, όπως αγορές online), οπότε το πραγματικό σας σύνολο μπορεί να είναι μεγαλύτερο.</string>
 
     <!-- Budgets screen -->
-    <string name="budgets_title">Προϋπολογισμοί</string>
+    <string name="budgets_title">Προϋπολογισμός</string>
     <string name="budgets_back">Πίσω</string>
-    <string name="budgets_intro">Ορίστε πόσα θέλετε να ξοδεύετε κάθε μήνα. Τα Στατιστικά και η Αρχική δείχνουν πώς πάει ο μήνας.</string>
-    <string name="budgets_whole_month">Όλος ο μήνας</string>
-    <string name="budgets_whole_month_hint">Όλα τα έξοδα, σε οποιαδήποτε κατηγορία</string>
-    <string name="budgets_categories">Ανά κατηγορία</string>
-    <string name="budgets_none">Χωρίς προϋπολογισμό</string>
+    <string name="budgets_none">Κανένας</string>
     <string name="budgets_dialog_title">Μηνιαίος προϋπολογισμός</string>
-    <string name="budgets_categories_sum">Μαζί %1$s</string>
-    <string name="budgets_categories_sum_of">Μαζί %1$s από τα %2$s του μήνα</string>
-    <string name="budgets_error_category">Οι κατηγορίες μαζί δεν μπορούν να ξεπερνούν τον προϋπολογισμό του μήνα. Για αυτή μένουν έως %1$s.</string>
-    <string name="budgets_error_total">Ο προϋπολογισμός του μήνα δεν μπορεί να είναι μικρότερος από τις κατηγορίες μαζί (%1$s).</string>
     <string name="budgets_save_failed">Δεν ήταν δυνατή η αποθήκευση του προϋπολογισμού.</string>
 
     <!-- One category, opened from its row in Insights -->
@@ -122,4 +114,14 @@
     <string name="category_unitemized_hint">Ποσά αποδείξεων που δεν χωρίζονται σε είδη</string>
     <string name="category_uncategorized_hint">Προϊόντα χωρίς κατηγορία, από καταστήματα χωρίς προεπιλεγμένη κατηγορία. Πατήστε ένα προϊόν για να του ορίσετε κατηγορία, ή ένα κατάστημα για να δώσετε κατηγορία σε όλες τις αγορές εκεί.</string>
     <string name="category_empty">Καμία αγορά σε αυτή την κατηγορία για το διάστημα.</string>
+    <string name="budgets_every_month">Καθημερινά έξοδα, κάθε μήνα</string>
+    <string name="budgets_every_month_hint">Σούπερ μάρκετ, καφές, delivery, έξοδοι. Οι λογαριασμοί μετράνε χωριστά.</string>
+    <string name="budgets_this_month">Άλλο ποσό αυτόν τον μήνα (%1$s)</string>
+    <string name="budgets_this_month_hint">Ένα ταξίδι, μια γιορτή, ένας βαρύς μήνας. Μόνο αυτόν τον μήνα.</string>
+    <string name="budgets_month_only">Μόνο τον μήνα %1$s</string>
+    <string name="budgets_back_to">Από %1$s επιστρέφει στα %2$s</string>
+    <string name="budgets_bills">Λογαριασμοί</string>
+    <string name="budgets_bills_hint">Ενοίκιο, ρεύμα, νερό, internet: χωριστά από τις αποδείξεις</string>
+    <string name="budgets_note_past">Οι παλιοί μήνες κρατούν τον προϋπολογισμό που είχαν. Δεν αλλάζουν.</string>
+    <string name="budgets_note_limits">Θέλετε όριο για μια κατηγορία; Ανοίξτε την από τη Σύνοψη και ορίστε το εκεί.</string>
 </resources>

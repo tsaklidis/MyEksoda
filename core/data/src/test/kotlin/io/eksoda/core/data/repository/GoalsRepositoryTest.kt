@@ -2,7 +2,9 @@ package io.eksoda.core.data.repository
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import assertk.assertThat
+import assertk.assertions.hasSize
 import assertk.assertions.isEqualTo
+import assertk.assertions.isFalse
 import assertk.assertions.isInstanceOf
 import assertk.assertions.isNotNull
 import assertk.assertions.isNull
@@ -12,6 +14,7 @@ import io.eksoda.core.data.imports.ImportHarness.Companion.KOGIMOU
 import io.eksoda.core.data.imports.ImportHarness.Companion.LIDL
 import io.eksoda.core.data.imports.ImportHarness.Companion.METRO_SAMPLE
 import io.eksoda.core.data.imports.ImportHarness.Companion.MYMARKET
+import io.eksoda.core.database.entity.BudgetEntity
 import io.eksoda.core.model.BudgetLevel
 import io.eksoda.core.model.Period
 import io.eksoda.core.model.SpendingBucket
@@ -30,7 +33,7 @@ import java.time.LocalDate
 import java.time.YearMonth
 
 /**
- * Budgets and the e-payment target over four imported receipts, all paid by card: 53.15 in
+ * Budgets, limits and the e-payment target over four imported receipts, all paid by card: 53.15 in
  * November (METRO 21.10 and 9.15, a grill house 22.90) and LIDL 75.48 in July. Today is
  * 2026-11-22.
  */
@@ -45,6 +48,11 @@ class GoalsRepositoryTest {
     private lateinit var households: HouseholdRepositoryImpl
     private lateinit var grillJob: String
     private val monthSoFar = Period.Range(LocalDate.of(2026, 11, 1), LocalDate.of(2026, 11, 22))
+
+    private companion object {
+        val NOV: YearMonth = YearMonth.of(2026, 11)
+        const val NOW = 1L
+    }
 
     @Before
     fun setUp() = runTest {
@@ -72,6 +80,7 @@ class GoalsRepositoryTest {
             database.tombstoneDao(),
             database.analyticsDao(),
             analytics,
+            HouseholdZone(database.householdDao()),
             app.coordinator,
             app.clock,
             app.dispatcher,
@@ -96,77 +105,57 @@ class GoalsRepositoryTest {
         val month = goals.getMonthBudgets().getOrThrow()
         assertThat(month.isEmpty).isTrue()
         assertThat(month.currency).isEqualTo("EUR")
-        assertThat(month.month).isEqualTo(YearMonth.of(2026, 11))
+        assertThat(month.month).isEqualTo(NOV)
+        assertThat(month.current).isTrue()
+        assertThat(month.changed).isFalse()
         assertThat(month.overCount).isEqualTo(0)
-        assertThat(goals.getBudgets().first()).isEqualTo(emptyList())
+        val everyday = goals.getEveryday().first()
+        assertThat(everyday.default).isNull()
+        assertThat(everyday.changed).isFalse()
+        assertThat(everyday.amount).isNull()
     }
 
     @Test
-    fun `the whole month's budget is near once 80 percent of it is spent`() = runTest {
-        goals.setBudget(null, BigDecimal("60")).getOrThrow()
+    fun `the everyday budget is near once 80 percent of it is spent`() = runTest {
+        goals.setEveryday(BigDecimal("60")).getOrThrow()
         val total = checkNotNull(goals.getMonthBudgets().getOrThrow().total)
         assertThat(total.spent.toPlainString()).isEqualTo("53.15")
         assertThat(total.left.toPlainString()).isEqualTo("6.85")
         assertThat(total.level).isEqualTo(BudgetLevel.NEAR)
         assertThat(total.category).isNull()
+        assertThat(goals.getEveryday().first().amount?.toPlainString()).isEqualTo("60.00")
     }
 
     @Test
-    fun `a category budget counts the category's spending, and can be passed`() = runTest {
-        val top = topCategory()
-        val category = checkNotNull(top.category)
-        val half = top.total.divide(BigDecimal(2)).setScale(2, RoundingMode.DOWN)
-        goals.setBudget(null, BigDecimal("100")).getOrThrow()
-        goals.setBudget(category.id, half).getOrThrow()
+    fun `a category limit counts its spending, can be passed, and need not fit the budget`() =
+        runTest {
+            val top = topCategory()
+            val category = checkNotNull(top.category)
+            val half = top.total.divide(BigDecimal(2)).setScale(2, RoundingMode.DOWN)
+            goals.setEveryday(BigDecimal("20")).getOrThrow()
+            goals.setCategoryLimit(category.id, half).getOrThrow()
+            // A limit above the everyday budget is fine: limits are set on their own.
+            goals.setCategoryLimit(category.id, BigDecimal("500")).getOrThrow()
+            goals.setCategoryLimit(category.id, half).getOrThrow()
+            assertThat(goals.getCategoryLimit(category.id).first()?.compareTo(half)).isEqualTo(0)
 
-        // The month's spending known already is used as it is.
-        val spending = analytics.getSpendingByCategory(monthSoFar).getOrThrow()
-        val month = goals.getMonthBudgets(spending).getOrThrow()
-        val progress = month.categories.single()
-        assertThat(progress.category?.id).isEqualTo(category.id)
-        assertThat(progress.spent.compareTo(top.total)).isEqualTo(0)
-        assertThat(progress.level).isEqualTo(BudgetLevel.OVER)
-        assertThat(month.overCount).isEqualTo(1)
-        assertThat(month.total?.level).isEqualTo(BudgetLevel.UNDER)
-
-        // The whole month's first.
-        val budgets = goals.getBudgets().first()
-        assertThat(budgets.map { it.category?.id }).isEqualTo(listOf(null, category.id))
-        assertThat(goals.categoryBudgetLimit(budgets, category.id)?.compareTo(BigDecimal(100)))
-            .isEqualTo(0)
-        val otherLimit = goals.categoryBudgetLimit(budgets, "another-category")
-        assertThat(otherLimit?.compareTo(BigDecimal(100) - half)).isEqualTo(0)
-        assertThat(goals.categoryBudgetLimit(budgets.drop(1), category.id)).isNull()
-    }
+            // The month's spending known already is used as it is.
+            val spending = analytics.getSpendingByCategory(monthSoFar).getOrThrow()
+            val month = goals.getMonthBudgets(spending = spending).getOrThrow()
+            val progress = month.categories.single()
+            assertThat(progress.category?.id).isEqualTo(category.id)
+            assertThat(progress.spent.compareTo(top.total)).isEqualTo(0)
+            assertThat(progress.level).isEqualTo(BudgetLevel.OVER)
+            assertThat(month.overCount).isEqualTo(2)
+        }
 
     @Test
-    fun `category budgets must fit in the month's, and be above 0`() = runTest {
-        val category = checkNotNull(topCategory().category)
-        goals.setBudget(null, BigDecimal("50")).getOrThrow()
-        assertThat(goals.setBudget(category.id, BigDecimal("50.01")).exceptionOrNull())
-            .isNotNull().isInstanceOf<BudgetsDoNotFitException>()
-        // Nor may the month's shrink below its categories.
-        goals.setBudget(category.id, BigDecimal("40")).getOrThrow()
-        assertThat(goals.setBudget(null, BigDecimal("39")).exceptionOrNull())
-            .isNotNull().isInstanceOf<BudgetsDoNotFitException>()
-        assertThat(goals.setBudget(null, BigDecimal.ZERO).exceptionOrNull())
+    fun `budgets must be above 0, and a limit needs its category`() = runTest {
+        assertThat(goals.setEveryday(BigDecimal.ZERO).exceptionOrNull())
             .isNotNull().isInstanceOf<IllegalArgumentException>()
-        assertThat(goals.setBudget("no-such-category", BigDecimal("5")).isFailure).isTrue()
-        assertThat(goals.getBudgets().first().map { it.amount.toPlainString() })
-            .isEqualTo(listOf("50.00", "40.00"))
-    }
-
-    @Test
-    fun `a removed budget leaves a tombstone for the other phones`() = runTest {
-        goals.setBudget(null, BigDecimal("60")).getOrThrow()
-        goals.setBudget(null, BigDecimal("70")).getOrThrow()
-        assertThat(goals.getBudgets().first().single().amount.toPlainString()).isEqualTo("70.00")
-        goals.setBudget(null, null).getOrThrow()
-        // Removing it again changes nothing.
-        goals.setBudget(null, null).getOrThrow()
-        assertThat(goals.getBudgets().first()).isEqualTo(emptyList())
-        assertThat(app.count("SELECT COUNT(*) FROM tombstone WHERE entity = 'budget'"))
-            .isEqualTo(1)
+        assertThat(goals.setEverydayThisMonth(BigDecimal("-1")).isFailure).isTrue()
+        assertThat(goals.setCategoryLimit("no-such-category", BigDecimal("5")).isFailure).isTrue()
+        assertThat(goals.getMonthBudgets().getOrThrow().isEmpty).isTrue()
     }
 
     @Test

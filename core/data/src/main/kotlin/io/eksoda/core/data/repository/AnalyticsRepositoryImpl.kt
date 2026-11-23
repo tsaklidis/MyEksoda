@@ -137,7 +137,7 @@ class AnalyticsRepositoryImpl @Inject constructor(
                 .map { DefaultCategoryTotal(it.defaultCategoryId, money(it.totalMinor)) },
         )
         val byId = categories.all().associate {
-            it.id to Category(it.id, it.name, it.slug, it.isSystem)
+            it.id to Category(it.id, it.name, it.slug, it.isSystem, it.customName)
         }
         CategorySpending(
             from = period.start,
@@ -165,7 +165,7 @@ class AnalyticsRepositoryImpl @Inject constructor(
         val currency = currency()
         val category = categoryId?.let { id ->
             val row = checkNotNull(categories.get(id)) { "no category" }
-            Category(row.id, row.name, row.slug, row.isSystem)
+            Category(row.id, row.name, row.slug, row.isSystem, row.customName)
         }
         val start = period.start.toString()
         val end = period.end.toString()

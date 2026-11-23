@@ -4,8 +4,9 @@ import io.eksoda.core.model.ManualExpense
 import kotlinx.coroutines.flow.Flow
 
 /**
- * Expenses typed in by hand: rent, the doctor, a paper receipt. Each is stored as a receipt with
- * no lines (`receipt.origin = 'manual'`) and its own category, so totals, Insights, budgets, the
+ * Expenses typed in by hand: the doctor, a plumber, a paper receipt (bills such as rent have
+ * their own [BillRepository]). Each is stored as a receipt with no lines (`receipt.origin =
+ * 'manual'`), its kind and, when picked, its own category, so totals, spending, budgets, the
  * receipt list, backups and household sync treat it like any other receipt. Deleting one is
  * [ReceiptRepository.deleteReceipt].
  */
@@ -16,6 +17,6 @@ interface ManualExpenseRepository {
     /** Changes the manual expense [id]; an imported receipt is never changed. */
     suspend fun update(id: String, expense: ManualExpense): Result<Unit>
 
-    /** Who manual expenses were paid to, most used first (suggestions for the payee). */
-    val payees: Flow<List<String>>
+    /** What manual expenses were, most used first (suggestions for the description). */
+    val descriptions: Flow<List<String>>
 }

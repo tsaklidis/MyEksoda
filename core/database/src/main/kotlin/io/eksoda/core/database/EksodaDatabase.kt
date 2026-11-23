@@ -4,6 +4,7 @@ import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import io.eksoda.core.database.dao.AnalyticsDao
+import io.eksoda.core.database.dao.BillDao
 import io.eksoda.core.database.dao.BudgetDao
 import io.eksoda.core.database.dao.CategoryDao
 import io.eksoda.core.database.dao.HouseholdDao
@@ -13,6 +14,8 @@ import io.eksoda.core.database.dao.ProductDao
 import io.eksoda.core.database.dao.ReceiptDao
 import io.eksoda.core.database.dao.SyncDao
 import io.eksoda.core.database.dao.TombstoneDao
+import io.eksoda.core.database.entity.BillEntity
+import io.eksoda.core.database.entity.BillMonthEntity
 import io.eksoda.core.database.entity.BudgetEntity
 import io.eksoda.core.database.entity.CategoryEntity
 import io.eksoda.core.database.entity.HouseholdEntity
@@ -49,6 +52,8 @@ import io.eksoda.core.database.entity.TombstoneEntity
         ImportJobEntity::class,
         TombstoneEntity::class,
         BudgetEntity::class,
+        BillEntity::class,
+        BillMonthEntity::class,
         SyncPeerEntity::class,
         SyncEventEntity::class,
     ],
@@ -62,8 +67,9 @@ import io.eksoda.core.database.entity.TombstoneEntity
         // 7: receipt.source_url nullable (synced receipts have no link), tombstone.natural_key
         // and tombstone.replaced_by.
         AutoMigration(from = 6, to = 7),
-        // 8: receipt.origin ('import' for every existing receipt) and receipt.category_id
-        // (manual expenses).
+        // 8: receipt.origin ('import' for every existing receipt), receipt.category_id and
+        // receipt.manual_kind (manual expenses); category.custom_name; budget.month with a
+        // nullable amount (budgets per month); the bill and bill_month tables.
         AutoMigration(from = 7, to = 8),
     ],
 )
@@ -85,6 +91,8 @@ abstract class EksodaDatabase : RoomDatabase() {
     abstract fun analyticsDao(): AnalyticsDao
 
     abstract fun budgetDao(): BudgetDao
+
+    abstract fun billDao(): BillDao
 
     abstract fun syncDao(): SyncDao
 }

@@ -82,7 +82,7 @@ class OnboardingViewModel @Inject constructor(
                 households.createHousehold(current.name, current.currency, current.timezone)
             // A budget that cannot be saved is not worth holding the household back for: it can
             // be set again in Settings → Budgets.
-            if (result.isSuccess) current.budgetAmount?.let { goals.setBudget(null, it) }
+            if (result.isSuccess) current.budgetAmount?.let { goals.setEveryday(it) }
             _state.update { it.copy(creating = false, failed = result.isFailure) }
         }
     }

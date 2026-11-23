@@ -52,6 +52,8 @@ internal object BackupArchive {
         "household",
         "category",
         "budget",
+        "bill",
+        "bill_month",
         "merchant",
         "store",
         "product",

@@ -46,7 +46,12 @@ public object SyncSchema {
     internal const val MERCHANT = "merchant"
     internal const val MAPPING = "merchant_product_mapping"
 
-    /** The id of the budget for all spending; a category's budget has the category's id. */
+    internal const val BILL = "bill"
+
+    /**
+     * The id of the everyday budget; a category's limit has the category's id. A row for one
+     * month adds ":YYYY-MM" ([monthScoped]), and so does a bill's amount for a month.
+     */
     private const val TOTAL_BUDGET = "total"
     private const val KEY_SEPARATOR = "\u001f"
 
@@ -57,7 +62,16 @@ public object SyncSchema {
         TableSpec(
             "budget",
             foreignKeys = listOf(ForeignKeySpec("category_id", "category", OnDelete.CASCADE)),
-            derivedId = { row -> row["category_id"] as? String ?: TOTAL_BUDGET },
+            derivedId = { row ->
+                monthScoped(row["category_id"] as? String ?: TOTAL_BUDGET, row["month"] as? String)
+            },
+        ),
+        TableSpec(BILL),
+        TableSpec(
+            "bill_month",
+            keys = listOf(listOf("bill_id", "month")),
+            foreignKeys = listOf(ForeignKeySpec("bill_id", BILL, OnDelete.CASCADE)),
+            derivedId = { row -> monthScoped(row["bill_id"] as String, row["month"] as? String) },
         ),
         TableSpec(
             MERCHANT,
@@ -108,6 +122,10 @@ public object SyncSchema {
     )
 
     private val byName = TABLES.associateBy { it.name }
+
+    /** [scope]'s id, or its row for [month] ("YYYY-MM") when there is one. */
+    public fun monthScoped(scope: String, month: String?): String =
+        if (month == null) scope else "$scope:$month"
 
     /**
      * What a tombstone stores besides the id, so a deletion also reaches the copy another phone

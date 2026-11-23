@@ -106,25 +106,6 @@ class GoalsTest {
     }
 
     @Test
-    fun `category budgets fit in the whole month's, which may be missing`() {
-        val categories = listOf(decimal("300"), decimal("150.50"))
-        assertThat(categoryBudgetsFit(decimal("450.50"), categories)).isEqualTo(true)
-        assertThat(categoryBudgetsFit(decimal("800"), categories)).isEqualTo(true)
-        assertThat(categoryBudgetsFit(decimal("450.49"), categories)).isEqualTo(false)
-        assertThat(categoryBudgetsFit(null, categories)).isEqualTo(true)
-        assertThat(categoryBudgetsFit(decimal("100"), emptyList())).isEqualTo(true)
-    }
-
-    @Test
-    fun `a category's budget may take what the others leave of the month's`() {
-        val others = listOf(decimal("300"), decimal("150.50"))
-        assertThat(categoryBudgetLimit(decimal("800"), others)?.toPlainString())
-            .isEqualTo("349.50")
-        assertThat(categoryBudgetLimit(decimal("400"), others)?.signum()).isEqualTo(0)
-        assertThat(categoryBudgetLimit(null, others)).isNull()
-    }
-
-    @Test
     fun `the month's elapsed share counts today`() {
         assertThat(monthElapsedPercent(LocalDate.of(2026, 2, 7)).toPlainString()).isEqualTo("25.00")
         assertThat(monthElapsedPercent(LocalDate.of(2026, 11, 30)).toPlainString())

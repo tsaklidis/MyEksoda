@@ -77,12 +77,28 @@ class BackupArchiveTest {
 
     @Test
     fun `restore gives back exactly the rows that were written`() {
+        // Budgets by month (one without an amount) and bills come back too (schema 8).
+        db.execSQL(
+            "INSERT INTO budget (id, category_id, amount_minor, created_at, updated_at, month) " +
+                "VALUES ('total', NULL, 70000, 1, 1, NULL), " +
+                "('total:2026-10', NULL, NULL, 1, 1, '2026-10')",
+        )
+        db.execSQL(
+            "INSERT INTO bill (id, name, kind, amount_minor, start_month, end_month, position, " +
+                "created_at, updated_at) VALUES ('b1', 'Ρεύμα', 'variable', NULL, '2026-09', " +
+                "NULL, 0, 1, 1)",
+        )
+        db.execSQL(
+            "INSERT INTO bill_month (id, bill_id, month, amount_minor, created_at, updated_at) " +
+                "VALUES ('b1:2026-10', 'b1', '2026-10', 6150, 1, 1)",
+        )
         val before = dump()
         val written = transaction { BackupArchive.write(db) }
         db.execSQL("DELETE FROM receipt_item")
         db.execSQL("DELETE FROM receipt")
+        db.execSQL("DELETE FROM bill")
         db.execSQL(
-            "INSERT INTO category VALUES ('c-new', 'new', 'New', 0, 5, 5)",
+            "INSERT INTO category VALUES ('c-new', 'new', 'New', 0, 5, 5, NULL)",
         )
         transaction { BackupArchive.restore(db, written.bytes) }
         assertThat(dump()).isEqualTo(before)

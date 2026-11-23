@@ -157,7 +157,7 @@ class InsightsViewModel @Inject constructor(
         val spending = async { analytics.getSpendingByCategory(range) }
         // This month's budgets reuse the period's category spending (it is the same month).
         val budgets = if (thisMonth) {
-            async { goals.getMonthBudgets(spending.await().getOrNull()).card() }
+            async { goals.getMonthBudgets(spending = spending.await().getOrNull()).card() }
         } else {
             null
         }

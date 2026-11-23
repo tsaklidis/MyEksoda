@@ -13,9 +13,16 @@ internal object SyncRows {
     fun category(id: String, slug: String, updatedAt: Long = 1) =
         mapOf("id" to id, "slug" to slug, "name" to slug, "updated_at" to updatedAt)
 
-    fun budget(id: String, category: String?, amount: Long, updatedAt: Long = 1) = mapOf(
+    fun budget(
+        id: String,
+        category: String?,
+        amount: Long?,
+        updatedAt: Long = 1,
+        month: String? = null,
+    ) = mapOf(
         "id" to id,
         "category_id" to category,
+        "month" to month,
         "amount_minor" to amount,
         "updated_at" to updatedAt,
     )

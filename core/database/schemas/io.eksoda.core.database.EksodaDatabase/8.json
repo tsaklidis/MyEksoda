@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 8,
-    "identityHash": "647225707f4cbf4096a72ae3195d26a6",
+    "identityHash": "39c411e3c55966ed0ba850f2eb9bffcb",
     "entities": [
       {
         "tableName": "household",
@@ -59,7 +59,7 @@
       },
       {
         "tableName": "category",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `slug` TEXT NOT NULL, `name` TEXT NOT NULL, `is_system` INTEGER NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `slug` TEXT NOT NULL, `name` TEXT NOT NULL, `is_system` INTEGER NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, `custom_name` TEXT, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -96,6 +96,11 @@
             "columnName": "updated_at",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "customName",
+            "columnName": "custom_name",
+            "affinity": "TEXT"
           }
         ],
         "primaryKey": {
@@ -588,7 +593,7 @@
       },
       {
         "tableName": "receipt",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `merchant_id` TEXT NOT NULL, `store_id` TEXT, `provider_code` TEXT NOT NULL, `parser_version` TEXT NOT NULL, `issuer_country` TEXT NOT NULL, `issuer_vat` TEXT NOT NULL, `uid` TEXT, `mark` TEXT, `cancellation_mark` TEXT, `source_key` TEXT, `document_kind` TEXT NOT NULL, `document_type_code` TEXT, `document_number` TEXT NOT NULL, `issued_at` INTEGER NOT NULL, `issued_local_date` TEXT NOT NULL, `currency` TEXT NOT NULL, `gross_total_minor` INTEGER NOT NULL, `net_total_minor` INTEGER, `vat_total_minor` INTEGER, `discount_total_minor` INTEGER, `payment_method` TEXT NOT NULL, `status` TEXT NOT NULL, `validation_warnings` TEXT NOT NULL, `excluded_from_analytics` INTEGER NOT NULL, `user_note` TEXT NOT NULL, `source_url` TEXT, `source_url_fingerprint` TEXT NOT NULL, `source_data` TEXT NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, `origin` TEXT NOT NULL DEFAULT 'import', `category_id` TEXT, PRIMARY KEY(`id`), FOREIGN KEY(`merchant_id`) REFERENCES `merchant`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT , FOREIGN KEY(`store_id`) REFERENCES `store`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL , FOREIGN KEY(`category_id`) REFERENCES `category`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `merchant_id` TEXT NOT NULL, `store_id` TEXT, `provider_code` TEXT NOT NULL, `parser_version` TEXT NOT NULL, `issuer_country` TEXT NOT NULL, `issuer_vat` TEXT NOT NULL, `uid` TEXT, `mark` TEXT, `cancellation_mark` TEXT, `source_key` TEXT, `document_kind` TEXT NOT NULL, `document_type_code` TEXT, `document_number` TEXT NOT NULL, `issued_at` INTEGER NOT NULL, `issued_local_date` TEXT NOT NULL, `currency` TEXT NOT NULL, `gross_total_minor` INTEGER NOT NULL, `net_total_minor` INTEGER, `vat_total_minor` INTEGER, `discount_total_minor` INTEGER, `payment_method` TEXT NOT NULL, `status` TEXT NOT NULL, `validation_warnings` TEXT NOT NULL, `excluded_from_analytics` INTEGER NOT NULL, `user_note` TEXT NOT NULL, `source_url` TEXT, `source_url_fingerprint` TEXT NOT NULL, `source_data` TEXT NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, `origin` TEXT NOT NULL DEFAULT 'import', `category_id` TEXT, `manual_kind` TEXT, PRIMARY KEY(`id`), FOREIGN KEY(`merchant_id`) REFERENCES `merchant`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT , FOREIGN KEY(`store_id`) REFERENCES `store`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL , FOREIGN KEY(`category_id`) REFERENCES `category`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
         "fields": [
           {
             "fieldPath": "id",
@@ -776,6 +781,11 @@
           {
             "fieldPath": "categoryId",
             "columnName": "category_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "manualKind",
+            "columnName": "manual_kind",
             "affinity": "TEXT"
           }
         ],
@@ -1309,7 +1319,7 @@
       },
       {
         "tableName": "budget",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `category_id` TEXT, `amount_minor` INTEGER NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`category_id`) REFERENCES `category`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `category_id` TEXT, `amount_minor` INTEGER, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, `month` TEXT, PRIMARY KEY(`id`), FOREIGN KEY(`category_id`) REFERENCES `category`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -1325,8 +1335,157 @@
           {
             "fieldPath": "amountMinor",
             "columnName": "amount_minor",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "month",
+            "columnName": "month",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_budget_category_id",
+            "unique": false,
+            "columnNames": [
+              "category_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_budget_category_id` ON `${TABLE_NAME}` (`category_id`)"
+          },
+          {
+            "name": "index_budget_category_id_month",
+            "unique": true,
+            "columnNames": [
+              "category_id",
+              "month"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_budget_category_id_month` ON `${TABLE_NAME}` (`category_id`, `month`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "category",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "category_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "bill",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `kind` TEXT NOT NULL, `amount_minor` INTEGER, `start_month` TEXT NOT NULL, `end_month` TEXT, `position` INTEGER NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "kind",
+            "columnName": "kind",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "amountMinor",
+            "columnName": "amount_minor",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "startMonth",
+            "columnName": "start_month",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "endMonth",
+            "columnName": "end_month",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "position",
+            "columnName": "position",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "bill_month",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `bill_id` TEXT NOT NULL, `month` TEXT NOT NULL, `amount_minor` INTEGER, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`bill_id`) REFERENCES `bill`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "billId",
+            "columnName": "bill_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "month",
+            "columnName": "month",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "amountMinor",
+            "columnName": "amount_minor",
+            "affinity": "INTEGER"
           },
           {
             "fieldPath": "createdAt",
@@ -1349,22 +1508,23 @@
         },
         "indices": [
           {
-            "name": "index_budget_category_id",
-            "unique": false,
+            "name": "index_bill_month_bill_id_month",
+            "unique": true,
             "columnNames": [
-              "category_id"
+              "bill_id",
+              "month"
             ],
             "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_budget_category_id` ON `${TABLE_NAME}` (`category_id`)"
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_bill_month_bill_id_month` ON `${TABLE_NAME}` (`bill_id`, `month`)"
           }
         ],
         "foreignKeys": [
           {
-            "table": "category",
+            "table": "bill",
             "onDelete": "CASCADE",
             "onUpdate": "NO ACTION",
             "columns": [
-              "category_id"
+              "bill_id"
             ],
             "referencedColumns": [
               "id"
@@ -1506,7 +1666,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '647225707f4cbf4096a72ae3195d26a6')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '39c411e3c55966ed0ba850f2eb9bffcb')"
     ]
   }
 }

@@ -103,7 +103,7 @@ class HomeViewModel @Inject constructor(
         val categories = async { analytics.getSpendingByCategory(soFar) }
         // A budget alert is extra: when it cannot be computed, Home just leaves it out. It reuses
         // the month's category spending rather than querying it again.
-        val budgets = async { goals.getMonthBudgets(categories.await().getOrNull()) }
+        val budgets = async { goals.getMonthBudgets(spending = categories.await().getOrNull()) }
         val results = listOf(pace.await(), summary.await(), categories.await())
         Figures(
             today = today,

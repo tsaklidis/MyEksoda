@@ -4,6 +4,7 @@ import io.eksoda.core.data.db.WriteCoordinator
 import io.eksoda.core.data.util.Fixed
 import io.eksoda.core.database.dao.CategoryDao
 import io.eksoda.core.database.dao.HouseholdDao
+import io.eksoda.core.database.dao.ManualReceiptUpdate
 import io.eksoda.core.database.dao.MerchantDao
 import io.eksoda.core.database.dao.ReceiptDao
 import io.eksoda.core.database.entity.MerchantEntity
@@ -26,10 +27,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Manual expenses as receipts without lines. The payee becomes a merchant keyed by its
- * normalized name ([ManualExpense.PAYEE_VAT_PREFIX]), so the same payee typed on two phones of a
- * household merges into one by sync. The receipt has no mark, UID or source key: it is matched
- * by id only, and its tombstone has no natural key.
+ * Manual expenses as receipts without lines. The description becomes a merchant keyed by its
+ * normalized text ([ManualExpense.PAYEE_VAT_PREFIX]), so the same one typed on two phones of a
+ * household merges into one by sync, and it is suggested next time. The receipt has no mark,
+ * UID or source key: it is matched by id only, and its tombstone has no natural key.
  */
 @Singleton
 class ManualExpenseRepositoryImpl @Inject constructor(
@@ -41,16 +42,16 @@ class ManualExpenseRepositoryImpl @Inject constructor(
     private val householdZone: HouseholdZone,
     private val clock: Clock,
 ) : ManualExpenseRepository {
-    override val payees: Flow<List<String>> = receipts.observeManualPayees()
+    override val descriptions: Flow<List<String>> = receipts.observeManualDescriptions()
 
     override suspend fun add(expense: ManualExpense): Result<String> = runCatching {
         val checked = checked(expense)
         val zone = householdZone.current()
         coordinator.write {
             val household = checkNotNull(households.get()) { "no household" }
-            check(categories.get(checked.categoryId) != null) { "no such category" }
+            checkCategory(checked.categoryId)
             val now = clock.millis()
-            val merchant = payee(checked.payee, now)
+            val merchant = payee(checked.description, now)
             val id = UUID.randomUUID().toString()
             receipts.insert(
                 ReceiptEntity(
@@ -88,6 +89,7 @@ class ManualExpenseRepositoryImpl @Inject constructor(
                     updatedAt = now,
                     origin = ReceiptEntity.ORIGIN_MANUAL,
                     categoryId = checked.categoryId,
+                    manualKind = checked.kind.code,
                 ),
             )
             id
@@ -98,25 +100,32 @@ class ManualExpenseRepositoryImpl @Inject constructor(
         val checked = checked(expense)
         val zone = householdZone.current()
         coordinator.write {
-            check(categories.get(checked.categoryId) != null) { "no such category" }
+            checkCategory(checked.categoryId)
             val now = clock.millis()
-            val merchant = payee(checked.payee, now)
-            val changed = receipts.updateManual(
-                id = id,
-                merchantId = merchant.id,
-                issuerVat = merchant.vatNumber,
-                categoryId = checked.categoryId,
-                totalMinor = Fixed.toLong(checked.amount, Fixed.MINOR),
-                issuedAt = issuedAt(checked.date, zone, now),
-                issuedLocalDate = checked.date.toString(),
-                note = checked.note,
-                now = now,
+            val merchant = payee(checked.description, now)
+            check(receipts.isManual(id) == true) { "not a manual expense" }
+            receipts.updateManual(
+                ManualReceiptUpdate(
+                    id = id,
+                    merchantId = merchant.id,
+                    issuerVat = merchant.vatNumber,
+                    categoryId = checked.categoryId,
+                    manualKind = checked.kind.code,
+                    grossTotalMinor = Fixed.toLong(checked.amount, Fixed.MINOR),
+                    issuedAt = issuedAt(checked.date, zone, now),
+                    issuedLocalDate = checked.date.toString(),
+                    userNote = checked.note,
+                    updatedAt = now,
+                ),
             )
-            check(changed == 1) { "not a manual expense" }
         }
     }
 
-    /** The payee's merchant, created on first use. */
+    private suspend fun checkCategory(id: String?) {
+        if (id != null) checkNotNull(categories.get(id)) { "no such category" }
+    }
+
+    /** The description's merchant, created on first use. */
     private suspend fun payee(name: String, now: Long): MerchantEntity {
         val vat = ManualExpense.PAYEE_VAT_PREFIX + normalizeText(name).take(MAX_KEY_LENGTH)
         merchants.find(COUNTRY, vat)?.let { return it }
@@ -149,15 +158,15 @@ class ManualExpenseRepositoryImpl @Inject constructor(
     }
 
     private fun checked(expense: ManualExpense): ManualExpense {
-        val payee = collapseWhitespace(expense.payee).trim()
-        require(payee.isNotEmpty()) { "a payee is needed" }
-        require(payee.length <= MAX_PAYEE_LENGTH) { "the payee is too long" }
+        val description = collapseWhitespace(expense.description).trim()
+        require(description.isNotEmpty()) { "a description is needed" }
+        require(description.length <= MAX_PAYEE_LENGTH) { "the description is too long" }
         val amount = expense.amount.setScale(2, RoundingMode.HALF_UP)
         require(amount.signum() > 0) { "the amount must be above 0" }
         require(amount <= MAX_AMOUNT) { "the amount is too large" }
         return expense.copy(
             amount = amount,
-            payee = payee,
+            description = description,
             note = expense.note.trim().take(MAX_NOTE_LENGTH),
         )
     }

@@ -93,7 +93,7 @@ class CatalogRepositoryTest {
     }
 
     @Test
-    fun `only the household's own categories can be renamed`() = runTest {
+    fun `a household category is renamed, its new name checked`() = runTest {
         val pets = catalog.createCategory("Κατοικίδια").getOrThrow()
         val garden = catalog.createCategory("Κήπος").getOrThrow()
         catalog.renameCategory(garden, "Κήπος και φυτά").getOrThrow()
@@ -104,10 +104,24 @@ class CatalogRepositoryTest {
         assertThat(catalog.renameCategory(garden, "Κατοικίδια").error())
             .isEqualTo(CatalogError.NAME_TAKEN)
         assertThat(catalog.renameCategory(pets, " ").error()).isEqualTo(CatalogError.BLANK_NAME)
-        assertThat(catalog.renameCategory(systemCategory().id, "x").error())
-            .isEqualTo(CatalogError.SYSTEM_CATEGORY)
         assertThat(catalog.renameCategory("no-such-category", "x").error())
             .isEqualTo(CatalogError.NOT_FOUND)
+    }
+
+    @Test
+    fun `a system category gets the household's name beside its own, and can go back`() = runTest {
+        val system = systemCategory()
+        catalog.renameCategory(system.id, "  Ψώνια της εβδομάδας ").getOrThrow()
+        val renamed = checkNotNull(category(system.id))
+        assertThat(renamed.customName).isEqualTo("Ψώνια της εβδομάδας")
+        // Its slug and name stay: sync and the translated name depend on them.
+        assertThat(renamed.slug).isEqualTo(system.slug)
+        assertThat(renamed.name).isEqualTo(system.name)
+        assertThat(catalog.getCategoryList().first().first { it.id == system.id }.customName)
+            .isEqualTo("Ψώνια της εβδομάδας")
+
+        catalog.renameCategory(system.id, " ").getOrThrow()
+        assertThat(category(system.id)?.customName).isNull()
     }
 
     @Test

@@ -36,12 +36,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import io.eksoda.R
+import io.eksoda.core.designsystem.component.AddButton
+import io.eksoda.core.designsystem.component.AddNavigationBarItem
 import io.eksoda.core.designsystem.component.EksodaNavigationBar
 import io.eksoda.core.designsystem.component.EksodaNavigationBarItem
 import io.eksoda.core.designsystem.component.EksodaNavigationRail
 import io.eksoda.core.designsystem.component.EksodaNavigationRailItem
-import io.eksoda.core.designsystem.component.AddButton
-import io.eksoda.core.designsystem.component.AddNavigationBarItem
 import io.eksoda.core.model.Period
 import io.eksoda.feature.home.HomeRoute
 import io.eksoda.feature.insights.InsightsRoute

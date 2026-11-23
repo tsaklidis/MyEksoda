@@ -14,7 +14,11 @@ import androidx.room.PrimaryKey
 // - Room has no partial unique indexes: key columns (`store_key`, `mapping_key`) replace them,
 //   and SQLite treats NULLs as distinct in unique indexes, like `WHERE x IS NOT NULL`.
 
-/** A product category. The 19 system categories are seeded on creation. */
+/**
+ * A product category. The 19 system categories are seeded on creation. A system category keeps
+ * its slug and id (sync and the seed depend on them); the household's own name for it is
+ * [customName] (schema 8), shown instead of the translated one while set.
+ */
 @Entity(tableName = "category", indices = [Index(value = ["slug"], unique = true)])
 data class CategoryEntity(
     @PrimaryKey val id: String,
@@ -23,6 +27,7 @@ data class CategoryEntity(
     @ColumnInfo(name = "is_system") val isSystem: Boolean,
     @ColumnInfo(name = "created_at") val createdAt: Long,
     @ColumnInfo(name = "updated_at") val updatedAt: Long,
+    @ColumnInfo(name = "custom_name") val customName: String? = null,
 )
 
 /** A merchant, by country and VAT number. */
@@ -240,6 +245,8 @@ data class ReceiptEntity(
      * expense's). Null on imports: their lines and merchant say it.
      */
     @ColumnInfo(name = "category_id") val categoryId: String? = null,
+    /** A manual expense's kind: `product` | `service` | `other`; null on imports (schema 8). */
+    @ColumnInfo(name = "manual_kind") val manualKind: String? = null,
 ) {
     companion object {
         const val ORIGIN_IMPORT = "import"

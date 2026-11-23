@@ -96,18 +96,10 @@
     <string name="insights_epayments_note">This amount comes only from the receipts you have registered in the app. The tax office counts all your electronic payments (also the ones you didn\'t scan here, such as online shopping), so your real total may be higher.</string>
 
     <!-- Budgets screen -->
-    <string name="budgets_title">Budgets</string>
+    <string name="budgets_title">Budget</string>
     <string name="budgets_back">Back</string>
-    <string name="budgets_intro">Set how much you want to spend each month. Insights and Home show how the month is going.</string>
-    <string name="budgets_whole_month">Whole month</string>
-    <string name="budgets_whole_month_hint">All spending, whatever the category</string>
-    <string name="budgets_categories">Per category</string>
-    <string name="budgets_none">No budget</string>
+    <string name="budgets_none">None</string>
     <string name="budgets_dialog_title">Monthly budget</string>
-    <string name="budgets_categories_sum">Together %1$s</string>
-    <string name="budgets_categories_sum_of">Together %1$s of the month\'s %2$s</string>
-    <string name="budgets_error_category">The categories together can\'t go over the month\'s budget. Up to %1$s is left for this one.</string>
-    <string name="budgets_error_total">The month\'s budget can\'t be less than its categories together (%1$s).</string>
     <string name="budgets_save_failed">The budget could not be saved.</string>
 
     <!-- One category, opened from its row in Insights -->
@@ -122,4 +114,14 @@
     <string name="category_unitemized_hint">Receipt amounts not broken down into items</string>
     <string name="category_uncategorized_hint">Products with no category, from shops with no default category. Tap a product to give it a category, or a shop to give one to everything bought there.</string>
     <string name="category_empty">Nothing was spent in this category in this period.</string>
+    <string name="budgets_every_month">Everyday spending, every month</string>
+    <string name="budgets_every_month_hint">Supermarket, coffee, delivery, going out. Bills count apart.</string>
+    <string name="budgets_this_month">Different for %1$s</string>
+    <string name="budgets_this_month_hint">A trip, a name day, a big month. Only this month.</string>
+    <string name="budgets_month_only">%1$s only</string>
+    <string name="budgets_back_to">From %1$s it goes back to %2$s</string>
+    <string name="budgets_bills">Bills</string>
+    <string name="budgets_bills_hint">Rent, power, water, internet: kept apart from receipts</string>
+    <string name="budgets_note_past">Past months keep the budget they had. They can\'t be changed.</string>
+    <string name="budgets_note_limits">Want a limit for one category? Open it from the Overview and set it there.</string>
 </resources>

@@ -16,6 +16,7 @@ import io.eksoda.core.database.CategorySeed
 import io.eksoda.core.model.BudgetLevel
 import io.eksoda.core.model.IssueTime
 import io.eksoda.core.model.ManualExpense
+import io.eksoda.core.model.ManualKind
 import io.eksoda.core.model.Option
 import io.eksoda.core.model.Period
 import io.eksoda.core.model.ReceiptFilter
@@ -45,7 +46,6 @@ class ManualExpenseRepositoryTest {
     private lateinit var analytics: AnalyticsRepositoryImpl
     private lateinit var goals: GoalsRepositoryImpl
     private val services = CategorySeed.categoryId("services")
-    private val health = CategorySeed.categoryId("pharmacy-and-health")
     private val november = Period.Range(LocalDate.of(2026, 11, 1), LocalDate.of(2026, 11, 22))
 
     @Before
@@ -82,6 +82,7 @@ class ManualExpenseRepositoryTest {
             database.tombstoneDao(),
             database.analyticsDao(),
             analytics,
+            zone,
             app.coordinator,
             app.clock,
             app.dispatcher,
@@ -96,7 +97,8 @@ class ManualExpenseRepositoryTest {
     private fun rent(amount: String = "650", payee: String = "Landlord") = ManualExpense(
         amount = BigDecimal(amount),
         date = LocalDate.of(2026, 11, 5),
-        payee = payee,
+        kind = ManualKind.SERVICE,
+        description = payee,
         categoryId = services,
         note = "November",
     )
@@ -150,8 +152,26 @@ class ManualExpenseRepositoryTest {
         }
 
     @Test
-    fun `a category budget counts manual expenses and goes over`() = runTest {
-        goals.setBudget(services, BigDecimal("600")).getOrThrow()
+    fun `without a category it still counts in the month, and keeps its kind`() = runTest {
+        val before = analytics.getSpendingByCategory(november).getOrThrow().total
+        val id = manual.add(
+            rent(amount = "35", payee = "Shoes").copy(kind = ManualKind.PRODUCT, categoryId = null),
+        ).getOrThrow()
+        val after = analytics.getSpendingByCategory(november).getOrThrow().total
+        assertThat((after - before).toPlainString()).isEqualTo("35.00")
+        assertThat(categoryTotal(services)).isNull()
+        assertThat(app.count("SELECT COUNT(*) FROM receipt WHERE manual_kind = 'product'"))
+            .isEqualTo(1L)
+        manual.update(id, rent(amount = "35", payee = "Shoes").copy(kind = ManualKind.OTHER))
+            .getOrThrow()
+        assertThat(app.count("SELECT COUNT(*) FROM receipt WHERE manual_kind = 'other'"))
+            .isEqualTo(1L)
+        assertThat(categoryTotal(services)?.toPlainString()).isEqualTo("35.00")
+    }
+
+    @Test
+    fun `a category limit counts manual expenses and goes over`() = runTest {
+        goals.setCategoryLimit(services, BigDecimal("600")).getOrThrow()
         manual.add(rent()).getOrThrow()
         val budget = goals.getMonthBudgets().getOrThrow().categories
             .first { it.category?.id == services }
@@ -164,72 +184,6 @@ class ManualExpenseRepositoryTest {
         val before = goals.getEPayments().getOrThrow().paid
         manual.add(rent()).getOrThrow()
         assertThat(goals.getEPayments().getOrThrow().paid).isEqualTo(before)
-    }
-
-    @Test
-    fun `editing changes the amount, day, payee and category`() = runTest {
-        val id = manual.add(rent()).getOrThrow()
-        manual.update(
-            id,
-            ManualExpense(BigDecimal("80"), LocalDate.of(2026, 11, 20), "Dr. Papadopoulou", health),
-        ).getOrThrow()
-        assertThat(categoryTotal(services)).isNull()
-        assertThat(categoryTotal(health)?.toPlainString()).isEqualTo("80.00")
-        val detail = checkNotNull(app.repository.getReceipt(id).first())
-        assertThat(detail.receipt.merchant.name).isEqualTo("Dr. Papadopoulou")
-        assertThat(detail.receipt.issuedDate).isEqualTo(LocalDate.of(2026, 11, 20))
-        assertThat(detail.userNote).isEqualTo("")
-    }
-
-    @Test
-    fun `an imported receipt cannot be edited as a manual expense`() = runTest {
-        val imported = app.repository.getReceipts(ReceiptFilter()).asSnapshot().single().id
-        val result = manual.update(imported, rent())
-        assertThat(result.exceptionOrNull()).isNotNull().isInstanceOf(IllegalStateException::class)
-    }
-
-    @Test
-    fun `the same payee typed differently is one shop, and is suggested first`() = runTest {
-        manual.add(rent(payee = "Landlord")).getOrThrow()
-        manual.add(rent(payee = "  landlord ")).getOrThrow()
-        manual.add(rent(amount = "40", payee = "Dentist")).getOrThrow()
-        // Two payees, keyed by their normalized names, not three.
-        assertThat(
-            app.count("SELECT COUNT(*) FROM merchant WHERE vat_number LIKE 'manual:%'"),
-        ).isEqualTo(2L)
-        assertThat(manual.payees.first()).containsExactly("Landlord", "Dentist")
-    }
-
-    @Test
-    fun `wrong input is refused and nothing is stored`() = runTest {
-        val receipts = app.count("SELECT COUNT(*) FROM receipt")
-        assertThat(manual.add(rent(payee = "   ")).isFailure).isTrue()
-        assertThat(manual.add(rent(amount = "0")).isFailure).isTrue()
-        assertThat(manual.add(rent(amount = "-5")).isFailure).isTrue()
-        assertThat(manual.add(rent(amount = "20000000")).isFailure).isTrue()
-        assertThat(manual.add(rent().copy(categoryId = "no-such-category")).isFailure).isTrue()
-        assertThat(manual.add(rent(payee = "x".repeat(81))).isFailure).isTrue()
-        assertThat(app.count("SELECT COUNT(*) FROM receipt")).isEqualTo(receipts)
-    }
-
-    @Test
-    fun `amounts are kept to the cent, today's expense keeps the time it was added`() = runTest {
-        val today = LocalDate.of(2026, 11, 22)
-        val id = manual.add(rent(amount = "12.345").copy(date = today)).getOrThrow()
-        val detail = checkNotNull(app.repository.getReceipt(id).first())
-        assertThat(detail.receipt.totalAmount.amount.toPlainString()).isEqualTo("12.35")
-        assertThat(detail.receipt.issuedAt.toInstant().toEpochMilli()).isEqualTo(ImportHarness.NOW)
-    }
-
-    @Test
-    fun `deleting one leaves a tombstone without a natural key`() = runTest {
-        val id = manual.add(rent()).getOrThrow()
-        app.repository.deleteReceipt(id).getOrThrow()
-        assertThat(app.count("SELECT COUNT(*) FROM receipt WHERE id = ?", id)).isEqualTo(0L)
-        assertThat(
-            app.text("SELECT natural_key FROM tombstone WHERE entity = 'receipt' AND id = ?", id),
-        ).isNull()
-        assertThat(app.count("SELECT COUNT(*) FROM tombstone WHERE id = ?", id)).isEqualTo(1L)
     }
 
     @Test

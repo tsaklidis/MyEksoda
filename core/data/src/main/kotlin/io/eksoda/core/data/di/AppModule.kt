@@ -17,12 +17,8 @@ import io.eksoda.core.data.repository.BackupRepository
 import io.eksoda.core.data.repository.BackupRepositoryImpl
 import io.eksoda.core.data.repository.CatalogRepository
 import io.eksoda.core.data.repository.CatalogRepositoryImpl
-import io.eksoda.core.data.repository.GoalsRepository
-import io.eksoda.core.data.repository.GoalsRepositoryImpl
 import io.eksoda.core.data.repository.HouseholdRepository
 import io.eksoda.core.data.repository.HouseholdRepositoryImpl
-import io.eksoda.core.data.repository.ManualExpenseRepository
-import io.eksoda.core.data.repository.ManualExpenseRepositoryImpl
 import io.eksoda.core.data.repository.ProductRepository
 import io.eksoda.core.data.repository.ProductRepositoryImpl
 import io.eksoda.core.data.repository.ReceiptFilterStore
@@ -109,12 +105,4 @@ interface RepositoryModule {
 
     @Binds
     fun bindBackupRepository(implementation: BackupRepositoryImpl): BackupRepository
-
-    @Binds
-    fun bindGoalsRepository(implementation: GoalsRepositoryImpl): GoalsRepository
-
-    @Binds
-    fun bindManualExpenseRepository(
-        implementation: ManualExpenseRepositoryImpl,
-    ): ManualExpenseRepository
 }

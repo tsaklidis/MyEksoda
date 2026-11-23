@@ -20,7 +20,10 @@ interface CatalogRepository {
     /** The new category's id. */
     suspend fun createCategory(name: String): Result<String>
 
-    /** Household categories only; system categories are read-only. */
+    /**
+     * A household category's name. A system category keeps its own and gets the household's
+     * beside it ([Category.customName]); a blank [name] brings its translated name back.
+     */
     suspend fun renameCategory(id: String, name: String): Result<Unit>
 
     /** Household categories only, and only while no product uses them. */

@@ -7,6 +7,7 @@ import androidx.room.Embedded
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.RawQuery
+import androidx.room.Update
 import androidx.sqlite.db.SimpleSQLiteQuery
 import io.eksoda.core.database.entity.MerchantEntity
 import io.eksoda.core.database.entity.ProductEntity
@@ -162,33 +163,21 @@ interface ReceiptDao {
     @Query("DELETE FROM receipt WHERE id = :id")
     suspend fun delete(id: String): Int
 
-    /** Changes a manual expense; an imported receipt is never changed this way. */
-    @Query(
-        """UPDATE receipt SET merchant_id = :merchantId, issuer_vat = :issuerVat,
-           category_id = :categoryId,
-           gross_total_minor = :totalMinor, issued_at = :issuedAt,
-           issued_local_date = :issuedLocalDate, user_note = :note, updated_at = :now
-           WHERE id = :id AND origin = 'manual'""",
-    )
-    suspend fun updateManual(
-        id: String,
-        merchantId: String,
-        issuerVat: String,
-        categoryId: String,
-        totalMinor: Long,
-        issuedAt: Long,
-        issuedLocalDate: String,
-        note: String,
-        now: Long,
-    ): Int
+    /** Whether receipt [id] was typed in by hand; null when there is no such receipt. */
+    @Query("SELECT origin = 'manual' FROM receipt WHERE id = :id")
+    suspend fun isManual(id: String): Boolean?
 
-    /** The payees of manual expenses, most used first (the payee field's suggestions). */
+    /** Changes a manual expense's own columns; check [isManual] first. */
+    @Update(entity = ReceiptEntity::class)
+    suspend fun updateManual(update: ManualReceiptUpdate): Int
+
+    /** The descriptions of manual expenses, most used first (the field's suggestions). */
     @Query(
         """SELECT merchant.display_name FROM merchant
            JOIN receipt ON receipt.merchant_id = merchant.id AND receipt.origin = 'manual'
            GROUP BY merchant.id ORDER BY COUNT(*) DESC, merchant.normalized_display_name""",
     )
-    fun observeManualPayees(): Flow<List<String>>
+    fun observeManualDescriptions(): Flow<List<String>>
 
     @Query("SELECT mark, issuer_country, issuer_vat, uid, source_key FROM receipt WHERE id = :id")
     suspend fun keys(id: String): ReceiptKeys?
@@ -264,3 +253,17 @@ interface ReceiptDao {
             $ROW_EXTRAS"""
     }
 }
+
+/** The columns a manual expense's edit changes ([ReceiptDao.updateManual]). */
+data class ManualReceiptUpdate(
+    val id: String,
+    @ColumnInfo(name = "merchant_id") val merchantId: String,
+    @ColumnInfo(name = "issuer_vat") val issuerVat: String,
+    @ColumnInfo(name = "category_id") val categoryId: String?,
+    @ColumnInfo(name = "manual_kind") val manualKind: String,
+    @ColumnInfo(name = "gross_total_minor") val grossTotalMinor: Long,
+    @ColumnInfo(name = "issued_at") val issuedAt: Long,
+    @ColumnInfo(name = "issued_local_date") val issuedLocalDate: String,
+    @ColumnInfo(name = "user_note") val userNote: String,
+    @ColumnInfo(name = "updated_at") val updatedAt: Long,
+)
