@@ -34,6 +34,7 @@ import io.eksoda.core.ui.component.FromOtherPhoneMark
 import io.eksoda.core.ui.component.MoneyText
 import io.eksoda.core.ui.motion.SharedKeys
 import io.eksoda.core.ui.motion.sharedBoundsIfAvailable
+import io.eksoda.core.ui.text.categoryName
 import io.eksoda.core.ui.text.dayLabel
 import io.eksoda.feature.receipts.R
 import java.time.LocalDate
@@ -57,7 +58,11 @@ internal fun ReceiptRow(receipt: Receipt, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        MerchantAvatar(receipt.merchant.id, receipt.merchant.name)
+        MerchantAvatar(
+            receipt.merchant.id,
+            receipt.merchant.name,
+            vatNumber = receipt.merchant.vatNumber,
+        )
         Column(modifier = Modifier.weight(1f)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -96,9 +101,15 @@ internal fun ReceiptRow(receipt: Receipt, onClick: () -> Unit) {
     }
 }
 
-/** "Kifisias 12 · 14 items · Card". */
+/** "Kifisias 12 · 14 items · Card"; a manual expense: "Services · By hand". */
 @Composable
 private fun summaryLine(receipt: Receipt): String {
+    if (receipt.manual) {
+        return listOfNotNull(
+            receipt.categoryKey?.let { categoryName(it) },
+            stringResource(R.string.manual_by_hand),
+        ).joinToString(" · ")
+    }
     val storeLabel = receipt.store?.label?.takeIf { it.isNotEmpty() }
     val itemCountStr =
         pluralStringResource(R.plurals.item_count, receipt.itemCount, receipt.itemCount)
@@ -167,7 +178,7 @@ private fun ReceiptBadges(receipt: Receipt) {
 }
 
 /**
- * Status tags (docs/design/ui-redesign.md §1): attention items in terracotta on its tint;
+ * Status tags (docs/design/ui-redesign.md §1): attention items in ink on its tint;
  * neutral facts (cancelled, refund) in ink-2 on the inset color; muted ones (not in stats)
  * outlined only. Red is kept for errors and destructive actions.
  */

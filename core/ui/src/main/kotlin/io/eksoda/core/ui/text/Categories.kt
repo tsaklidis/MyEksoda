@@ -12,10 +12,16 @@ import io.eksoda.core.ui.R
 @StringRes
 fun categoryNameRes(slug: String?): Int = slug?.let(::systemCategoryRes) ?: R.string.category_other
 
-/** A category's name: a system category's translated name, a household category's own name. */
+/**
+ * A category's name: the household's own name for a system category when it gave one, else its
+ * translated name; a household category's own name.
+ */
 @Composable
-fun categoryName(category: Category): String =
-    if (category.isSystem) stringResource(categoryNameRes(category.slug)) else category.name
+fun categoryName(category: Category): String = when {
+    !category.isSystem -> category.name
+    !category.customName.isNullOrBlank() -> category.customName.orEmpty()
+    else -> stringResource(categoryNameRes(category.slug))
+}
 
 /**
  * The name for a key that is a system category's slug or a household category's name (the

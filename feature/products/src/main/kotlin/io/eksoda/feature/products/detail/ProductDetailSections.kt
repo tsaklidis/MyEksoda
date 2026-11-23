@@ -95,7 +95,7 @@ private fun monthAndShop(entry: PriceEntry): String {
 }
 
 /**
- * The price card (docs/design/ui-redesign.md §5): the last price paid in periwinkle with where and
+ * The price card (docs/design/ui-redesign.md §5): the last price paid in blue with where and
  * when, the change from the purchase before as a badge, the lowest–highest range with the average,
  * and Lowest · Average · Highest with their month and merchant.
  */
@@ -196,7 +196,7 @@ private fun PriceChangeBadge(stats: PriceStats) {
 }
 
 /**
- * The price per unit at each change of price (§5, [pricePoints]): the prices in periwinkle,
+ * The price per unit at each change of price (§5, [pricePoints]): the prices in blue,
  * the average dashed, the lowest and highest ringed, the first, middle and last purchase dates
  * below. Hidden with fewer than two points.
  */
@@ -386,7 +386,7 @@ private fun RankedMerchants(comparison: PriceComparison) {
     }
 }
 
-/** The sentence on the periwinkle tint, the shop in bold and the amount in Plex Mono. */
+/** The sentence on the blue tint, the shop in bold and the amount with tabular digits. */
 @Composable
 private fun CheapestCallout(sentence: String, shop: String, amount: String) {
     val colors = EksodaTheme.colors

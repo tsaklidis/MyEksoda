@@ -1,9 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="data_unavailable">Eksoda can\'t open its data on this phone. Restoring from a backup will be possible in a later version.</string>
-    <string name="tab_home">Home</string>
-    <string name="tab_receipts">Receipts</string>
-    <string name="tab_insights">Insights</string>
-    <string name="tab_products">Products</string>
-    <string name="tab_scan">Scan</string>
+    <string name="tab_overview">Overview</string>
+    <string name="tab_spending">Spending</string>
+    <string name="tab_prices">Prices</string>
+    <string name="tab_more">More</string>
+    <string name="tab_add">Add an expense</string>
+    <string name="add_title">Add</string>
+    <string name="add_scan">Scan the QR code</string>
+    <string name="add_scan_hint">At the bottom of any receipt</string>
+    <string name="add_by_hand">By hand</string>
+    <string name="add_by_hand_hint">Doctor, plumber, a paper receipt</string>
+    <string name="add_paste">Paste a link</string>
+    <string name="add_paste_hint">From an e-receipt email or message</string>
 </resources>

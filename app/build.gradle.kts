@@ -98,6 +98,8 @@ dependencies {
     implementation(libs.androidx.hilt.work)
 
     testImplementation(libs.junit4)
+    testImplementation(libs.assertk)
+    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.espresso.core)
 }

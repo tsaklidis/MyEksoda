@@ -153,7 +153,7 @@
     <string name="merchant_address">Address</string>
     <string name="merchant_open_maps">Open in Maps</string>
     <string name="merchant_default_category">Default category</string>
-    <string name="merchant_default_category_hint">Used for this shop\'s receipts in the category filter and in Insights.</string>
+    <string name="merchant_default_category_hint">Used for this shop\'s receipts in the category filter and in Spending.</string>
     <string name="merchant_stores">Stores</string>
     <string name="merchant_store_unnamed">Store without an address</string>
     <string name="merchant_rename">Rename</string>
@@ -170,4 +170,33 @@
     <string name="error_too_many_products">Merge at most 50 products at a time.</string>
     <string name="error_not_found">It no longer exists.</string>
     <string name="error_save_failed">Could not save. Try again.</string>
+    <string name="prices_title">Prices</string>
+    <string name="prices_all_products">All products</string>
+    <string name="prices_failed">Prices could not be loaded.</string>
+    <string name="prices_story">Buy each thing where it costs least and save about %1$s.</string>
+    <plurals name="prices_source">
+        <item quantity="one">From your receipts of the last 3 months · %d shop</item>
+        <item quantity="other">From your receipts of the last 3 months · %d shops</item>
+    </plurals>
+    <string name="prices_by_product">By product</string>
+    <string name="prices_by_shop">By shop</string>
+    <string name="prices_trends">Trends</string>
+    <string name="prices_empty_title">Nothing to compare yet</string>
+    <string name="prices_empty_body">Scan receipts from two supermarkets or more: what you buy at both shows up here.</string>
+    <string name="prices_per_unit">%1$s/%2$s</string>
+    <string name="prices_cheapest_at">Cheapest at %1$s %2$s</string>
+    <string name="prices_save">save %1$s</string>
+    <plurals name="prices_shop_cheapest">
+        <item quantity="one">Cheapest for %1$d product · save %2$s</item>
+        <item quantity="other">Cheapest for %1$d products · save %2$s</item>
+    </plurals>
+    <string name="prices_trends_empty_title">No trends yet</string>
+    <string name="prices_trends_empty_body">Trends compare the last month with the one before. They need the same product bought in both.</string>
+    <string name="prices_trends_shops">Shops</string>
+    <string name="prices_trends_products">Products</string>
+    <plurals name="prices_trend_products">
+        <item quantity="one">over %d product</item>
+        <item quantity="other">over %d products</item>
+    </plurals>
+    <string name="prices_trend_from_to">%1$s → %2$s</string>
 </resources>

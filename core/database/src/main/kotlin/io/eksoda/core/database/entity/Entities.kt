@@ -14,7 +14,11 @@ import androidx.room.PrimaryKey
 // - Room has no partial unique indexes: key columns (`store_key`, `mapping_key`) replace them,
 //   and SQLite treats NULLs as distinct in unique indexes, like `WHERE x IS NOT NULL`.
 
-/** A product category. The 19 system categories are seeded on creation. */
+/**
+ * A product category. The 19 system categories are seeded on creation. A system category keeps
+ * its slug and id (sync and the seed depend on them); the household's own name for it is
+ * [customName] (schema 8), shown instead of the translated one while set.
+ */
 @Entity(tableName = "category", indices = [Index(value = ["slug"], unique = true)])
 data class CategoryEntity(
     @PrimaryKey val id: String,
@@ -23,6 +27,7 @@ data class CategoryEntity(
     @ColumnInfo(name = "is_system") val isSystem: Boolean,
     @ColumnInfo(name = "created_at") val createdAt: Long,
     @ColumnInfo(name = "updated_at") val updatedAt: Long,
+    @ColumnInfo(name = "custom_name") val customName: String? = null,
 )
 
 /** A merchant, by country and VAT number. */
@@ -151,7 +156,7 @@ data class MerchantProductMappingEntity(
     @ColumnInfo(name = "updated_at") val updatedAt: Long,
 )
 
-/** An imported receipt. */
+/** An imported receipt, or an expense typed in by hand ([ReceiptEntity.origin], schema 8). */
 @Entity(
     tableName = "receipt",
     indices = [
@@ -164,6 +169,7 @@ data class MerchantProductMappingEntity(
         Index("issued_local_date"),
         Index(value = ["merchant_id", "issued_at"]),
         Index("store_id"),
+        Index("category_id"),
     ],
     foreignKeys = [
         ForeignKey(
@@ -176,6 +182,12 @@ data class MerchantProductMappingEntity(
             entity = StoreEntity::class,
             parentColumns = ["id"],
             childColumns = ["store_id"],
+            onDelete = ForeignKey.SET_NULL,
+        ),
+        ForeignKey(
+            entity = CategoryEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["category_id"],
             onDelete = ForeignKey.SET_NULL,
         ),
     ],
@@ -223,7 +235,24 @@ data class ReceiptEntity(
     @ColumnInfo(name = "source_data") val sourceData: String,
     @ColumnInfo(name = "created_at") val createdAt: Long,
     @ColumnInfo(name = "updated_at") val updatedAt: Long,
-)
+    /**
+     * `import` (read from a provider) | `manual` (typed in by hand: no lines, no link, a payee
+     * merchant). The SQL default keeps older backups and snapshots imports.
+     */
+    @ColumnInfo(name = "origin", defaultValue = ORIGIN_IMPORT) val origin: String = ORIGIN_IMPORT,
+    /**
+     * The category the whole receipt counts for, ahead of its merchant's default (a manual
+     * expense's). Null on imports: their lines and merchant say it.
+     */
+    @ColumnInfo(name = "category_id") val categoryId: String? = null,
+    /** A manual expense's kind: `product` | `service` | `other`; null on imports (schema 8). */
+    @ColumnInfo(name = "manual_kind") val manualKind: String? = null,
+) {
+    companion object {
+        const val ORIGIN_IMPORT = "import"
+        const val ORIGIN_MANUAL = "manual"
+    }
+}
 
 /**
  * A receipt line. `product_id` is set exactly when `match_status = matched`;

@@ -21,13 +21,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.Code
+import androidx.compose.material.icons.outlined.Contrast
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.outlined.FileUpload
@@ -37,6 +37,7 @@ import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Savings
 import androidx.compose.material.icons.outlined.Storefront
 import androidx.compose.material.icons.outlined.Sync
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material.icons.outlined.VolunteerActivism
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -48,13 +49,13 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -72,13 +73,16 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.eksoda.core.designsystem.component.RowIcon
 import io.eksoda.core.designsystem.component.SectionCard
+import io.eksoda.core.designsystem.component.SwitchRow
 import io.eksoda.core.designsystem.theme.EksodaTheme
 import io.eksoda.core.designsystem.theme.tabular
 import io.eksoda.core.model.Household
 import io.eksoda.core.model.Money
 import io.eksoda.core.ui.component.IncomeDialog
 import io.eksoda.core.ui.text.AppLanguage
+import io.eksoda.core.ui.text.AppTheme
 import io.eksoda.core.ui.text.appLocale
 import io.eksoda.core.ui.text.dayTimeLabel
 import io.eksoda.core.ui.text.formatMoney
@@ -96,9 +100,11 @@ fun SettingsRoute(
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val switches by viewModel.switches.collectAsStateWithLifecycle()
     val activity = LocalActivity.current
     val context = LocalContext.current
     val language = remember { AppLanguage.current(context) }
+    val theme by AppTheme.mode(context).collectAsState()
     val permission = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { granted -> viewModel.onEvent(SettingsEvent.NotifyImportsChanged(granted)) }
@@ -111,10 +117,13 @@ fun SettingsRoute(
     ) { uri -> viewModel.onEvent(SettingsEvent.ImportFileChosen(uri)) }
     val snackbarHostState = remember { SnackbarHostState() }
     val incomeFailed = stringResource(UiR.string.income_save_failed)
+    val settingFailed = stringResource(R.string.settings_save_failed)
     LaunchedEffect(viewModel) {
         viewModel.effects.collect { effect ->
             when (effect) {
                 SettingsEffect.IncomeSaveFailed -> snackbarHostState.showSnackbar(incomeFailed)
+
+                SettingsEffect.SettingSaveFailed -> snackbarHostState.showSnackbar(settingFailed)
 
                 // No app may handle the picker on a stripped-down device: then nothing happens.
                 is SettingsEffect.ChooseExportFile ->
@@ -126,10 +135,13 @@ fun SettingsRoute(
     }
     SettingsScreen(
         state = state,
+        switches = switches,
         language = language,
+        theme = theme,
         version = remember { appVersion(context) },
         onBack = onBack,
         onLanguageSelect = { tag -> activity?.let { AppLanguage.set(it, tag) } },
+        onThemeSelect = { mode -> AppTheme.set(context, mode) },
         onNotifyImportsChange = { enabled ->
             if (enabled && needsNotificationPermission(context)) {
                 permission.launch(Manifest.permission.POST_NOTIFICATIONS)
@@ -162,10 +174,13 @@ private fun appVersion(context: Context): String = runCatching {
 @Composable
 fun SettingsScreen(
     state: SettingsUiState,
+    switches: PreferenceSwitches?,
     language: String,
+    theme: String,
     version: String,
     onBack: () -> Unit,
     onLanguageSelect: (String) -> Unit,
+    onThemeSelect: (String) -> Unit,
     onNotifyImportsChange: (Boolean) -> Unit,
     onCategoriesClick: () -> Unit,
     onMerchantsClick: () -> Unit,
@@ -235,9 +250,12 @@ fun SettingsScreen(
             }
             PreferencesCard(
                 language = language,
-                notifyImports = state.notifyImports,
+                switches = switches,
+                theme = theme,
                 onLanguageSelect = onLanguageSelect,
+                onThemeSelect = onThemeSelect,
                 onNotifyImportsChange = onNotifyImportsChange,
+                onHideContentChange = { onEvent(SettingsEvent.HideContentChanged(it)) },
             )
             SectionCard(title = stringResource(R.string.settings_data)) {
                 Hint(stringResource(R.string.settings_data_hint))
@@ -265,74 +283,104 @@ fun SettingsScreen(
     }
 }
 
-/** Language (one row, a picker on tap) and the import notifications. */
+/**
+ * Language and theme (one row each, a picker on tap), import notifications and hiding the app's
+ * content. Until the stored [switches] are read (null) the switches show off and take no taps,
+ * so a switch is never flipped from a placeholder.
+ */
 @Composable
 private fun PreferencesCard(
     language: String,
-    notifyImports: Boolean,
+    switches: PreferenceSwitches?,
+    theme: String,
     onLanguageSelect: (String) -> Unit,
+    onThemeSelect: (String) -> Unit,
     onNotifyImportsChange: (Boolean) -> Unit,
+    onHideContentChange: (Boolean) -> Unit,
 ) {
-    var picking by rememberSaveable { mutableStateOf(false) }
-    val current = LANGUAGES.firstOrNull { it.first == language }?.second
-        ?: R.string.settings_language_system
+    // Which picker is open: PICK_LANGUAGE, PICK_THEME or none.
+    var picking by rememberSaveable { mutableStateOf<String?>(null) }
     SectionCard(title = stringResource(R.string.settings_preferences)) {
         LinkRow(
             label = stringResource(R.string.settings_language),
-            value = stringResource(current),
+            value = stringResource(labelOf(LANGUAGES, language)),
             icon = Icons.Outlined.Language,
-            onClick = { picking = true },
+            onClick = { picking = PICK_LANGUAGE },
         )
         HorizontalDivider(color = EksodaTheme.colors.line)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 56.dp)
-                .toggleable(
-                    value = notifyImports,
-                    role = Role.Switch,
-                    onValueChange = onNotifyImportsChange,
-                )
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            RowIcon(Icons.Outlined.Notifications)
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    stringResource(R.string.settings_notify_imports),
-                    style = MaterialTheme.typography.bodyLarge,
-                )
-                Text(
-                    stringResource(R.string.settings_notify_imports_hint),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = EksodaTheme.colors.ink2,
-                )
-            }
-            Switch(checked = notifyImports, onCheckedChange = null)
-        }
+        LinkRow(
+            label = stringResource(R.string.settings_theme),
+            value = stringResource(labelOf(THEMES, theme)),
+            icon = Icons.Outlined.Contrast,
+            onClick = { picking = PICK_THEME },
+        )
+        HorizontalDivider(color = EksodaTheme.colors.line)
+        SwitchRow(
+            label = stringResource(R.string.settings_notify_imports),
+            supporting = stringResource(R.string.settings_notify_imports_hint),
+            icon = Icons.Outlined.Notifications,
+            checked = switches?.notifyImports == true,
+            onCheckedChange = onNotifyImportsChange,
+            enabled = switches != null,
+        )
+        HorizontalDivider(color = EksodaTheme.colors.line)
+        SwitchRow(
+            label = stringResource(R.string.settings_hide_content),
+            supporting = stringResource(R.string.settings_hide_content_hint),
+            icon = Icons.Outlined.VisibilityOff,
+            checked = switches?.hideContent == true,
+            onCheckedChange = onHideContentChange,
+            enabled = switches != null,
+        )
     }
-    if (picking) {
-        LanguageDialog(
+    when (picking) {
+        PICK_LANGUAGE -> ChoiceDialog(
+            title = stringResource(R.string.settings_language),
+            options = LANGUAGES,
             selected = language,
             onSelect = { tag ->
-                picking = false
+                picking = null
                 if (tag != language) onLanguageSelect(tag)
             },
-            onDismiss = { picking = false },
+            onDismiss = { picking = null },
+        )
+
+        PICK_THEME -> ChoiceDialog(
+            title = stringResource(R.string.settings_theme),
+            options = THEMES,
+            selected = theme,
+            onSelect = { mode ->
+                picking = null
+                if (mode != theme) onThemeSelect(mode)
+            },
+            onDismiss = { picking = null },
         )
     }
 }
 
+private const val PICK_LANGUAGE = "language"
+private const val PICK_THEME = "theme"
+
+/** The label of [value] among [options], or the "system" option's when unknown. */
+private fun labelOf(options: List<Pair<String, Int>>, value: String): Int =
+    (options.firstOrNull { it.first == value } ?: options.last { it.first.isEmpty() }).second
+
+/** A one-of choice ([options]: value to label) in a dialog; picking one closes it. */
 @Composable
-private fun LanguageDialog(selected: String, onSelect: (String) -> Unit, onDismiss: () -> Unit) {
+private fun ChoiceDialog(
+    title: String,
+    options: List<Pair<String, Int>>,
+    selected: String,
+    onSelect: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.settings_language)) },
+        title = { Text(title) },
         text = {
             Column(modifier = Modifier.selectableGroup()) {
-                LANGUAGES.forEach { (tag, label) ->
-                    LanguageRow(
+                options.forEach { (tag, label) ->
+                    ChoiceRow(
                         label = stringResource(label),
                         selected = tag == selected,
                         onClick = { onSelect(tag) },
@@ -354,12 +402,6 @@ private fun Hint(text: String) {
         color = EksodaTheme.colors.ink2,
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
     )
-}
-
-/** The leading icon of a row: decorative, the row's text says what it is. */
-@Composable
-private fun RowIcon(icon: ImageVector) {
-    Icon(icon, contentDescription = null, tint = EksodaTheme.colors.ink2)
 }
 
 /**
@@ -435,9 +477,15 @@ private val LANGUAGES = listOf(
     AppLanguage.SYSTEM to R.string.settings_language_system,
 )
 
-/** A choice in the language dialog, which pads its content itself. */
+private val THEMES = listOf(
+    AppTheme.LIGHT to R.string.settings_theme_light,
+    AppTheme.DARK to R.string.settings_theme_dark,
+    AppTheme.SYSTEM to R.string.settings_theme_system,
+)
+
+/** A choice in [ChoiceDialog], which pads its content itself. */
 @Composable
-private fun LanguageRow(label: String, selected: Boolean, onClick: () -> Unit) {
+private fun ChoiceRow(label: String, selected: Boolean, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -593,14 +641,14 @@ private fun HouseholdCard(
 private fun SettingsScreenPreview() {
     EksodaTheme {
         SettingsScreen(
-            state = SettingsUiState(
-                household = Household("1", "Σπίτι", "EUR", "Europe/Athens"),
-                notifyImports = true,
-            ),
+            state = SettingsUiState(household = Household("1", "Σπίτι", "EUR", "Europe/Athens")),
+            switches = PreferenceSwitches(notifyImports = true, hideContent = false),
             language = AppLanguage.GREEK,
+            theme = AppTheme.SYSTEM,
             version = "0.1.0",
             onBack = {},
             onLanguageSelect = {},
+            onThemeSelect = {},
             onNotifyImportsChange = {},
             onCategoriesClick = {},
             onMerchantsClick = {},

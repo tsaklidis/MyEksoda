@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.io.IOException
 import java.math.BigDecimal
 import java.time.Clock
 import java.time.Instant
@@ -30,10 +31,12 @@ import javax.inject.Inject
 
 data class SettingsUiState(
     val household: Household? = null,
-    val notifyImports: Boolean = false,
     val sync: SyncSummary = SyncSummary(),
     val backup: BackupDialog = BackupDialog.None,
 )
+
+/** The preference switches, as stored. */
+data class PreferenceSwitches(val notifyImports: Boolean, val hideContent: Boolean)
 
 /** What the "Household sync" row shows; the switch itself is on the Sync screen. */
 data class SyncSummary(val enabled: Boolean = false, val lastSuccess: Instant? = null)
@@ -62,6 +65,8 @@ enum class BackupStep { EXPORT, OPEN, RESTORE }
 
 sealed interface SettingsEvent {
     data class NotifyImportsChanged(val enabled: Boolean) : SettingsEvent
+
+    data class HideContentChanged(val enabled: Boolean) : SettingsEvent
 
     /** The annual income for the e-payment target; null clears it. */
     data class AnnualIncomeChanged(val income: BigDecimal?) : SettingsEvent
@@ -93,6 +98,9 @@ sealed interface SettingsEffect {
 
     /** The annual income could not be saved. */
     data object IncomeSaveFailed : SettingsEffect
+
+    /** A switch could not be saved; it stays as it was. */
+    data object SettingSaveFailed : SettingsEffect
 }
 
 /** Settings: language, notifications, backup and restore, the household, catalog links. */
@@ -117,22 +125,28 @@ class SettingsViewModel @Inject constructor(
 
     val uiState: StateFlow<SettingsUiState> = combine(
         households.household,
-        settings.notifyImports,
         syncSummary,
         backup,
-    ) { household, notify, syncRow, dialog ->
-        SettingsUiState(
-            household = household,
-            notifyImports = notify,
-            sync = syncRow,
-            backup = dialog,
-        )
+    ) { household, syncRow, dialog ->
+        SettingsUiState(household = household, sync = syncRow, backup = dialog)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT), SettingsUiState())
+
+    /**
+     * The preference switches; null until both stored values are read, so a switch is never
+     * drawn, or flipped, from a placeholder. Read only from the settings, so the switches do not
+     * wait for the database or for sync.
+     */
+    val switches: StateFlow<PreferenceSwitches?> =
+        combine(settings.notifyImports, settings.hideContent, ::PreferenceSwitches)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT), null)
 
     fun onEvent(event: SettingsEvent) {
         when (event) {
-            is SettingsEvent.NotifyImportsChanged ->
-                viewModelScope.launch { settings.setNotifyImports(event.enabled) }
+            is SettingsEvent.NotifyImportsChanged -> save {
+                settings.setNotifyImports(event.enabled)
+            }
+
+            is SettingsEvent.HideContentChanged -> save { settings.setHideContent(event.enabled) }
 
             is SettingsEvent.AnnualIncomeChanged -> viewModelScope.launch {
                 if (households.setAnnualIncome(event.income).isFailure) {
@@ -220,6 +234,21 @@ class SettingsViewModel @Inject constructor(
         importSource = null
         plan = null
         backup.value = BackupDialog.None
+    }
+
+    /**
+     * Saves a switch. When the settings file cannot be written, the stored value (and so the
+     * switch) stays as it was, and a message says so: the user must not believe their content is
+     * hidden when it is not.
+     */
+    private fun save(write: suspend () -> Unit) {
+        viewModelScope.launch {
+            try {
+                write()
+            } catch (ignored: IOException) {
+                _effects.send(SettingsEffect.SettingSaveFailed)
+            }
+        }
     }
 
     private fun fileName() = "eksoda-backup-${LocalDate.now(clock)}.eksoda"

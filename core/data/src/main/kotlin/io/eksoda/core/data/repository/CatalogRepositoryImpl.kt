@@ -43,7 +43,7 @@ class CatalogRepositoryImpl @Inject constructor(
         categories.observeRows().map { rows -> rows.map { it.toModel() } }
 
     override fun getCategoryList(): Flow<List<Category>> = categories.observeAll()
-        .map { rows -> rows.map { Category(it.id, it.name, it.slug, it.isSystem) } }
+        .map { rows -> rows.map { Category(it.id, it.name, it.slug, it.isSystem, it.customName) } }
 
     override suspend fun createCategory(name: String): Result<String> = runCatching {
         val (text, slug) = checkedName(name)
@@ -59,7 +59,13 @@ class CatalogRepositoryImpl @Inject constructor(
     override suspend fun renameCategory(id: String, name: String): Result<Unit> = runCatching {
         coordinator.write {
             val category = categories.get(id) ?: fail(CatalogError.NOT_FOUND)
-            if (category.isSystem) fail(CatalogError.SYSTEM_CATEGORY)
+            if (category.isSystem) {
+                // A system category keeps its slug and id: the household's name is set beside
+                // them, and a blank one brings the translated name back.
+                val custom = name.trim().take(CATEGORY_NAME_LENGTH).ifEmpty { null }
+                categories.update(category.copy(customName = custom, updatedAt = clock.millis()))
+                return@write
+            }
             val (text, slug) = checkedName(name)
             if (categories.slugTaken(slug, exceptId = id)) fail(CatalogError.NAME_TAKEN)
             categories.update(category.copy(name = text, slug = slug, updatedAt = clock.millis()))
@@ -139,7 +145,13 @@ class CatalogRepositoryImpl @Inject constructor(
 }
 
 private fun CategoryRow.toModel() = CategorySummary(
-    category = Category(category.id, category.name, category.slug, category.isSystem),
+    category = Category(
+        category.id,
+        category.name,
+        category.slug,
+        category.isSystem,
+        category.customName,
+    ),
     productCount = productCount,
 )
 

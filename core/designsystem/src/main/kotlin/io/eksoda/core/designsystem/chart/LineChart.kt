@@ -39,9 +39,9 @@ import java.math.RoundingMode
 
 /**
  * A line over evenly spaced slots (docs/design/ui-redesign.md §4): [values] solid in [color]
- * (2.2 dp) with a fill fading from 28% to 0, [comparison] dashed periwinkle, [average] as a
- * dashed neutral line. With [markExtremes] the lowest point gets a periwinkle ring and the
- * highest a terracotta ring, each with its value. Null values are gaps: the line joins the points
+ * (2.2 dp) with a fill fading from 28% to 0, [comparison] dashed blue, [average] as a
+ * dashed neutral line. With [markExtremes] the lowest point gets a blue ring and the
+ * highest a ink ring, each with its value. Null values are gaps: the line joins the points
  * around them, and stops where the values stop (a month still in progress). [gridLines]
  * horizontal lines carry their values on the left unless [gridLabels] is false; [axisLabels] are
  * spread under the chart. With [markLast] the last point gets a ring and a faint vertical line
@@ -247,7 +247,7 @@ private fun DrawScope.drawSeries(
     }
 }
 
-/** Rings on the lowest (periwinkle) and highest (terracotta) values, with the values. */
+/** Rings on the lowest (blue) and highest (ink) values, with the values. */
 private fun DrawScope.drawExtremes(
     values: List<BigDecimal?>,
     plot: Plot,

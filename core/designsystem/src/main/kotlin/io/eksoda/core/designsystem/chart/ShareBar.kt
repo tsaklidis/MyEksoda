@@ -19,7 +19,7 @@ import java.math.BigDecimal
 /**
  * A horizontal bar for ranked lists (by shop, top categories, top products; ui-redesign.md §4):
  * [value] as a share of [max] on a line-colored track, 4–6 dp thick. Spend amounts use
- * terracotta, counts periwinkle. Decorative: the row's text carries the figure.
+ * ink, counts blue. Decorative: the row's text carries the figure.
  */
 @Composable
 fun ShareBar(

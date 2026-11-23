@@ -245,6 +245,8 @@ private fun BudgetCardPreview() {
             MonthBudgets(
                 currency = "EUR",
                 month = YearMonth.of(2026, 11),
+                current = true,
+                changed = false,
                 elapsedPercent = BigDecimal("60"),
                 total = BudgetProgress(
                     category = null,

@@ -3,6 +3,63 @@
 What changed in each release of Eksoda. Earlier releases are described on the
 [Releases](https://github.com/tsaklidis/MyEksoda/releases) page.
 
+## 0.4.0 - A new look, budgets month by month, bills and prices
+
+A bigger update. Install it over 0.3.5 as usual: your data stays. **Household sync needs every
+phone of the household on 0.4.0**: the database gains new tables and columns, and a phone on
+0.3.5 cannot sync with one on 0.4.0 until both are updated.
+
+### New
+
+- **A new look.** Monochrome, light or charcoal dark (the phone's choice, or fixed in Settings →
+  Theme), with one blue for comparisons and links and red only for "over budget". The bottom bar
+  is Overview · Spending · + · Prices · More.
+- **Overview.** Pick any of the last six months: everyday spending against your budget, with
+  what is left per day this month, your bills on their own line, and your categories. A month
+  that went over its budget is marked in red.
+- **One + for everything.** Scan the QR code, add an expense by hand, or paste a receipt link.
+- **Add by hand.** The amount, whether it was a product, a service or something else, a few
+  words ("Dentist"), an optional category and the day. It counts like any receipt and can be
+  edited from its detail.
+- **Budget month by month.** One everyday budget for every month, and the current month can be
+  different (a trip, a big month). Past months keep the budget they had.
+- **Category limits.** Open a category from the Overview to rename it or set its monthly limit:
+  three amounts around what it usually costs, or your own.
+- **Bills.** Rent, electricity, water, internet, phones: each fixed (the same every month,
+  changeable for the current month) or variable (you enter it each month). They are kept apart
+  from receipts. Past months are read-only; last month's variable bills stay open until the
+  10th, since they often arrive late.
+- **Prices.** From your own receipts: where each product you buy costs least and what that would
+  save, what each shop is cheapest for, and how prices moved over the last month.
+- **Your month in onboarding.** A new page asks what your bills and everyday spending come to,
+  all optional.
+- **Shop logos** for AB, Lidl, Sklavenitis and My Market.
+
+### Improved
+
+- Receipts and products moved to More, with budget, bills, categories, shops, imports, household
+  sync and settings.
+- Insights is now called Spending.
+
+## 0.3.5 - Hide the app's content
+
+A small update. Install it over 0.3.4 as usual: your data stays, and household sync keeps
+working between 0.3.4 and 0.3.5.
+
+### New
+
+- **Hide app content.** Settings → Preferences has a new "Hide app content" switch. When it is
+  on, screenshots and screen recordings of Eksoda come out blank, and its card in the recent
+  apps screen is empty, so your receipts and spending do not show when you switch apps or share
+  your screen. It is off by default and applies to this phone only: it is not synced to the
+  household's other phones and is not part of a backup.
+
+### Improved
+
+- **Labels in two-option toggles are no longer cut.** In Insights → Top products, the Greek
+  "Περισσότερα χρήματα" showed as "Περισσότερα χρήμ…" on most phones. A label that does not fit
+  now wraps to a second line, with both options keeping the same height.
+
 ## 0.3.4 - A way to support Eksoda
 
 A small update. Install it over 0.3.3 as usual: your data stays, and household sync keeps

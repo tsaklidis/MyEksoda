@@ -44,6 +44,7 @@ import io.eksoda.core.ui.component.MoneyText
 import io.eksoda.core.ui.motion.SharedKeys
 import io.eksoda.core.ui.motion.sharedBoundsIfAvailable
 import io.eksoda.core.ui.text.appLocale
+import io.eksoda.core.ui.text.categoryName
 import io.eksoda.core.ui.text.formatMoney
 import io.eksoda.feature.receipts.R
 import io.eksoda.feature.receipts.list.paymentLabel
@@ -67,7 +68,7 @@ internal fun DetailHeader(detail: ReceiptDetail) {
             )
         }
         Text(issuedText(detail), color = MaterialTheme.colorScheme.onSurfaceVariant)
-        // The hero amount: terracotta for spending, periwinkle for a refund (ui-redesign.md §1).
+        // The hero amount: ink for spending, blue for a refund (ui-redesign.md §1).
         val refund = receipt.documentKind == DocumentKind.CREDIT_NOTE
         MoneyText(
             money = receipt.totalAmount,
@@ -79,10 +80,17 @@ internal fun DetailHeader(detail: ReceiptDetail) {
                 .padding(top = 8.dp)
                 .sharedBoundsIfAvailable(SharedKeys.receiptTotal(receipt.id)),
         )
-        val parts = listOfNotNull(
-            paymentLabel(receipt.paymentMethod)?.let { stringResource(it) },
-            pluralStringResource(R.plurals.item_count, receipt.itemCount, receipt.itemCount),
-        )
+        val parts = if (receipt.manual) {
+            listOfNotNull(
+                receipt.categoryKey?.let { categoryName(it) },
+                stringResource(R.string.manual_by_hand),
+            )
+        } else {
+            listOfNotNull(
+                paymentLabel(receipt.paymentMethod)?.let { stringResource(it) },
+                pluralStringResource(R.plurals.item_count, receipt.itemCount, receipt.itemCount),
+            )
+        }
         Text(parts.joinToString(" · "), style = MaterialTheme.typography.bodyMedium)
     }
 }
@@ -103,7 +111,7 @@ private fun issuedText(detail: ReceiptDetail): String {
 }
 
 /**
- * A banner: cancelled by the shop ([attention]: terracotta, an item that needs attention), or a
+ * A banner: cancelled by the shop ([attention]: ink, an item that needs attention), or a
  * totals-only receipt (neutral).
  */
 @Composable

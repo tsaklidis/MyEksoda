@@ -16,14 +16,14 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ReceiptLong
-import androidx.compose.material.icons.automirrored.outlined.ReceiptLong
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Insights
-import androidx.compose.material.icons.filled.Inventory2
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.PieChart
+import androidx.compose.material.icons.filled.Sell
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Insights
-import androidx.compose.material.icons.outlined.Inventory2
+import androidx.compose.material.icons.outlined.Menu
+import androidx.compose.material.icons.outlined.PieChart
+import androidx.compose.material.icons.outlined.Sell
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -36,85 +36,78 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import io.eksoda.R
+import io.eksoda.core.designsystem.component.AddButton
+import io.eksoda.core.designsystem.component.AddNavigationBarItem
 import io.eksoda.core.designsystem.component.EksodaNavigationBar
 import io.eksoda.core.designsystem.component.EksodaNavigationBarItem
 import io.eksoda.core.designsystem.component.EksodaNavigationRail
 import io.eksoda.core.designsystem.component.EksodaNavigationRailItem
-import io.eksoda.core.designsystem.component.ScanButton
-import io.eksoda.core.designsystem.component.ScanNavigationBarItem
 import io.eksoda.core.model.Period
+import io.eksoda.feature.home.HomeActions
 import io.eksoda.feature.home.HomeRoute
 import io.eksoda.feature.insights.InsightsRoute
-import io.eksoda.feature.products.list.ProductListRoute
-import io.eksoda.feature.receipts.list.ReceiptListRoute
+import io.eksoda.feature.products.prices.PricesRoute
+import io.eksoda.feature.scan.share.PasteLinkImportDialog
+import io.eksoda.feature.settings.more.MoreActions
+import io.eksoda.feature.settings.more.MoreScreen
 
 /**
- * The top-level sections in the design's order: Home · Insights · (Scan) · Receipts · Products
+ * The top-level sections in the design's order: Overview · Spending · (+) · Prices · More
  * (docs/design/ui-redesign.md §5).
  */
 private enum class Tab(val label: Int, val icon: ImageVector, val selectedIcon: ImageVector) {
-    HOME(
-        R.string.tab_home,
-        Icons.Outlined.Home,
-        Icons.Filled.Home,
-    ),
-    INSIGHTS(
-        R.string.tab_insights,
-        Icons.Outlined.Insights,
-        Icons.Filled.Insights,
-    ),
-    RECEIPTS(
-        R.string.tab_receipts,
-        Icons.AutoMirrored.Outlined.ReceiptLong,
-        Icons.AutoMirrored.Filled.ReceiptLong,
-    ),
-    PRODUCTS(
-        R.string.tab_products,
-        Icons.Outlined.Inventory2,
-        Icons.Filled.Inventory2,
-    ),
+    OVERVIEW(R.string.tab_overview, Icons.Outlined.Home, Icons.Filled.Home),
+    SPENDING(R.string.tab_spending, Icons.Outlined.PieChart, Icons.Filled.PieChart),
+    PRICES(R.string.tab_prices, Icons.Outlined.Sell, Icons.Filled.Sell),
+    MORE(R.string.tab_more, Icons.Outlined.Menu, Icons.Filled.Menu),
 }
 
-/** The tabs before and after the Scan button in the bar. */
-private val TABS_BEFORE_SCAN = listOf(Tab.HOME, Tab.INSIGHTS)
-private val TABS_AFTER_SCAN = listOf(Tab.RECEIPTS, Tab.PRODUCTS)
+/** The tabs before and after the Add button in the bar. */
+private val TABS_BEFORE_ADD = listOf(Tab.OVERVIEW, Tab.SPENDING)
+private val TABS_AFTER_ADD = listOf(Tab.PRICES, Tab.MORE)
 
 /** Wider than this, the tabs move to a rail on the side (Material's medium width class). */
 private val RAIL_WIDTH = 600.dp
 
+/** Where the tabs lead outside themselves: screens pushed over the tabs. */
+interface MainActions : MoreActions {
+    fun openReceipt(receiptId: String)
+
+    fun openProduct(productId: String)
+
+    fun scan()
+
+    fun addByHand()
+
+    fun openReview()
+
+    fun openCategory(categoryId: String?, period: Period)
+}
+
 /**
- * The tabs with the redesign's bottom bar on phones (the raised terracotta Scan button in the
- * middle) and a rail on wider screens (Scan on top). Each tab keeps its own saved state (scroll
- * position, search text) while another is shown.
+ * The tabs with the redesign's docked bottom bar on phones (the round "+" in the middle) and a
+ * rail on wider screens ("+" on top). "+" opens the ways to add. Each tab keeps its own saved
+ * state (scroll position, search text) while another is shown.
  */
 @Composable
-fun MainTabs(
-    onReceiptClick: (String) -> Unit,
-    onScanClick: () -> Unit,
-    onImportsClick: () -> Unit,
-    onProductClick: (String) -> Unit,
-    onReviewClick: () -> Unit,
-    onCategoriesClick: () -> Unit,
-    onMerchantsClick: () -> Unit,
-    onSettingsClick: () -> Unit,
-    onBudgetsClick: () -> Unit,
-    onCategoryClick: (categoryId: String?, period: Period) -> Unit,
-) {
-    var tab by rememberSaveable { mutableStateOf(Tab.HOME) }
+fun MainTabs(actions: MainActions) {
+    var tab by rememberSaveable { mutableStateOf(Tab.OVERVIEW) }
     // The tabs visited before this one, most recent last: Back returns to them in turn, then to
-    // Home, and only leaves the app from Home.
+    // the Overview, and only leaves the app from the Overview.
     var history by rememberSaveable { mutableStateOf(listOf<Tab>()) }
+    var adding by rememberSaveable { mutableStateOf(false) }
+    var pasting by rememberSaveable { mutableStateOf(false) }
     val select: (Tab) -> Unit = { entry ->
         if (entry != tab) {
-            // Home starts the history again: Back on Home always leaves the app.
-            history = if (entry == Tab.HOME) emptyList() else (history - entry) + tab
+            // The Overview starts the history again: Back there always leaves the app.
+            history = if (entry == Tab.OVERVIEW) emptyList() else (history - entry) + tab
             tab = entry
         }
     }
-    // Home's budget alert opens Insights on "This month", whatever period was chosen there before.
-    var insightsThisMonth by rememberSaveable { mutableStateOf(false) }
-    BackHandler(enabled = tab != Tab.HOME) {
-        val previous = history.lastOrNull() ?: Tab.HOME
+    // The Overview's budget alert opens Spending on "This month", whatever period it showed.
+    var spendingThisMonth by rememberSaveable { mutableStateOf(false) }
+    BackHandler(enabled = tab != Tab.OVERVIEW) {
+        val previous = history.lastOrNull() ?: Tab.OVERVIEW
         history = history.dropLast(1)
         tab = previous
     }
@@ -122,46 +115,21 @@ fun MainTabs(
     val content = @Composable { modifier: Modifier ->
         Box(modifier = modifier) {
             tabStates.SaveableStateProvider(tab.name) {
-                when (tab) {
-                    Tab.HOME -> HomeRoute(
-                        onReceiptsClick = { select(Tab.RECEIPTS) },
-                        onInsightsClick = { select(Tab.INSIGHTS) },
-                        onBudgetsOverClick = {
-                            insightsThisMonth = true
-                            select(Tab.INSIGHTS)
-                        },
-                        onReviewClick = onReviewClick,
-                        onImportsClick = onImportsClick,
-                        onReceiptClick = onReceiptClick,
-                        onSettingsClick = onSettingsClick,
-                    )
-
-                    Tab.RECEIPTS -> ReceiptListRoute(
-                        onReceiptClick = onReceiptClick,
-                        onScanClick = onScanClick,
-                        onImportsClick = onImportsClick,
-                    )
-
-                    Tab.INSIGHTS -> InsightsRoute(
-                        onProductClick = onProductClick,
-                        onMerchantsClick = onMerchantsClick,
-                        onBudgetsClick = onBudgetsClick,
-                        onCategoryClick = onCategoryClick,
-                        showThisMonth = insightsThisMonth,
-                        onThisMonthShown = { insightsThisMonth = false },
-                    )
-
-                    Tab.PRODUCTS -> ProductListRoute(
-                        onProductClick = onProductClick,
-                        onReviewClick = onReviewClick,
-                        onCategoriesClick = onCategoriesClick,
-                        onMerchantsClick = onMerchantsClick,
-                    )
-                }
+                TabContent(
+                    tab = tab,
+                    actions = actions,
+                    showSpending = { thisMonth ->
+                        spendingThisMonth = thisMonth
+                        select(Tab.SPENDING)
+                    },
+                    spendingThisMonth = spendingThisMonth,
+                    onThisMonthShown = { spendingThisMonth = false },
+                )
             }
         }
     }
-    val scanLabel = stringResource(R.string.tab_scan)
+    val addLabel = stringResource(R.string.tab_add)
+    val add = { adding = true }
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
@@ -177,11 +145,11 @@ fun MainTabs(
                         .consumeWindowInsets(WindowInsets.navigationBars),
                 )
                 EksodaNavigationBar {
-                    TABS_BEFORE_SCAN.forEach { entry ->
+                    TABS_BEFORE_ADD.forEach { entry ->
                         TabItem(entry, selected = entry == tab) { select(entry) }
                     }
-                    ScanNavigationBarItem(label = scanLabel, onClick = onScanClick)
-                    TABS_AFTER_SCAN.forEach { entry ->
+                    AddNavigationBarItem(label = addLabel, onClick = add)
+                    TABS_AFTER_ADD.forEach { entry ->
                         TabItem(entry, selected = entry == tab) { select(entry) }
                     }
                 }
@@ -190,9 +158,7 @@ fun MainTabs(
             // The rail pads itself for the start side of the system bars.
             val railInsets = WindowInsets.systemBars.only(WindowInsetsSides.Start)
             Row(modifier = Modifier.fillMaxSize()) {
-                EksodaNavigationRail(
-                    header = { ScanButton(label = scanLabel, onClick = onScanClick) },
-                ) {
+                EksodaNavigationRail(header = { AddButton(label = addLabel, onClick = add) }) {
                     Tab.entries.forEach { entry ->
                         EksodaNavigationRailItem(
                             selected = entry == tab,
@@ -210,6 +176,70 @@ fun MainTabs(
                 )
             }
         }
+    }
+    if (adding) {
+        AddSheet(
+            onDismiss = { adding = false },
+            onScan = {
+                adding = false
+                actions.scan()
+            },
+            onByHand = {
+                adding = false
+                actions.addByHand()
+            },
+            onPaste = {
+                adding = false
+                pasting = true
+            },
+        )
+    }
+    if (pasting) {
+        PasteLinkImportDialog(
+            onDismiss = { pasting = false },
+            onViewReceipt = { receiptId ->
+                pasting = false
+                actions.openReceipt(receiptId)
+            },
+        )
+    }
+}
+
+@Composable
+private fun TabContent(
+    tab: Tab,
+    actions: MainActions,
+    showSpending: (thisMonth: Boolean) -> Unit,
+    spendingThisMonth: Boolean,
+    onThisMonthShown: () -> Unit,
+) {
+    when (tab) {
+        Tab.OVERVIEW -> HomeRoute(
+            HomeActions(
+                onBudgetClick = actions::openBudget,
+                onBillsClick = actions::openBills,
+                onCategoryClick = actions::openCategory,
+                onSpendingClick = { showSpending(true) },
+                onReviewClick = actions::openReview,
+                onImportsClick = actions::openImports,
+            ),
+        )
+
+        Tab.SPENDING -> InsightsRoute(
+            onProductClick = actions::openProduct,
+            onMerchantsClick = actions::openMerchants,
+            onBudgetsClick = actions::openBudget,
+            onCategoryClick = actions::openCategory,
+            showThisMonth = spendingThisMonth,
+            onThisMonthShown = onThisMonthShown,
+        )
+
+        Tab.PRICES -> PricesRoute(
+            onProductClick = actions::openProduct,
+            onAllProductsClick = actions::openProducts,
+        )
+
+        Tab.MORE -> MoreScreen(actions)
     }
 }
 

@@ -15,6 +15,7 @@ import io.eksoda.core.database.dao.ReceiptItemRow
 import io.eksoda.core.database.dao.ReceiptListRow
 import io.eksoda.core.database.dao.ReceiptRow
 import io.eksoda.core.database.dao.TombstoneDao
+import io.eksoda.core.database.entity.ReceiptEntity
 import io.eksoda.core.database.entity.TombstoneEntity
 import io.eksoda.core.model.DocumentKind
 import io.eksoda.core.model.ImportJob
@@ -23,6 +24,7 @@ import io.eksoda.core.model.ImportStatus
 import io.eksoda.core.model.ImportSubmission
 import io.eksoda.core.model.IssueTime
 import io.eksoda.core.model.LineType
+import io.eksoda.core.model.ManualKind
 import io.eksoda.core.model.MatchStatus
 import io.eksoda.core.model.Merchant
 import io.eksoda.core.model.Money
@@ -185,12 +187,18 @@ class ReceiptRepositoryImpl @Inject constructor(
         itemCount = itemCount,
         needsReview = needsReview,
         hasWarnings = hasWarnings,
-        fromOtherPhone = receipt.sourceUrl == null,
+        fromOtherPhone = receipt.sourceUrl == null && !isManual,
+        manual = isManual,
+        categoryKey = categoryKey,
+        issuerVat = receipt.issuerVat,
     ).toModel(zone)
+
+    private val ReceiptRow.isManual: Boolean
+        get() = receipt.origin == ReceiptEntity.ORIGIN_MANUAL
 
     private fun ReceiptListRow.toModel(zone: ZoneId): Receipt = Receipt(
         id = id,
-        merchant = Merchant(id = merchantId, name = merchantName),
+        merchant = Merchant(id = merchantId, name = merchantName, vatNumber = issuerVat),
         store = storeId?.let {
             Store(
                 id = it,
@@ -210,6 +218,8 @@ class ReceiptRepositoryImpl @Inject constructor(
         needsReview = needsReview,
         hasWarnings = hasWarnings,
         fromOtherPhone = fromOtherPhone,
+        manual = manual,
+        categoryKey = categoryKey,
     )
 
     private fun ReceiptRow.toDetail(items: List<ReceiptItemRow>, zone: ZoneId): ReceiptDetail {
@@ -239,6 +249,8 @@ class ReceiptRepositoryImpl @Inject constructor(
             providerCode = receipt.providerCode,
             parserVersion = receipt.parserVersion,
             hasLink = receipt.sourceUrl != null,
+            categoryId = receipt.categoryId,
+            manualKind = ManualKind.of(receipt.manualKind),
         )
     }
 

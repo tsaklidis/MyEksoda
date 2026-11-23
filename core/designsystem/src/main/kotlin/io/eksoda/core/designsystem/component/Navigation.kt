@@ -24,11 +24,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Inventory2
-import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -38,43 +38,40 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.eksoda.core.designsystem.theme.EksodaTheme
+import io.eksoda.core.designsystem.theme.PillShape
 
-/** How far the Scan button rises above the bar (docs/design/ui-redesign.md §3). */
-private val SCAN_LIFT = 22.dp
-private val SCAN_SIZE = 54.dp
-private val ScanShape = RoundedCornerShape(16.dp)
-private val IndicatorShape = RoundedCornerShape(8.dp)
+private val ADD_SIZE = 52.dp
+private val AddShape = CircleShape
+private val IndicatorShape = PillShape
 private val RAIL_SIDES = WindowInsetsSides.Vertical + WindowInsetsSides.Start
 
 /**
- * The bottom bar on phones (docs/design/ui-redesign.md §3): the panel color with a line on top,
- * the tabs and the raised Scan button. The strip the Scan button rises into is transparent, so
- * the bar takes its height from the layout instead of covering the content.
+ * The bottom bar on phones (docs/design/ui-redesign.md §3): docked on the panel color with a line
+ * on top, the tabs and the round Add button in the middle. Nothing is drawn under it.
  */
 @Composable
 fun EksodaNavigationBar(modifier: Modifier = Modifier, content: @Composable RowScope.() -> Unit) {
     val colors = EksodaTheme.colors
-    Box(modifier = modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.matchParentSize().padding(top = SCAN_LIFT)) {
-            HorizontalDivider(color = colors.line)
-            Spacer(modifier = Modifier.fillMaxWidth().weight(1f).background(colors.panel))
-        }
+    Column(modifier = modifier.fillMaxWidth().background(colors.panel)) {
+        HorizontalDivider(color = colors.line)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom))
-                .padding(start = 6.dp, end = 6.dp, top = 8.dp, bottom = 10.dp)
+                .padding(start = 6.dp, end = 6.dp, top = 8.dp, bottom = 8.dp)
                 .selectableGroup(),
-            verticalAlignment = Alignment.Bottom,
+            verticalAlignment = Alignment.CenterVertically,
             content = content,
         )
     }
@@ -91,14 +88,16 @@ fun RowScope.EksodaNavigationBarItem(
     NavigationItem(selected, onClick, icon, label, Modifier.weight(1f))
 }
 
-/** The raised Scan button in the middle of [EksodaNavigationBar]. */
+/** The round Add button in the middle of [EksodaNavigationBar]; [label] is read by TalkBack. */
 @Composable
-fun RowScope.ScanNavigationBarItem(label: String, onClick: () -> Unit) {
-    ScanButton(label = label, onClick = onClick, modifier = Modifier.weight(1f))
+fun RowScope.AddNavigationBarItem(label: String, onClick: () -> Unit) {
+    Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+        AddButton(label = label, onClick = onClick)
+    }
 }
 
 /**
- * The navigation rail on wide screens: the Scan button on top, then the tabs, on the panel color
+ * The navigation rail on wide screens: the Add button on top, then the tabs, on the panel color
  * with a line on the content side.
  */
 @Composable
@@ -140,46 +139,31 @@ fun ColumnScope.EksodaNavigationRailItem(
 }
 
 /**
- * The Scan action: a raised 54 dp terracotta button with a dark icon, and its label in
- * terracotta. Scan is an action, not a tab, so it is never shown as selected.
+ * The Add action: a 52 dp ink circle with a plus. It opens the ways to add (scan, by hand, a
+ * link). An action, not a tab, so it is never shown as selected; [label] is its description.
  */
 @Composable
-fun ScanButton(label: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun AddButton(label: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val colors = EksodaTheme.colors
-    Column(
-        modifier = modifier.clickable(role = Role.Button, onClick = onClick),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+    Box(
+        modifier = modifier
+            .size(ADD_SIZE)
+            .clip(AddShape)
+            .background(colors.ink)
+            .clickable(role = Role.Button, onClickLabel = label, onClick = onClick)
+            .semantics { contentDescription = label },
+        contentAlignment = Alignment.Center,
     ) {
-        Box(
-            modifier = Modifier
-                .size(SCAN_SIZE)
-                .shadow(
-                    elevation = 8.dp,
-                    shape = ScanShape,
-                    ambientColor = colors.spend,
-                    spotColor = colors.spend,
-                )
-                .background(colors.spend, ScanShape),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = Icons.Default.QrCodeScanner,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimary,
-            )
-        }
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = colors.spend,
-            maxLines = 1,
+        Icon(
+            imageVector = Icons.Default.Add,
+            contentDescription = null,
+            tint = colors.page,
+            modifier = Modifier.size(26.dp),
         )
     }
 }
 
-/** A tab: the icon in a pill (periwinkle on #1C1E33 when selected) over its label. */
+/** A tab: the icon in a pill (on the indicator color when selected) over its label. */
 @Composable
 private fun NavigationItem(
     selected: Boolean,
@@ -208,7 +192,7 @@ private fun NavigationItem(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = if (selected) colors.compareText else colors.ink2,
+                tint = if (selected) colors.ink else colors.ink2,
                 modifier = Modifier.size(22.dp),
             )
         }
@@ -235,7 +219,7 @@ private fun NavigationBarPreview() {
                     icon = Icons.AutoMirrored.Filled.ReceiptLong,
                     label = "Receipts",
                 )
-                ScanNavigationBarItem(label = "Scan", onClick = {})
+                AddNavigationBarItem(label = "Add", onClick = {})
                 EksodaNavigationBarItem(
                     selected = true,
                     onClick = {},
@@ -251,7 +235,7 @@ private fun NavigationBarPreview() {
 @Composable
 private fun NavigationRailPreview() {
     EksodaTheme {
-        EksodaNavigationRail(header = { ScanButton("Scan", {}) }) {
+        EksodaNavigationRail(header = { AddButton("Add", {}) }) {
             EksodaNavigationRailItem(true, {}, Icons.AutoMirrored.Filled.ReceiptLong, "Receipts")
             EksodaNavigationRailItem(false, {}, Icons.Outlined.Inventory2, "Products")
         }

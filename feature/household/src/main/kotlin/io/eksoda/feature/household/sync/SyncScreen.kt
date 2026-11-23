@@ -8,10 +8,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
@@ -24,7 +22,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -37,7 +34,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
@@ -51,6 +47,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import io.eksoda.core.designsystem.component.EksodaButton
 import io.eksoda.core.designsystem.component.SectionCard
+import io.eksoda.core.designsystem.component.SwitchRow
 import io.eksoda.core.designsystem.component.groupedItem
 import io.eksoda.core.designsystem.theme.EksodaTheme
 import io.eksoda.core.model.SyncEvent
@@ -201,33 +198,13 @@ private val CARD_GAP = 12.dp
 @Composable
 private fun SwitchCard(enabled: Boolean, loading: Boolean, onChange: (Boolean) -> Unit) {
     SectionCard {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 56.dp)
-                .toggleable(
-                    value = enabled,
-                    enabled = !loading,
-                    role = Role.Switch,
-                    onValueChange = onChange,
-                )
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    stringResource(R.string.sync_switch),
-                    style = MaterialTheme.typography.bodyLarge,
-                )
-                Text(
-                    stringResource(R.string.sync_switch_hint),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = EksodaTheme.colors.ink2,
-                )
-            }
-            Switch(checked = enabled, onCheckedChange = null, enabled = !loading)
-        }
+        SwitchRow(
+            label = stringResource(R.string.sync_switch),
+            supporting = stringResource(R.string.sync_switch_hint),
+            checked = enabled,
+            onCheckedChange = onChange,
+            enabled = !loading,
+        )
     }
 }
 

@@ -95,13 +95,26 @@ val OverlineStyle: TextStyle = TextStyle(
     letterSpacing = 0.1.sp,
 )
 
-/** The hero amount: Plex Mono 44 sp / 500, −1.5 tracking (§2). */
+/** The hero amount: Inter 46 sp / 600 with tabular digits, tight (§2). */
 val HeroNumberStyle: TextStyle = TextStyle(
-    fontFamily = PlexMono,
-    fontWeight = FontWeight.Medium,
-    fontSize = 44.sp,
-    lineHeight = 46.sp,
-    letterSpacing = (-1.5).sp,
+    fontFamily = Inter,
+    fontWeight = FontWeight.SemiBold,
+    fontSize = 46.sp,
+    lineHeight = 50.sp,
+    letterSpacing = (-1.4).sp,
+    fontFeatureSettings = "tnum",
+)
+
+/**
+ * A screen's display title (onboarding pages): Inter 28 sp / 600. Words in it stay in sentence
+ * case (§2).
+ */
+val DisplayTitleStyle: TextStyle = TextStyle(
+    fontFamily = Inter,
+    fontWeight = FontWeight.SemiBold,
+    fontSize = 28.sp,
+    lineHeight = 34.sp,
+    letterSpacing = (-0.5).sp,
 )
 
 /** Chart axis labels and small figures: Plex Mono 10 sp. */
@@ -113,11 +126,7 @@ val ChartLabelStyle: TextStyle = TextStyle(
 )
 
 /**
- * A number style: IBM Plex Mono, whose digits all have the same width, so amounts line up in
- * columns and do not shift while they change. Plex Mono is bundled in 400 and 500, so heavier
- * weights become 500 rather than a synthesized bold.
+ * A number style: Inter with tabular digits (all digits the same width), so amounts line up in
+ * columns and do not shift while they change.
  */
-fun TextStyle.tabular(): TextStyle = copy(
-    fontFamily = PlexMono,
-    fontWeight = fontWeight?.let { if (it > FontWeight.Medium) FontWeight.Medium else it },
-)
+fun TextStyle.tabular(): TextStyle = copy(fontFamily = Inter, fontFeatureSettings = "tnum")

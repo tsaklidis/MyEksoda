@@ -3,15 +3,7 @@
     <string name="home_greeting_morning">Καλημέρα</string>
     <string name="home_greeting_day">Καλό απόγευμα</string>
     <string name="home_greeting_evening">Καλησπέρα</string>
-    <string name="home_settings">Ρυθμίσεις</string>
 
-    <string name="home_spent_so_far">Δαπάνες %1$s μέχρι σήμερα</string>
-    <string name="home_change_less">%1$s λιγότερα</string>
-    <string name="home_change_more">%1$s περισσότερα</string>
-    <string name="home_change_same">Ίδια ποσά</string>
-    <string name="home_change_than">σε σχέση με το διάστημα ως τις %1$s (%2$s)</string>
-    <string name="home_change_first">Πρώτος μήνας με αποδείξεις</string>
-    <string name="home_change_nothing_before">Καμία δαπάνη ως τις %1$s τον προηγούμενο μήνα</string>
 
     <plurals name="home_to_match">
         <item quantity="one">%d είδος για αντιστοίχιση</item>
@@ -22,20 +14,80 @@
         <item quantity="one">%d απόδειξη σε εισαγωγή…</item>
         <item quantity="other">%d αποδείξεις σε εισαγωγή…</item>
     </plurals>
-    <plurals name="home_budgets_over">
-        <item quantity="one">Ξεπεράστηκε %d προϋπολογισμός</item>
-        <item quantity="other">Ξεπεράστηκαν %d προϋπολογισμοί</item>
-    </plurals>
-    <string name="home_budgets_over_body">Δείτε ποιοι στα Στατιστικά</string>
     <string name="home_importing_body">Θα εμφανιστούν εδώ μόλις ολοκληρωθούν</string>
 
-    <string name="home_where_it_went">Πού πήγαν τα χρήματα</string>
-    <string name="home_all_categories">Όλες οι κατηγορίες</string>
-    <string name="home_recent">Πρόσφατες αποδείξεις</string>
-    <string name="home_see_all">Όλες</string>
+    <string name="home_all_categories">Όλες ›</string>
 
     <string name="home_empty_title">Καμία απόδειξη ακόμη</string>
     <string name="home_empty_body">Σαρώστε τον κωδικό QR στο κάτω μέρος μιας απόδειξης για να ξεκινήσετε.</string>
     <string name="home_failed">Ορισμένα στοιχεία δεν φόρτωσαν.</string>
     <string name="home_retry">Δοκιμάστε ξανά</string>
+    <string name="home_title">Σύνοψη</string>
+    <string name="home_budget">Προϋπολογισμός</string>
+    <string name="home_month_over">%1$s, πάνω από τον προϋπολογισμό</string>
+    <string name="home_everyday_so_far">Καθημερινά έξοδα · %1$s μέχρι τώρα</string>
+    <string name="home_everyday">Καθημερινά έξοδα · %1$s</string>
+    <string name="home_badge_over">Πάνω</string>
+    <string name="home_badge_on_track">Εντός</string>
+    <string name="home_badge_within">Εντός</string>
+    <string name="home_spent_word">ξοδεύτηκαν</string>
+    <string name="home_left_word">απομένουν</string>
+    <string name="home_over_word">πάνω</string>
+    <string name="home_set_budget">Ορίστε μηνιαίο προϋπολογισμό ›</string>
+    <string name="home_of">%1$s από %2$s</string>
+    <string name="home_budget_default">Κανονικός ›</string>
+    <string name="home_budget_changed">Άλλαξε αυτόν τον μήνα ›</string>
+    <string name="home_per_day">Περίπου %1$s τη μέρα για τον υπόλοιπο μήνα.</string>
+    <string name="home_bills">Λογαριασμοί</string>
+    <string name="home_bills_none">Ενοίκιο, ρεύμα, νερό: προσθέστε τους χωριστά</string>
+    <plurals name="home_bills_to_enter">
+        <item quantity="one">%d λογαριασμός μένει να μπει</item>
+        <item quantity="other">%d λογαριασμοί μένουν να μπουν</item>
+    </plurals>
+    <plurals name="home_bills_count">
+        <item quantity="one">%d λογαριασμός</item>
+        <item quantity="other">%d λογαριασμοί</item>
+    </plurals>
+    <string name="home_categories">Κατηγορίες</string>
+    <string name="home_limit_left">Όριο %1$s · απομένουν %2$s</string>
+    <string name="home_limit_over">Όριο %1$s · %2$s πάνω</string>
+    <string name="bills_title">Λογαριασμοί</string>
+    <string name="bills_back">Πίσω</string>
+    <string name="bills_add">Νέος λογαριασμός</string>
+    <string name="bills_save_failed">Η αλλαγή δεν αποθηκεύτηκε.</string>
+    <string name="bills_empty">Προσθέστε ενοίκιο, ρεύμα, νερό, internet, κινητά: ό,τι πληρώνετε κάθε μήνα. Μετράνε χωριστά από τα καθημερινά έξοδα.</string>
+    <string name="bills_note_current">Πατήστε ένα ποσό για να το αλλάξετε μόνο αυτόν τον μήνα, ή ένα όνομα για να αλλάξετε τον λογαριασμό.</string>
+    <string name="bills_note_past">Οι σταθεροί κρατούν το ποσό που είχαν τότε. Οι μεταβλητοί κρατούν ό,τι είχατε βάλει.</string>
+    <string name="bills_month_current">%1$s · αυτός ο μήνας</string>
+    <string name="bills_month_past">%1$s · κλειστός</string>
+    <string name="bills_past_kept">Οι παλιοί μήνες μένουν όπως ήταν και δεν αλλάζουν.</string>
+    <plurals name="bills_to_enter">
+        <item quantity="one">%d λογαριασμός μένει να μπει</item>
+        <item quantity="other">%d λογαριασμοί μένουν να μπουν</item>
+    </plurals>
+    <string name="bills_none_yet">Κανένας λογαριασμός ακόμη</string>
+    <string name="bills_all_in">Μπήκαν όλοι οι λογαριασμοί</string>
+    <string name="bills_kind_variable">Μεταβλητός · τον βάζετε κάθε μήνα</string>
+    <string name="bills_kind_fixed">Σταθερός · %1$s κάθε μήνα</string>
+    <string name="bills_kind_changed">Σταθερός %1$s · άλλο ποσό αυτόν τον μήνα</string>
+    <string name="bills_not_entered">δεν μπήκε</string>
+    <string name="bills_enter">Βάλτε ποσό</string>
+    <string name="bills_change">αλλαγή ποσού</string>
+    <string name="bills_amount_fixed">Μόνο αυτόν τον μήνα (%1$s)</string>
+    <string name="bills_amount_variable">Το ποσό αυτού του μήνα (%1$s)</string>
+    <string name="bills_new">Νέος λογαριασμός</string>
+    <string name="bills_edit">Λογαριασμός</string>
+    <string name="bills_name">Όνομα</string>
+    <string name="bills_name_hint">π.χ. Ενοίκιο, Ρεύμα, Γυμναστήριο</string>
+    <string name="bills_kind_question">Αλλάζει το ποσό;</string>
+    <string name="bills_fixed">Σταθερός</string>
+    <string name="bills_fixed_hint">Ίδιο ποσό κάθε μήνα, όπως το ενοίκιο. Μπορείτε να το αλλάξετε για τον τρέχοντα μήνα.</string>
+    <string name="bills_variable">Μεταβλητός</string>
+    <string name="bills_variable_hint">Διαφορετικός κάθε μήνα, όπως το ρεύμα. Βάζετε το ποσό κάθε μήνα.</string>
+    <string name="bills_every_month">Κάθε μήνα</string>
+    <string name="bills_usually">Συνήθως περίπου (προαιρετικό)</string>
+    <string name="bills_from_now_on">Από αυτόν τον μήνα. Οι παλιοί μήνες κρατούν ό,τι είχαν.</string>
+    <string name="bills_usually_hint">Μόνο για εκτίμηση: μετράει ό,τι βάζετε κάθε μήνα.</string>
+    <string name="bills_save">Αποθήκευση</string>
+    <string name="bills_remove">Τέλος αυτού του λογαριασμού</string>
 </resources>

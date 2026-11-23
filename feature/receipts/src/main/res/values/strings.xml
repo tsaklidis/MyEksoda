@@ -134,4 +134,26 @@
     <string name="swipe_deleted">Η απόδειξη διαγράφηκε</string>
     <string name="undo">Αναίρεση</string>
     <string name="receipts_title">Αποδείξεις</string>
+    <string name="manual_edit">Επεξεργασία</string>
+    <string name="detail_manual">Το προσθέσατε με το χέρι. Δεν έχει γραμμές προϊόντων.</string>
+    <string name="manual_by_hand">Με το χέρι</string>
+    <string name="manual_title">Με το χέρι</string>
+    <string name="manual_edit_title">Επεξεργασία εξόδου</string>
+    <string name="manual_save_failed">Το έξοδο δεν αποθηκεύτηκε.</string>
+    <string name="manual_amount">Ποσό</string>
+    <string name="manual_kind_product">Προϊόν</string>
+    <string name="manual_kind_service">Υπηρεσία</string>
+    <string name="manual_kind_other">Άλλο</string>
+    <string name="manual_product_label">Τι αγοράσατε;</string>
+    <string name="manual_product_hint">π.χ. παπούτσια, ένα δώρο, ανταλλακτικά</string>
+    <string name="manual_service_label">Ποιος έκανε τη δουλειά;</string>
+    <string name="manual_service_hint">π.χ. οδοντίατρος, υδραυλικός, κομμωτήριο</string>
+    <string name="manual_other_label">Τι ήταν;</string>
+    <string name="manual_other_hint">Ό,τι θέλετε, με δικά σας λόγια</string>
+    <string name="manual_category">Κατηγορία (προαιρετικό)</string>
+    <string name="manual_all_categories">Όλες οι κατηγορίες</string>
+    <string name="manual_change_date">Αλλαγή</string>
+    <string name="manual_save">Αποθήκευση</string>
+    <string name="manual_date_ok">ΟΚ</string>
+    <string name="manual_date_cancel">Άκυρο</string>
 </resources>

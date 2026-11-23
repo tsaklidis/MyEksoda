@@ -6,10 +6,17 @@
     <string name="settings_language_greek">Ελληνικά</string>
     <string name="settings_language_english">English</string>
     <string name="settings_language_system">Γλώσσα συστήματος</string>
+    <string name="settings_theme">Εμφάνιση</string>
+    <string name="settings_theme_light">Φωτεινή</string>
+    <string name="settings_theme_dark">Σκοτεινή</string>
+    <string name="settings_theme_system">Όπως το τηλέφωνο</string>
     <string name="settings_preferences">Προτιμήσεις</string>
     <string name="settings_cancel">Ακύρωση</string>
     <string name="settings_notify_imports">Ειδοποιήσεις εισαγωγής</string>
     <string name="settings_notify_imports_hint">Όταν ολοκληρώνεται η εισαγωγή μιας απόδειξης ενώ η εφαρμογή είναι κλειστή. Ο σύνδεσμος της απόδειξης δεν εμφανίζεται ποτέ.</string>
+    <string name="settings_hide_content">Απόκρυψη περιεχομένου</string>
+    <string name="settings_hide_content_hint">Χωρίς στιγμιότυπα και εγγραφή οθόνης· στις πρόσφατες εφαρμογές η Eksoda εμφανίζεται κενή.</string>
+    <string name="settings_save_failed">Η ρύθμιση δεν αποθηκεύτηκε. Δοκιμάστε ξανά.</string>
     <string name="settings_catalog">Οργάνωση</string>
     <string name="settings_categories">Κατηγορίες</string>
     <string name="settings_merchants">Καταστήματα</string>
@@ -91,4 +98,26 @@
         <item quantity="one">%1$d κατάστημα</item>
         <item quantity="other">%1$d καταστήματα</item>
     </plurals>
+    <string name="more_title">Περισσότερα</string>
+    <string name="more_money">Τα χρήματά σας</string>
+    <string name="more_catalog">Τι ξέρει το Eksoda</string>
+    <string name="more_app">Η εφαρμογή</string>
+    <string name="more_receipts">Αποδείξεις</string>
+    <string name="more_receipts_hint">Όλες, σαρωμένες και με το χέρι</string>
+    <string name="more_budget">Προϋπολογισμός</string>
+    <string name="more_budget_hint">Πόσα θέλετε να ξοδεύετε τον μήνα</string>
+    <string name="more_bills">Λογαριασμοί</string>
+    <string name="more_bills_hint">Ενοίκιο, ρεύμα, νερό, internet</string>
+    <string name="more_products">Προϊόντα</string>
+    <string name="more_products_hint">Κάθε προϊόν και οι τιμές του</string>
+    <string name="more_categories">Κατηγορίες</string>
+    <string name="more_categories_hint">Οι δικές σας και οι έτοιμες</string>
+    <string name="more_merchants">Καταστήματα</string>
+    <string name="more_merchants_hint">Πού ψωνίζετε</string>
+    <string name="more_imports">Εισαγωγές</string>
+    <string name="more_imports_hint">Αποδείξεις που διαβάζονται τώρα</string>
+    <string name="more_sync">Συγχρονισμός νοικοκυριού</string>
+    <string name="more_sync_hint">Μοιραστείτε τα έξοδα με τα κινητά του σπιτιού</string>
+    <string name="more_settings">Ρυθμίσεις</string>
+    <string name="more_settings_hint">Γλώσσα, θέμα, αντίγραφα ασφαλείας</string>
 </resources>

@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -86,6 +87,7 @@ fun ProductListRoute(
     onReviewClick: () -> Unit,
     onCategoriesClick: () -> Unit,
     onMerchantsClick: () -> Unit,
+    onBack: (() -> Unit)? = null,
     viewModel: ProductListViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -110,6 +112,7 @@ fun ProductListRoute(
         onCategoriesClick = onCategoriesClick,
         onMerchantsClick = onMerchantsClick,
         onCreateClick = { creating = true },
+        onBack = onBack,
     )
     if (creating) {
         ProductFormSheet(
@@ -143,6 +146,7 @@ fun ProductListScreen(
     onCategoriesClick: () -> Unit,
     onMerchantsClick: () -> Unit,
     onCreateClick: () -> Unit,
+    onBack: (() -> Unit)? = null,
 ) {
     // The search text lives here while it is typed; the ViewModel debounces it.
     var query by rememberSaveable { mutableStateOf("") }
@@ -157,9 +161,16 @@ fun ProductListScreen(
         topBar = {
             LargeTopAppBar(
                 title = { Text(stringResource(R.string.products_title)) },
+                navigationIcon = {
+                    if (onBack != null) {
+                        IconButton(onClick = onBack) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
+                        }
+                    }
+                },
                 scrollBehavior = scrollBehavior,
                 actions = {
-                    // Items to match are attention items: terracotta, never red (ui-redesign.md §1).
+                    // Items to match are attention items: ink, never red (ui-redesign.md §1).
                     val badgeColor = EksodaTheme.colors.spend
                     IconButton(onClick = onReviewClick) {
                         BadgedBox(

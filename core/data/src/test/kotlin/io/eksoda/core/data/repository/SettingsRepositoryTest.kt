@@ -1,6 +1,5 @@
 package io.eksoda.core.data.repository
 
-import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
@@ -26,10 +25,9 @@ class SettingsRepositoryTest {
     private val scope = CoroutineScope(SupervisorJob() + dispatcher)
 
     private val settings by lazy {
+        // The app's own DataStore setup (AppModule), so its corruption handling is tested too.
         SettingsRepositoryImpl(
-            PreferenceDataStoreFactory.create(scope = scope) {
-                folder.root.resolve("settings.preferences_pb")
-            },
+            settingsDataStore(scope) { folder.root.resolve("settings.preferences_pb") },
         )
     }
 
@@ -46,6 +44,17 @@ class SettingsRepositoryTest {
         assertThat(settings.notifyImports.first()).isTrue()
         settings.setNotifyImports(false)
         assertThat(settings.notifyImports.first()).isFalse()
+    }
+
+    @Test
+    fun `hiding the app's content is off until turned on`() = runTest {
+        assertThat(settings.hideContent.first()).isFalse()
+        settings.setHideContent(true)
+        assertThat(settings.hideContent.first()).isTrue()
+        // Its own preference: import notifications are left as they were.
+        assertThat(settings.notifyImports.first()).isFalse()
+        settings.setHideContent(false)
+        assertThat(settings.hideContent.first()).isFalse()
     }
 
     @Test

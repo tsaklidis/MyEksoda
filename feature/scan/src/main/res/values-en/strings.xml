@@ -48,4 +48,6 @@
     <string name="imports_retry_failed">The import couldn\'t be restarted.</string>
     <string name="imports_empty_hint">Receipts you scan, paste or share show up here while they import.</string>
     <string name="scan_camera_settings">Open settings</string>
+    <string name="paste_hint">From the email or message with the e-receipt.</string>
+    <string name="paste_not_a_link">That doesn\'t look like a receipt link.</string>
 </resources>

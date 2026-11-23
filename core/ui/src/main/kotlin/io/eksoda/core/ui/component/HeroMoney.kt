@@ -13,7 +13,7 @@ import io.eksoda.core.ui.text.formatAmount
 
 /**
  * A hero amount: "342,60" in IBM Plex Mono with "€" (or [unit], "€ / l") after it, smaller
- * (docs/design/ui-redesign.md §3). Terracotta for spending; periwinkle for a unit price.
+ * (docs/design/ui-redesign.md §3). Ink for spending; blue for a unit price.
  */
 @Composable
 fun HeroMoney(

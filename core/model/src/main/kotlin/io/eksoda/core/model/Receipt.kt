@@ -25,9 +25,19 @@ public data class Receipt(
      * The lists mark it; the detail explains it.
      */
     val fromOtherPhone: Boolean = false,
+    /** Typed in by hand (rent, the doctor, a paper receipt): no lines and no link. */
+    val manual: Boolean = false,
+    /**
+     * The receipt's own category, a manual expense's: a system category's slug or a household
+     * category's name (core:ui `categoryName(key)`). Null on imported receipts.
+     */
+    val categoryKey: String? = null,
 )
 
-public data class Merchant(val id: String, val name: String)
+/**
+ * A shop. [vatNumber] (ΑΦΜ) picks its logo when the app has one; null where it is not read.
+ */
+public data class Merchant(val id: String, val name: String, val vatNumber: String? = null)
 
 public data class Store(
     val id: String,
@@ -128,6 +138,10 @@ public data class ReceiptDetail(
      * The link itself is never in the model.
      */
     val hasLink: Boolean = true,
+    /** A manual expense's category id, for editing it; null on imported receipts. */
+    val categoryId: String? = null,
+    /** What a manual expense was; null on imported receipts. */
+    val manualKind: ManualKind? = null,
 )
 
 /** A choice in a filter or picker. */

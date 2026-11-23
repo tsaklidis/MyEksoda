@@ -46,7 +46,8 @@ class AutoCategoryBackfill @Inject constructor(
         preferences.edit { it[DONE_KEY] = VERSION }
     }
 
-    private companion object {
+    // Internal: an unreadable settings file counts the backfill as done (safePreferences).
+    internal companion object {
         /** 1: product names (2026-11-16). 2: merchant activity, brands, eating out (2026-11-17). */
         const val VERSION = 2
         val DONE_KEY = intPreferencesKey("auto_category_backfill_version")

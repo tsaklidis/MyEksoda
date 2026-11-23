@@ -16,9 +16,9 @@ import io.eksoda.core.designsystem.theme.EksodaTheme
 import io.eksoda.core.designsystem.theme.HeroNumberStyle
 
 /**
- * The big number of a card (docs/design/ui-redesign.md §3): [number] in IBM Plex Mono 44 sp, then
- * its [unit] smaller in ink-2 ("342,60" "€", "1,29" "€ / l"). Terracotta ([color] default) for
- * spending, periwinkle for a unit price. Read aloud as one phrase.
+ * The big number of a card (docs/design/ui-redesign.md §3): [number] in the hero style, then
+ * its [unit] smaller in ink-2 ("342,60" "€", "1,29" "€ / l"). Ink ([color] default) for spending,
+ * blue for a unit price. Read aloud as one phrase.
  */
 @Composable
 fun HeroAmount(

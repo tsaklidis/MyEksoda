@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -26,8 +27,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import io.eksoda.R
+import io.eksoda.core.model.Period
 import io.eksoda.core.ui.motion.LocalNavAnimatedVisibilityScope
 import io.eksoda.core.ui.motion.LocalSharedTransitionScope
+import io.eksoda.feature.home.bills.BillsRoute
 import io.eksoda.feature.household.sync.SyncRoute
 import io.eksoda.feature.insights.budgets.BudgetsRoute
 import io.eksoda.feature.insights.category.CategoryDetailRoute
@@ -36,8 +39,11 @@ import io.eksoda.feature.products.catalog.CategoriesRoute
 import io.eksoda.feature.products.catalog.MerchantDetailRoute
 import io.eksoda.feature.products.catalog.MerchantsRoute
 import io.eksoda.feature.products.detail.ProductDetailRoute
+import io.eksoda.feature.products.list.ProductListRoute
 import io.eksoda.feature.products.review.ReviewRoute
 import io.eksoda.feature.receipts.detail.ReceiptDetailRoute
+import io.eksoda.feature.receipts.list.ReceiptListRoute
+import io.eksoda.feature.receipts.manual.ManualExpenseRoute
 import io.eksoda.feature.scan.ScanRoute
 import io.eksoda.feature.scan.imports.ImportListRoute
 import io.eksoda.feature.scan.share.ShareImportDialog
@@ -73,6 +79,7 @@ private fun MainNavHost(launch: AppLaunch?, onLaunchHandled: () -> Unit) {
     val openReceipt: (String) -> Unit = { navController.navigate(ReceiptDetailDestination(it)) }
     val openProduct: (String) -> Unit = { navController.navigate(ProductDetailDestination(it)) }
     val back: () -> Unit = { navController.navigateUp() }
+    val actions = remember(navController) { NavActions(navController) }
 
     // Shared elements (the merchant name and total) travel from a receipt row to its detail.
     SharedTransitionLayout {
@@ -80,27 +87,27 @@ private fun MainNavHost(launch: AppLaunch?, onLaunchHandled: () -> Unit) {
             NavHost(navController = navController, startDestination = MainDestination) {
                 composable<MainDestination> {
                     WithNavAnimation {
-                        MainTabs(
+                        MainTabs(actions)
+                    }
+                }
+                composable<ReceiptsDestination> {
+                    WithNavAnimation {
+                        ReceiptListRoute(
                             onReceiptClick = openReceipt,
                             onScanClick = { navController.navigate(ScanDestination) },
                             onImportsClick = { navController.navigate(ImportsDestination) },
-                            onProductClick = openProduct,
-                            onReviewClick = { navController.navigate(ReviewDestination) },
-                            onCategoriesClick = { navController.navigate(CategoriesDestination) },
-                            onMerchantsClick = { navController.navigate(MerchantsDestination) },
-                            onSettingsClick = { navController.navigate(SettingsDestination) },
-                            onBudgetsClick = { navController.navigate(BudgetsDestination) },
-                            onCategoryClick = { categoryId, period ->
-                                navController.navigate(
-                                    CategoryDetailDestination(
-                                        categoryId = categoryId,
-                                        from = period.start.toString(),
-                                        to = period.end.toString(),
-                                    ),
-                                )
-                            },
+                            onBack = back,
                         )
                     }
+                }
+                composable<ProductsDestination> {
+                    ProductListRoute(
+                        onProductClick = openProduct,
+                        onReviewClick = { navController.navigate(ReviewDestination) },
+                        onCategoriesClick = { navController.navigate(CategoriesDestination) },
+                        onMerchantsClick = { navController.navigate(MerchantsDestination) },
+                        onBack = back,
+                    )
                 }
                 composable<SettingsDestination> {
                     SettingsRoute(
@@ -112,7 +119,13 @@ private fun MainNavHost(launch: AppLaunch?, onLaunchHandled: () -> Unit) {
                     )
                 }
                 composable<SyncDestination> { SyncRoute(onBack = back) }
-                composable<BudgetsDestination> { BudgetsRoute(onBack = back) }
+                composable<BudgetsDestination> {
+                    BudgetsRoute(onBack = back, onBillsClick = actions::openBills)
+                }
+                composable<BillsDestination> { BillsRoute(onBack = back) }
+                composable<ManualExpenseDestination> {
+                    ManualExpenseRoute(onBack = back, onSaved = back)
+                }
                 composable<CategoryDetailDestination> {
                     CategoryDetailRoute(
                         onBack = back,
@@ -126,6 +139,7 @@ private fun MainNavHost(launch: AppLaunch?, onLaunchHandled: () -> Unit) {
                     WithNavAnimation {
                         ReceiptDetailRoute(
                             onBack = back,
+                            onEditManual = { navController.navigate(ManualExpenseDestination(it)) },
                             onProductClick = openProduct,
                             onMerchantClick = {
                                 navController.navigate(MerchantDetailDestination(it))
@@ -211,4 +225,43 @@ private fun DataUnavailable() {
             )
         }
     }
+}
+
+/** The tabs' way out: each opens its screen over them. */
+private class NavActions(private val nav: NavHostController) : MainActions {
+    override fun openReceipt(receiptId: String) = nav.navigate(ReceiptDetailDestination(receiptId))
+
+    override fun openProduct(productId: String) = nav.navigate(ProductDetailDestination(productId))
+
+    override fun scan() = nav.navigate(ScanDestination)
+
+    override fun addByHand() = nav.navigate(ManualExpenseDestination())
+
+    override fun openReview() = nav.navigate(ReviewDestination)
+
+    override fun openCategory(categoryId: String?, period: Period) = nav.navigate(
+        CategoryDetailDestination(
+            categoryId = categoryId,
+            from = period.start.toString(),
+            to = period.end.toString(),
+        ),
+    )
+
+    override fun openReceipts() = nav.navigate(ReceiptsDestination)
+
+    override fun openBudget() = nav.navigate(BudgetsDestination)
+
+    override fun openBills() = nav.navigate(BillsDestination)
+
+    override fun openProducts() = nav.navigate(ProductsDestination)
+
+    override fun openCategories() = nav.navigate(CategoriesDestination)
+
+    override fun openMerchants() = nav.navigate(MerchantsDestination)
+
+    override fun openImports() = nav.navigate(ImportsDestination)
+
+    override fun openSync() = nav.navigate(SyncDestination)
+
+    override fun openSettings() = nav.navigate(SettingsDestination)
 }

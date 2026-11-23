@@ -59,6 +59,6 @@
     <string name="amount_cancel">Cancel</string>
 
     <string name="income_title">Annual income</string>
-    <string name="income_hint">Your income from salary, pension or business for this tax year, used only for the e-payment target in Insights. The target is an estimate: each spouse has their own, it drops to 20% when tax, ENFIA, loans and rent take more than 60% of the income, and some people (for example those over 70) have none. It stays encrypted on this phone.</string>
+    <string name="income_hint">Your income from salary, pension or business for this tax year, used only for the e-payment target in Spending. The target is an estimate: each spouse has their own, it drops to 20% when tax, ENFIA, loans and rent take more than 60% of the income, and some people (for example those over 70) have none. It stays encrypted on this phone.</string>
     <string name="income_save_failed">The income was not saved. Please try again.</string>
 </resources>

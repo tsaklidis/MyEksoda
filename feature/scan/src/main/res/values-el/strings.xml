@@ -48,4 +48,6 @@
     <string name="imports_retry_failed">Δεν ήταν δυνατή η επανεκκίνηση της εισαγωγής.</string>
     <string name="imports_empty_hint">Οι αποδείξεις που σαρώνετε, επικολλάτε ή κοινοποιείτε εμφανίζονται εδώ όσο εισάγονται.</string>
     <string name="scan_camera_settings">Άνοιγμα ρυθμίσεων</string>
+    <string name="paste_hint">Από το email ή το μήνυμα με την ηλεκτρονική απόδειξη.</string>
+    <string name="paste_not_a_link">Δεν μοιάζει με σύνδεσμο απόδειξης.</string>
 </resources>

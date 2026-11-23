@@ -9,6 +9,14 @@ interface SettingsRepository {
 
     suspend fun setNotifyImports(enabled: Boolean)
 
+    /**
+     * Hide the app's content from screenshots, screen recording and the recent apps screen
+     * (the window is secure). About this phone only: never synced or backed up. Off by default.
+     */
+    val hideContent: Flow<Boolean>
+
+    suspend fun setHideContent(enabled: Boolean)
+
     /** The Insights cards the user folded, by key; all are open by default. */
     val foldedInsightsCards: Flow<Set<String>>
 
