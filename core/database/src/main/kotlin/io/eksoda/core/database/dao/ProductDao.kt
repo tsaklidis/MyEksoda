@@ -55,6 +55,20 @@ data class PriceRow(
     @ColumnInfo(name = "normalized_unit_price_e4") val normalizedUnitPriceE4: Long?,
 )
 
+/** One priced product line for the Prices tab ([ProductDao.observePricesSince]). */
+data class BoardRow(
+    @ColumnInfo(name = "product_id") val productId: String,
+    @ColumnInfo(name = "product_name") val productName: String,
+    @ColumnInfo(name = "merchant_id") val merchantId: String,
+    @ColumnInfo(name = "merchant_name") val merchantName: String,
+    @ColumnInfo(name = "vat_number") val vatNumber: String,
+    @ColumnInfo(name = "issued_local_date") val issuedLocalDate: String,
+    val currency: String,
+    @ColumnInfo(name = "normalized_unit") val normalizedUnit: String,
+    @ColumnInfo(name = "normalized_unit_price_e4") val normalizedUnitPriceE4: Long,
+    @ColumnInfo(name = "normalized_quantity_e6") val normalizedQuantityE6: Long,
+)
+
 /** A product without a category, with the default category of the merchant it came from. */
 data class UncategorizedRow(
     val id: String,
@@ -168,6 +182,24 @@ interface ProductDao {
            ORDER BY r.issued_at DESC, i.line_number DESC""",
     )
     fun observePrices(productId: String): Flow<List<PriceRow>>
+
+    /**
+     * Every priced product line from [start] ("YYYY-MM-DD") on, for the Prices tab: the same
+     * lines as [observePrices], of receipts that count in the statistics.
+     */
+    @Query(
+        """SELECT i.product_id, p.name AS product_name, r.merchant_id,
+                m.display_name AS merchant_name, m.vat_number, r.issued_local_date, r.currency,
+                i.normalized_unit, i.normalized_unit_price_e4, i.normalized_quantity_e6
+           FROM receipt_item i JOIN receipt r ON r.id = i.receipt_id
+           JOIN merchant m ON m.id = r.merchant_id JOIN product p ON p.id = i.product_id
+           WHERE r.issued_local_date >= :start AND i.line_type = 'product'
+           AND i.normalized_unit IS NOT NULL AND i.normalized_unit_price_e4 > 0
+           AND i.normalized_quantity_e6 > 0 AND i.gross_amount_minor > 0
+           AND r.status = 'active' AND r.document_kind = 'sale'
+           AND r.excluded_from_analytics = 0""",
+    )
+    fun observePricesSince(start: String): Flow<List<BoardRow>>
 
     // --- mappings ---------------------------------------------------------------------------
 

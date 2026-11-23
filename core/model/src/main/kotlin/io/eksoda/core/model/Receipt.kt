@@ -34,7 +34,10 @@ public data class Receipt(
     val categoryKey: String? = null,
 )
 
-public data class Merchant(val id: String, val name: String)
+/**
+ * A shop. [vatNumber] (ΑΦΜ) picks its logo when the app has one; null where it is not read.
+ */
+public data class Merchant(val id: String, val name: String, val vatNumber: String? = null)
 
 public data class Store(
     val id: String,

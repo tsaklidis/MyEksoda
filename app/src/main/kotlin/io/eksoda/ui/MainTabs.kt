@@ -46,7 +46,7 @@ import io.eksoda.core.model.Period
 import io.eksoda.feature.home.HomeActions
 import io.eksoda.feature.home.HomeRoute
 import io.eksoda.feature.insights.InsightsRoute
-import io.eksoda.feature.products.list.ProductListRoute
+import io.eksoda.feature.products.prices.PricesRoute
 import io.eksoda.feature.scan.share.PasteLinkImportDialog
 import io.eksoda.feature.settings.more.MoreActions
 import io.eksoda.feature.settings.more.MoreScreen
@@ -234,11 +234,9 @@ private fun TabContent(
             onThisMonthShown = onThisMonthShown,
         )
 
-        Tab.PRICES -> ProductListRoute(
+        Tab.PRICES -> PricesRoute(
             onProductClick = actions::openProduct,
-            onReviewClick = actions::openReview,
-            onCategoriesClick = actions::openCategories,
-            onMerchantsClick = actions::openMerchants,
+            onAllProductsClick = actions::openProducts,
         )
 
         Tab.MORE -> MoreScreen(actions)

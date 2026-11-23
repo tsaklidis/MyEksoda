@@ -170,4 +170,33 @@
     <string name="error_too_many_products">Συγχωνεύστε έως 50 προϊόντα κάθε φορά.</string>
     <string name="error_not_found">Δεν υπάρχει πια.</string>
     <string name="error_save_failed">Η αποθήκευση απέτυχε. Δοκιμάστε ξανά.</string>
+    <string name="prices_title">Τιμές</string>
+    <string name="prices_all_products">Όλα τα προϊόντα</string>
+    <string name="prices_failed">Οι τιμές δεν φορτώθηκαν.</string>
+    <string name="prices_story">Αγοράζοντας κάθε προϊόν εκεί που κοστίζει λιγότερο, θα γλιτώνατε περίπου %1$s.</string>
+    <plurals name="prices_source">
+        <item quantity="one">Από τις αποδείξεις σας των τελευταίων 3 μηνών · %d κατάστημα</item>
+        <item quantity="other">Από τις αποδείξεις σας των τελευταίων 3 μηνών · %d καταστήματα</item>
+    </plurals>
+    <string name="prices_by_product">Ανά προϊόν</string>
+    <string name="prices_by_shop">Ανά κατάστημα</string>
+    <string name="prices_trends">Τάσεις</string>
+    <string name="prices_empty_title">Τίποτα για σύγκριση ακόμη</string>
+    <string name="prices_empty_body">Σαρώστε αποδείξεις από δύο ή περισσότερα σούπερ μάρκετ: ό,τι αγοράζετε και στα δύο θα εμφανιστεί εδώ.</string>
+    <string name="prices_per_unit">%1$s/%2$s</string>
+    <string name="prices_cheapest_at">Φθηνότερο: %1$s %2$s</string>
+    <string name="prices_save">−%1$s</string>
+    <plurals name="prices_shop_cheapest">
+        <item quantity="one">Φθηνότερο σε %1$d προϊόν · γλιτώνετε %2$s</item>
+        <item quantity="other">Φθηνότερο σε %1$d προϊόντα · γλιτώνετε %2$s</item>
+    </plurals>
+    <string name="prices_trends_empty_title">Καμία τάση ακόμη</string>
+    <string name="prices_trends_empty_body">Οι τάσεις συγκρίνουν τον τελευταίο μήνα με τον προηγούμενο. Χρειάζονται αγορές του ίδιου προϊόντος και στους δύο.</string>
+    <string name="prices_trends_shops">Καταστήματα</string>
+    <string name="prices_trends_products">Προϊόντα</string>
+    <plurals name="prices_trend_products">
+        <item quantity="one">σε %d προϊόν</item>
+        <item quantity="other">σε %d προϊόντα</item>
+    </plurals>
+    <string name="prices_trend_from_to">%1$s → %2$s</string>
 </resources>
