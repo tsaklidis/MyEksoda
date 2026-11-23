@@ -166,9 +166,8 @@ private class FakeSettings : SettingsRepository {
 }
 
 /** No household yet: these tests are about the preferences only. */
-private class FakeHouseholds(
-    override val household: Flow<Household?> = flowOf(null),
-) : HouseholdRepository {
+private class FakeHouseholds(override val household: Flow<Household?> = flowOf(null)) :
+    HouseholdRepository {
 
     override suspend fun createHousehold(
         name: String,

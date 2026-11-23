@@ -61,7 +61,9 @@ class SettingsDataStoreTest {
             assertThat(settings.hideContent.first()).isTrue()
             assertThat(settings.notifyImports.first()).isFalse()
             val stored = preferences.data.first()
-            assertThat(stored[AutoCategoryBackfill.DONE_KEY]).isEqualTo(AutoCategoryBackfill.VERSION)
+            assertThat(
+                stored[AutoCategoryBackfill.DONE_KEY],
+            ).isEqualTo(AutoCategoryBackfill.VERSION)
             // Household sync is off until the user turns it back on: no network meanwhile.
             assertThat(stored[SyncPreferences.ENABLED]).isNull()
         }

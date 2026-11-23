@@ -22,11 +22,11 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.io.IOException
 import java.math.BigDecimal
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
-import java.io.IOException
 import javax.inject.Inject
 
 data class SettingsUiState(
@@ -142,7 +142,9 @@ class SettingsViewModel @Inject constructor(
 
     fun onEvent(event: SettingsEvent) {
         when (event) {
-            is SettingsEvent.NotifyImportsChanged -> save { settings.setNotifyImports(event.enabled) }
+            is SettingsEvent.NotifyImportsChanged -> save {
+                settings.setNotifyImports(event.enabled)
+            }
 
             is SettingsEvent.HideContentChanged -> save { settings.setHideContent(event.enabled) }
 

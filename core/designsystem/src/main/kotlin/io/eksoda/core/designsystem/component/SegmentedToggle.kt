@@ -71,7 +71,11 @@ fun SegmentedToggle(
             .border(1.dp, colors.line, ButtonShape)
             .padding(WellPadding)
             .selectableGroup()
-        val segment: @Composable (Int, String, Modifier) -> Unit = { index, option, segmentModifier ->
+        val segment: @Composable (
+            Int,
+            String,
+            Modifier,
+        ) -> Unit = { index, option, segmentModifier ->
             Segment(
                 label = option,
                 selected = index == selectedIndex,
@@ -117,7 +121,13 @@ private fun Segment(
                 },
             )
             .then(
-                if (selected && !colors.isDark) Modifier.border(1.dp, colors.line, SegmentShape) else Modifier,
+                if (selected &&
+                    !colors.isDark
+                ) {
+                    Modifier.border(1.dp, colors.line, SegmentShape)
+                } else {
+                    Modifier
+                },
             )
             .selectable(selected = selected, onClick = onClick, role = Role.RadioButton),
         contentAlignment = Alignment.Center,
