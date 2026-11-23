@@ -37,7 +37,11 @@ interface CategoryDao {
     @Query("SELECT EXISTS (SELECT 1 FROM category WHERE slug = :slug AND id != :exceptId)")
     suspend fun slugTaken(slug: String, exceptId: String): Boolean
 
-    @Query("SELECT EXISTS (SELECT 1 FROM product WHERE category_id = :id)")
+    /** A product or a receipt (a manual expense) has the category. */
+    @Query(
+        """SELECT EXISTS (SELECT 1 FROM product WHERE category_id = :id)
+           OR EXISTS (SELECT 1 FROM receipt WHERE category_id = :id)""",
+    )
     suspend fun inUse(id: String): Boolean
 
     @Insert

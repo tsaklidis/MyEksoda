@@ -93,6 +93,7 @@ public object SyncSchema {
             foreignKeys = listOf(
                 ForeignKeySpec("merchant_id", MERCHANT, OnDelete.RESTRICT),
                 ForeignKeySpec("store_id", "store", OnDelete.SET_NULL),
+                ForeignKeySpec("category_id", "category", OnDelete.SET_NULL),
             ),
             localColumns = setOf("source_url"),
         ),

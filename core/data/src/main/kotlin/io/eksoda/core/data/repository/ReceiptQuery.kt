@@ -91,8 +91,9 @@ internal object ReceiptQuery {
         "JOIN product p ON p.id = i.product_id " +
         "WHERE i.receipt_id = receipt.id AND p.category_id = ?)"
 
-    /** A product of the category, or a merchant whose default category it is. */
-    private const val CATEGORY = "($ITEM_CATEGORY OR merchant.default_category_id = ?)"
+    /** A product of the category, or a receipt of it (its own, else its merchant's default). */
+    private const val CATEGORY =
+        "($ITEM_CATEGORY OR COALESCE(receipt.category_id, merchant.default_category_id) = ?)"
     private const val ITEM_PRODUCT = "EXISTS (SELECT 1 FROM receipt_item i " +
         "WHERE i.receipt_id = receipt.id AND i.product_id = ?)"
     private const val ITEM_NEEDS_REVIEW = "EXISTS (SELECT 1 FROM receipt_item i " +

@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
@@ -66,6 +67,7 @@ fun ReceiptDetailRoute(
     onBack: () -> Unit,
     onProductClick: (String) -> Unit,
     onMerchantClick: (String) -> Unit,
+    onEditManual: (String) -> Unit = {},
     viewModel: ReceiptDetailViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -93,6 +95,7 @@ fun ReceiptDetailRoute(
         onBack = onBack,
         onProductClick = onProductClick,
         onMerchantClick = onMerchantClick,
+        onEditManual = onEditManual,
         snackbarHostState = snackbarHostState,
     )
 }
@@ -120,6 +123,7 @@ fun ReceiptDetailScreen(
     onBack: () -> Unit,
     onProductClick: (String) -> Unit = {},
     onMerchantClick: (String) -> Unit = {},
+    onEditManual: (String) -> Unit = {},
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     var dialog by rememberSaveable { mutableStateOf<DetailDialog?>(null) }
@@ -150,6 +154,12 @@ fun ReceiptDetailScreen(
                     }
                 },
                 actions = {
+                    // A manual expense is changed in its own form; imports are as printed.
+                    if (loaded != null && loaded.detail.receipt.manual) {
+                        IconButton(onClick = { onEditManual(loaded.detail.receipt.id) }) {
+                            Icon(Icons.Outlined.Edit, stringResource(R.string.manual_edit))
+                        }
+                    }
                     if (loaded != null) {
                         OverflowMenu(hasLink = loaded.detail.hasLink) { dialog = it }
                     }
@@ -233,17 +243,22 @@ private fun DetailContent(
         if (receipt.cancelled) {
             item { Notice(stringResource(R.string.detail_cancelled), attention = true) }
         }
-        if (!detail.hasLink) {
+        if (receipt.manual) {
+            item { Notice(stringResource(R.string.detail_manual)) }
+        } else if (!detail.hasLink) {
             item { Notice(stringResource(R.string.detail_synced)) }
         }
         item { WarningsCard(detail.warnings) }
-        item { SectionHeading(stringResource(R.string.detail_items)) }
-        if (detail.hasLineItems) {
-            items(detail.items, key = { it.id }) { item ->
-                LineRow(item, onClick = item.productId?.let { id -> { onProductClick(id) } })
+        // A manual expense has no lines to list: the notice above says how it was added.
+        if (!receipt.manual) {
+            item { SectionHeading(stringResource(R.string.detail_items)) }
+            if (detail.hasLineItems) {
+                items(detail.items, key = { it.id }) { item ->
+                    LineRow(item, onClick = item.productId?.let { id -> { onProductClick(id) } })
+                }
+            } else {
+                item { Notice(stringResource(R.string.detail_totals_only)) }
             }
-        } else {
-            item { Notice(stringResource(R.string.detail_totals_only)) }
         }
         item { HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp)) }
         item { PaymentAndVat(detail) }
@@ -259,8 +274,11 @@ private fun DetailContent(
                 onIncludedChange = { onEvent(ReceiptDetailEvent.IncludedChanged(it)) },
             )
         }
-        item { HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp)) }
-        item { DetailsSection(detail) }
+        // The provider, mark and parser version: an imported receipt's only.
+        if (!receipt.manual) {
+            item { HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp)) }
+            item { DetailsSection(detail) }
+        }
     }
 }
 

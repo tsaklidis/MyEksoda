@@ -40,6 +40,7 @@ import io.eksoda.core.model.DocumentKind
 import io.eksoda.core.model.IssueTime
 import io.eksoda.core.model.ReceiptDetail
 import io.eksoda.core.model.ReceiptWarning
+import io.eksoda.core.ui.text.categoryName
 import io.eksoda.core.ui.component.MoneyText
 import io.eksoda.core.ui.motion.SharedKeys
 import io.eksoda.core.ui.motion.sharedBoundsIfAvailable
@@ -79,10 +80,17 @@ internal fun DetailHeader(detail: ReceiptDetail) {
                 .padding(top = 8.dp)
                 .sharedBoundsIfAvailable(SharedKeys.receiptTotal(receipt.id)),
         )
-        val parts = listOfNotNull(
-            paymentLabel(receipt.paymentMethod)?.let { stringResource(it) },
-            pluralStringResource(R.plurals.item_count, receipt.itemCount, receipt.itemCount),
-        )
+        val parts = if (receipt.manual) {
+            listOfNotNull(
+                receipt.categoryKey?.let { categoryName(it) },
+                stringResource(R.string.manual_by_hand),
+            )
+        } else {
+            listOfNotNull(
+                paymentLabel(receipt.paymentMethod)?.let { stringResource(it) },
+                pluralStringResource(R.plurals.item_count, receipt.itemCount, receipt.itemCount),
+            )
+        }
         Text(parts.joinToString(" · "), style = MaterialTheme.typography.bodyMedium)
     }
 }

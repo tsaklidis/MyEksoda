@@ -52,7 +52,7 @@ import io.eksoda.core.database.entity.TombstoneEntity
         SyncPeerEntity::class,
         SyncEventEntity::class,
     ],
-    version = 7,
+    version = 8,
     exportSchema = true,
     autoMigrations = [
         // 5: the budget table and household.annual_income_minor.
@@ -62,6 +62,9 @@ import io.eksoda.core.database.entity.TombstoneEntity
         // 7: receipt.source_url nullable (synced receipts have no link), tombstone.natural_key
         // and tombstone.replaced_by.
         AutoMigration(from = 6, to = 7),
+        // 8: receipt.origin ('import' for every existing receipt) and receipt.category_id
+        // (manual expenses).
+        AutoMigration(from = 7, to = 8),
     ],
 )
 abstract class EksodaDatabase : RoomDatabase() {

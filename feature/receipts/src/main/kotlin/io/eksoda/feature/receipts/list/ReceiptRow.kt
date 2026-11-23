@@ -32,6 +32,7 @@ import io.eksoda.core.model.PaymentMethod
 import io.eksoda.core.model.Receipt
 import io.eksoda.core.ui.component.FromOtherPhoneMark
 import io.eksoda.core.ui.component.MoneyText
+import io.eksoda.core.ui.text.categoryName
 import io.eksoda.core.ui.motion.SharedKeys
 import io.eksoda.core.ui.motion.sharedBoundsIfAvailable
 import io.eksoda.core.ui.text.dayLabel
@@ -96,9 +97,15 @@ internal fun ReceiptRow(receipt: Receipt, onClick: () -> Unit) {
     }
 }
 
-/** "Kifisias 12 · 14 items · Card". */
+/** "Kifisias 12 · 14 items · Card"; a manual expense: "Services · By hand". */
 @Composable
 private fun summaryLine(receipt: Receipt): String {
+    if (receipt.manual) {
+        return listOfNotNull(
+            receipt.categoryKey?.let { categoryName(it) },
+            stringResource(R.string.manual_by_hand),
+        ).joinToString(" · ")
+    }
     val storeLabel = receipt.store?.label?.takeIf { it.isNotEmpty() }
     val itemCountStr =
         pluralStringResource(R.plurals.item_count, receipt.itemCount, receipt.itemCount)

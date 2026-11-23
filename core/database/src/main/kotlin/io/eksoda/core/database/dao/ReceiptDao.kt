@@ -25,6 +25,8 @@ data class ReceiptRow(
     @ColumnInfo(name = "item_count") val itemCount: Int,
     @ColumnInfo(name = "needs_review") val needsReview: Boolean,
     @ColumnInfo(name = "has_warnings") val hasWarnings: Boolean,
+    /** The receipt's own category ([CATEGORY_KEY]: a system slug or a household name). */
+    @ColumnInfo(name = "category_key") val categoryKey: String? = null,
 )
 
 /** A receipt's unique columns, for its tombstone's natural key (household sync). */
@@ -62,6 +64,10 @@ data class ReceiptListRow(
     @ColumnInfo(name = "has_warnings") val hasWarnings: Boolean,
     /** No link on this phone: the receipt came from another phone by household sync. */
     @ColumnInfo(name = "from_other_phone") val fromOtherPhone: Boolean,
+    /** Typed in by hand (`receipt.origin = 'manual'`). */
+    val manual: Boolean = false,
+    /** The receipt's own category ([CATEGORY_KEY]: a system slug or a household name). */
+    @ColumnInfo(name = "category_key") val categoryKey: String? = null,
 )
 
 /** A line with its product's name and category slug. */
@@ -156,6 +162,34 @@ interface ReceiptDao {
     @Query("DELETE FROM receipt WHERE id = :id")
     suspend fun delete(id: String): Int
 
+    /** Changes a manual expense; an imported receipt is never changed this way. */
+    @Query(
+        """UPDATE receipt SET merchant_id = :merchantId, issuer_vat = :issuerVat,
+           category_id = :categoryId,
+           gross_total_minor = :totalMinor, issued_at = :issuedAt,
+           issued_local_date = :issuedLocalDate, user_note = :note, updated_at = :now
+           WHERE id = :id AND origin = 'manual'""",
+    )
+    suspend fun updateManual(
+        id: String,
+        merchantId: String,
+        issuerVat: String,
+        categoryId: String,
+        totalMinor: Long,
+        issuedAt: Long,
+        issuedLocalDate: String,
+        note: String,
+        now: Long,
+    ): Int
+
+    /** The payees of manual expenses, most used first (the payee field's suggestions). */
+    @Query(
+        """SELECT merchant.display_name FROM merchant
+           JOIN receipt ON receipt.merchant_id = merchant.id AND receipt.origin = 'manual'
+           GROUP BY merchant.id ORDER BY COUNT(*) DESC, merchant.normalized_display_name""",
+    )
+    fun observeManualPayees(): Flow<List<String>>
+
     @Query("SELECT mark, issuer_country, issuer_vat, uid, source_key FROM receipt WHERE id = :id")
     suspend fun keys(id: String): ReceiptKeys?
 
@@ -209,7 +243,9 @@ interface ReceiptDao {
             (SELECT COUNT(*) FROM receipt_item i WHERE i.receipt_id = receipt.id) AS item_count,
             EXISTS (SELECT 1 FROM receipt_item i WHERE i.receipt_id = receipt.id
                 AND i.match_status = 'needs_review') AS needs_review,
-            (receipt.validation_warnings != '[]') AS has_warnings
+            (receipt.validation_warnings != '[]') AS has_warnings,
+            (SELECT $CATEGORY_KEY FROM category WHERE category.id = receipt.category_id)
+                AS category_key
             FROM receipt JOIN merchant ON merchant.id = receipt.merchant_id
             LEFT JOIN store ON store.id = receipt.store_id"""
 
@@ -223,7 +259,8 @@ interface ReceiptDao {
             receipt.currency AS currency, receipt.gross_total_minor AS gross_total_minor,
             receipt.payment_method AS payment_method, receipt.document_kind AS document_kind,
             receipt.status AS status, receipt.excluded_from_analytics AS excluded_from_analytics,
-            (receipt.source_url IS NULL) AS from_other_phone,
+            (receipt.source_url IS NULL AND receipt.origin != 'manual') AS from_other_phone,
+            (receipt.origin = 'manual') AS manual,
             $ROW_EXTRAS"""
     }
 }

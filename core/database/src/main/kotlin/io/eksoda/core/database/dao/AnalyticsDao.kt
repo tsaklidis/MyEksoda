@@ -74,6 +74,12 @@ private const val OWN = "receipt.currency = :currency"
 private const val SIGNED_TOTAL =
     "CASE WHEN receipt.document_kind = 'credit_note' THEN -receipt.gross_total_minor " +
         "ELSE receipt.gross_total_minor END"
+
+/**
+ * The category a whole receipt counts for: its own (a manual expense's), else its merchant's
+ * default. The remainders (receipt totals beyond their lines) are bucketed by it.
+ */
+private const val RECEIPT_CATEGORY = "COALESCE(receipt.category_id, merchant.default_category_id)"
 private const val SIGNED_LINE =
     "CASE WHEN receipt.document_kind = 'credit_note' THEN -receipt_item.gross_amount_minor " +
         "ELSE receipt_item.gross_amount_minor END"
@@ -122,9 +128,9 @@ interface AnalyticsDao {
     )
     suspend fun categoryLines(start: String, end: String, currency: String): List<CategoryLineRow>
 
-    /** Receipt totals by their merchant's default category. */
+    /** Receipt totals by their own category, else their merchant's default. */
     @Query(
-        """SELECT merchant.default_category_id AS default_category_id,
+        """SELECT $RECEIPT_CATEGORY AS default_category_id,
             SUM($SIGNED_TOTAL) AS total_minor
            FROM receipt JOIN merchant ON merchant.id = receipt.merchant_id
            WHERE $INCLUDED AND $OWN
@@ -136,9 +142,9 @@ interface AnalyticsDao {
         currency: String,
     ): List<DefaultCategoryTotalRow>
 
-    /** Line totals by their receipt's merchant default category (for the remainders). */
+    /** Line totals by their receipt's category, as above (for the remainders). */
     @Query(
-        """SELECT merchant.default_category_id AS default_category_id,
+        """SELECT $RECEIPT_CATEGORY AS default_category_id,
             SUM($SIGNED_LINE) AS total_minor
            FROM receipt_item
            JOIN receipt ON receipt.id = receipt_item.receipt_id
@@ -242,8 +248,8 @@ interface AnalyticsDao {
     ): List<MerchantTotalRow>
 
     /**
-     * For merchants whose default category is :categoryId: their receipts' totals minus all their
-     * lines (receipts without items, rounding), signed, by merchant.
+     * For receipts of :categoryId (their own category, else their merchant's default): their
+     * totals minus all their lines (receipts without items, rounding), signed, by merchant.
      */
     @Query(
         """SELECT merchant.id AS merchant_id, merchant.display_name AS merchant_name,
@@ -252,7 +258,7 @@ interface AnalyticsDao {
                     FROM receipt_item AS item WHERE item.receipt_id = receipt.id))) AS total_minor,
             COUNT(*) AS receipts
            FROM receipt JOIN merchant ON merchant.id = receipt.merchant_id
-           WHERE $INCLUDED AND $OWN AND merchant.default_category_id = :categoryId
+           WHERE $INCLUDED AND $OWN AND $RECEIPT_CATEGORY = :categoryId
            GROUP BY merchant.id""",
     )
     suspend fun categoryRemaindersByMerchant(

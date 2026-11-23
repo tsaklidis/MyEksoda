@@ -111,6 +111,40 @@ class MigrationTest {
     }
 
     @Test
+    fun `7 to 8 marks every receipt imported and lets a receipt have its own category`() {
+        helper.createDatabase(NAME, 7).use { db ->
+            db.execSQL(
+                """INSERT INTO merchant (id, country_code, vat_number, legal_name, display_name,
+                   normalized_display_name, display_name_set_by_user, activity_description,
+                   tax_office, gemi_number, street, street_number, city, postal_code,
+                   details_as_of, created_at, updated_at) VALUES ('m1', 'GR', '094014201', 'A',
+                   'A', 'a', 0, '', '', '', '', '', '', '', NULL, 1, 1)""",
+            )
+            db.receipt("r1", mark = "1", url = "'https://a.invalid/1'")
+            db.execSQL(
+                """INSERT INTO category (id, slug, name, is_system, created_at, updated_at)
+                   VALUES ('c1', 'services', 'Services', 1, 1, 1)""",
+            )
+        }
+
+        helper.runMigrationsAndValidate(NAME, 8, true).use { db ->
+            db.query("SELECT origin, category_id FROM receipt").use { row ->
+                assertThat(row.moveToFirst()).isTrue()
+                assertThat(row.getString(0)).isEqualTo("import")
+                assertThat(row.isNull(1)).isTrue()
+            }
+            db.execSQL("UPDATE receipt SET origin = 'manual', category_id = 'c1' WHERE id = 'r1'")
+            // Deleting the category leaves the receipt, without a category.
+            db.execSQL("DELETE FROM category WHERE id = 'c1'")
+            db.query("SELECT origin, category_id FROM receipt").use { row ->
+                assertThat(row.moveToFirst()).isTrue()
+                assertThat(row.getString(0)).isEqualTo("manual")
+                assertThat(row.isNull(1)).isTrue()
+            }
+        }
+    }
+
+    @Test
     fun `the first release upgrades to the current schema in one go`() {
         // 0.1.1 shipped schema 4: its users go through every migration at once.
         helper.createDatabase(NAME, 4).use { db ->
@@ -135,7 +169,7 @@ class MigrationTest {
             db.execSQL("INSERT INTO tombstone (entity, id, deleted_at) VALUES ('receipt', 'r0', 1)")
         }
 
-        helper.runMigrationsAndValidate(NAME, 7, true).use { db ->
+        helper.runMigrationsAndValidate(NAME, 8, true).use { db ->
             assertThat(db.count("household")).isEqualTo(1)
             assertThat(db.count("receipt")).isEqualTo(1)
             assertThat(db.count("receipt_item")).isEqualTo(1)
