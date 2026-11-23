@@ -48,6 +48,10 @@ data object SettingsDestination
 @Serializable
 data object BudgetsDestination
 
+/** An expense typed in by hand: a new one ([receiptId] null) or one to edit. */
+@Serializable
+data class ManualExpenseDestination(val receiptId: String? = null)
+
 /** The bills, from More, the Overview or the budget. */
 @Serializable
 data object BillsDestination

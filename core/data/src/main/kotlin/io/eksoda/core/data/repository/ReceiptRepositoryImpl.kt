@@ -24,6 +24,7 @@ import io.eksoda.core.model.ImportStatus
 import io.eksoda.core.model.ImportSubmission
 import io.eksoda.core.model.IssueTime
 import io.eksoda.core.model.LineType
+import io.eksoda.core.model.ManualKind
 import io.eksoda.core.model.MatchStatus
 import io.eksoda.core.model.Merchant
 import io.eksoda.core.model.Money
@@ -248,6 +249,7 @@ class ReceiptRepositoryImpl @Inject constructor(
             parserVersion = receipt.parserVersion,
             hasLink = receipt.sourceUrl != null,
             categoryId = receipt.categoryId,
+            manualKind = ManualKind.of(receipt.manualKind),
         )
     }
 

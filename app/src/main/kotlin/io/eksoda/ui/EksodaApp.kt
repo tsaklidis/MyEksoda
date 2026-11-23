@@ -43,6 +43,7 @@ import io.eksoda.feature.products.list.ProductListRoute
 import io.eksoda.feature.products.review.ReviewRoute
 import io.eksoda.feature.receipts.detail.ReceiptDetailRoute
 import io.eksoda.feature.receipts.list.ReceiptListRoute
+import io.eksoda.feature.receipts.manual.ManualExpenseRoute
 import io.eksoda.feature.scan.ScanRoute
 import io.eksoda.feature.scan.imports.ImportListRoute
 import io.eksoda.feature.scan.share.ShareImportDialog
@@ -122,6 +123,9 @@ private fun MainNavHost(launch: AppLaunch?, onLaunchHandled: () -> Unit) {
                     BudgetsRoute(onBack = back, onBillsClick = actions::openBills)
                 }
                 composable<BillsDestination> { BillsRoute(onBack = back) }
+                composable<ManualExpenseDestination> {
+                    ManualExpenseRoute(onBack = back, onSaved = back)
+                }
                 composable<CategoryDetailDestination> {
                     CategoryDetailRoute(
                         onBack = back,
@@ -135,6 +139,7 @@ private fun MainNavHost(launch: AppLaunch?, onLaunchHandled: () -> Unit) {
                     WithNavAnimation {
                         ReceiptDetailRoute(
                             onBack = back,
+                            onEditManual = { navController.navigate(ManualExpenseDestination(it)) },
                             onProductClick = openProduct,
                             onMerchantClick = {
                                 navController.navigate(MerchantDetailDestination(it))
@@ -230,7 +235,7 @@ private class NavActions(private val nav: NavHostController) : MainActions {
 
     override fun scan() = nav.navigate(ScanDestination)
 
-    override fun addByHand() = Unit
+    override fun addByHand() = nav.navigate(ManualExpenseDestination())
 
     override fun openReview() = nav.navigate(ReviewDestination)
 

@@ -141,4 +141,23 @@
     <string name="manual_edit">Edit</string>
     <string name="detail_manual">You added this by hand. It has no product lines.</string>
     <string name="manual_by_hand">By hand</string>
+    <string name="manual_title">Add by hand</string>
+    <string name="manual_edit_title">Edit expense</string>
+    <string name="manual_save_failed">The expense could not be saved.</string>
+    <string name="manual_amount">Amount</string>
+    <string name="manual_kind_product">Product</string>
+    <string name="manual_kind_service">Service</string>
+    <string name="manual_kind_other">Other</string>
+    <string name="manual_product_label">What did you buy?</string>
+    <string name="manual_product_hint">e.g. shoes, a gift, spare parts</string>
+    <string name="manual_service_label">Who did the work?</string>
+    <string name="manual_service_hint">e.g. dentist, plumber, hairdresser</string>
+    <string name="manual_other_label">What was it?</string>
+    <string name="manual_other_hint">Anything, in your own words</string>
+    <string name="manual_category">Category (optional)</string>
+    <string name="manual_all_categories">All categories</string>
+    <string name="manual_change_date">Change</string>
+    <string name="manual_save">Save expense</string>
+    <string name="manual_date_ok">OK</string>
+    <string name="manual_date_cancel">Cancel</string>
 </resources>

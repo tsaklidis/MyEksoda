@@ -137,6 +137,8 @@ public data class ReceiptDetail(
     val hasLink: Boolean = true,
     /** A manual expense's category id, for editing it; null on imported receipts. */
     val categoryId: String? = null,
+    /** What a manual expense was; null on imported receipts. */
+    val manualKind: ManualKind? = null,
 )
 
 /** A choice in a filter or picker. */
