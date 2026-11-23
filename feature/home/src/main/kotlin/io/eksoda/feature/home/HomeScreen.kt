@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -54,6 +55,7 @@ import io.eksoda.core.designsystem.component.MerchantAvatar
 import io.eksoda.core.designsystem.component.OverlineText
 import io.eksoda.core.designsystem.component.SectionCard
 import io.eksoda.core.designsystem.text.monoNumbers
+import io.eksoda.core.designsystem.theme.DisplayTitleStyle
 import io.eksoda.core.designsystem.theme.EksodaTheme
 import io.eksoda.core.model.CategorySpending
 import io.eksoda.core.model.DocumentKind
@@ -199,7 +201,7 @@ private fun Header(greeting: Greeting, today: LocalDate?, onSettingsClick: () ->
                 Text(
                     text = today.format(dateFormatter("LLLL", locale))
                         .replaceFirstChar { it.titlecase(locale) },
-                    style = MaterialTheme.typography.headlineMedium,
+                    style = DisplayTitleStyle,
                     color = colors.ink,
                     modifier = Modifier.semantics { heading() },
                 )
@@ -207,10 +209,10 @@ private fun Header(greeting: Greeting, today: LocalDate?, onSettingsClick: () ->
         }
         Surface(
             onClick = onSettingsClick,
-            shape = RoundedCornerShape(12.dp),
+            shape = CircleShape,
             color = colors.panel,
             border = BorderStroke(1.dp, colors.line),
-            modifier = Modifier.size(44.dp),
+            modifier = Modifier.size(48.dp),
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(

@@ -6,6 +6,10 @@
     <string name="settings_language_greek">Ελληνικά</string>
     <string name="settings_language_english">English</string>
     <string name="settings_language_system">Γλώσσα συστήματος</string>
+    <string name="settings_theme">Εμφάνιση</string>
+    <string name="settings_theme_light">Φωτεινή</string>
+    <string name="settings_theme_dark">Σκοτεινή</string>
+    <string name="settings_theme_system">Όπως το τηλέφωνο</string>
     <string name="settings_preferences">Προτιμήσεις</string>
     <string name="settings_cancel">Ακύρωση</string>
     <string name="settings_notify_imports">Ειδοποιήσεις εισαγωγής</string>

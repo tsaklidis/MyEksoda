@@ -9,6 +9,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
+import io.eksoda.core.designsystem.theme.DisplayCondensed
 import io.eksoda.core.designsystem.theme.tabular
 import io.eksoda.core.model.Money
 import io.eksoda.core.ui.text.appLocale
@@ -17,7 +18,8 @@ import io.eksoda.core.ui.text.formatMoney
 /**
  * An amount in the app locale in IBM Plex Mono (docs/design/ui-redesign.md §2). [negative]:
  * credit notes and discounts, shown with a true minus sign. Plex Mono is bundled in 400 and 500,
- * so the weight is at most Medium.
+ * so the weight is at most Medium. A display style (`HeroNumberStyle`) keeps its condensed
+ * face, which has tabular digits of its own.
  */
 @Composable
 fun MoneyText(
@@ -35,7 +37,7 @@ fun MoneyText(
         text = text,
         modifier = modifier,
         color = color,
-        style = style.tabular(),
+        style = if (style.fontFamily == DisplayCondensed) style else style.tabular(),
         fontWeight = minOf(fontWeight ?: FontWeight.Medium, FontWeight.Medium),
         textDecoration = textDecoration,
         maxLines = 1,

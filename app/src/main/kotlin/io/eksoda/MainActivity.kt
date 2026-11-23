@@ -2,6 +2,7 @@ package io.eksoda
 
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
 import android.view.Window
@@ -11,12 +12,17 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import io.eksoda.core.data.imports.ImportNotifier
 import io.eksoda.core.designsystem.theme.EksodaTheme
 import io.eksoda.core.ui.text.AppLanguage
+import io.eksoda.core.ui.text.AppTheme
 import io.eksoda.ui.AppLaunch
 import io.eksoda.ui.AppState
 import io.eksoda.ui.AppViewModel
@@ -35,11 +41,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splash = installSplashScreen()
-        // The app is dark in both system modes (docs/design/ui-redesign.md §1): light bar icons.
-        enableEdgeToEdge(
-            statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
-            navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
-        )
+        // Bar icons follow the theme; setContent sets them again whenever it changes.
+        val dark = AppTheme.isDark(AppTheme.current(this), systemDark = isSystemDark())
+        applySystemBars(dark)
         super.onCreate(savedInstanceState)
         // The splash stays until the encrypted database has opened, instead of an empty screen,
         // and until "Hide app content" is known, so no content is drawn before the window is
@@ -57,10 +61,31 @@ class MainActivity : ComponentActivity() {
         // After a configuration change the launch was already handled (it lives in the ViewModel).
         if (savedInstanceState == null) handle(intent)
         setContent {
-            EksodaTheme {
+            // Settings → "Theme": the phone's setting, or light or dark (ui-redesign.md §1).
+            val themeMode by AppTheme.mode(this).collectAsState()
+            val darkTheme = AppTheme.isDark(themeMode, systemDark = isSystemInDarkTheme())
+            DisposableEffect(darkTheme) {
+                applySystemBars(darkTheme)
+                onDispose {}
+            }
+            EksodaTheme(darkTheme = darkTheme) {
                 EksodaApp(viewModel = appViewModel)
             }
         }
+    }
+
+    private fun isSystemDark(): Boolean =
+        resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
+            Configuration.UI_MODE_NIGHT_YES
+
+    /** Transparent bars with icons that read on the theme's page: light icons on dark. */
+    private fun applySystemBars(dark: Boolean) {
+        val style = if (dark) {
+            SystemBarStyle.dark(Color.TRANSPARENT)
+        } else {
+            SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
+        }
+        enableEdgeToEdge(statusBarStyle = style, navigationBarStyle = style)
     }
 
     private fun Window.setSecure(secure: Boolean) {

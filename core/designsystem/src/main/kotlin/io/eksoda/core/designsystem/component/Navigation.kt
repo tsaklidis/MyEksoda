@@ -24,7 +24,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Inventory2
@@ -47,12 +47,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.eksoda.core.designsystem.theme.EksodaTheme
+import io.eksoda.core.designsystem.theme.PillShape
 
 /** How far the Scan button rises above the bar (docs/design/ui-redesign.md §3). */
 private val SCAN_LIFT = 22.dp
 private val SCAN_SIZE = 54.dp
-private val ScanShape = RoundedCornerShape(16.dp)
-private val IndicatorShape = RoundedCornerShape(8.dp)
+private val ScanShape = CircleShape
+private val IndicatorShape = PillShape
 private val RAIL_SIDES = WindowInsetsSides.Vertical + WindowInsetsSides.Start
 
 /**
@@ -140,8 +141,7 @@ fun ColumnScope.EksodaNavigationRailItem(
 }
 
 /**
- * The Scan action: a raised 54 dp terracotta button with a dark icon, and its label in
- * terracotta. Scan is an action, not a tab, so it is never shown as selected.
+ * The Scan action: a raised 54 dp round terracotta button, and its label in terracotta. Scan is an action, not a tab, so it is never shown as selected.
  */
 @Composable
 fun ScanButton(label: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
@@ -179,7 +179,7 @@ fun ScanButton(label: String, onClick: () -> Unit, modifier: Modifier = Modifier
     }
 }
 
-/** A tab: the icon in a pill (periwinkle on #1C1E33 when selected) over its label. */
+/** A tab: the icon in a pill (periwinkle on the indicator color when selected) over its label. */
 @Composable
 private fun NavigationItem(
     selected: Boolean,

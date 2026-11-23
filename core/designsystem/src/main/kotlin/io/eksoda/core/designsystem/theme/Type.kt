@@ -43,6 +43,16 @@ val PlexMono: FontFamily = FontFamily(
     Font(R.font.ibm_plex_mono_medium, FontWeight.Medium),
 )
 
+/**
+ * Fira Sans Extra Condensed 500 (SIL Open Font License,
+ * `assets/licenses/FiraSansExtraCondensed-OFL.txt`), bundled unmodified like Inter. Tall and
+ * narrow: the big figures ([HeroNumberStyle]) and display titles ([DisplayTitleStyle]) use it, so
+ * the one number a screen is about reads at a glance. It has Greek, € and tabular digits.
+ */
+val DisplayCondensed: FontFamily = FontFamily(
+    Font(R.font.fira_sans_extra_condensed_medium, FontWeight.Medium),
+)
+
 private val TIGHT = (-0.5).sp
 private val TITLE = (-0.4).sp
 
@@ -95,13 +105,26 @@ val OverlineStyle: TextStyle = TextStyle(
     letterSpacing = 0.1.sp,
 )
 
-/** The hero amount: Plex Mono 44 sp / 500, −1.5 tracking (§2). */
+/** The hero amount: Fira Sans Extra Condensed 60 sp / 500, tabular digits (§2). */
 val HeroNumberStyle: TextStyle = TextStyle(
-    fontFamily = PlexMono,
+    fontFamily = DisplayCondensed,
+    fontWeight = FontWeight.Medium,
+    fontSize = 60.sp,
+    lineHeight = 62.sp,
+    letterSpacing = (-0.5).sp,
+    fontFeatureSettings = "tnum",
+)
+
+/**
+ * A screen's display title (Home's month, onboarding pages): Fira Sans Extra Condensed 44 sp.
+ * Words in it stay in sentence case (§2).
+ */
+val DisplayTitleStyle: TextStyle = TextStyle(
+    fontFamily = DisplayCondensed,
     fontWeight = FontWeight.Medium,
     fontSize = 44.sp,
-    lineHeight = 46.sp,
-    letterSpacing = (-1.5).sp,
+    lineHeight = 48.sp,
+    letterSpacing = (-0.3).sp,
 )
 
 /** Chart axis labels and small figures: Plex Mono 10 sp. */

@@ -28,7 +28,7 @@ import io.eksoda.core.designsystem.theme.CardShape
 import io.eksoda.core.designsystem.theme.EksodaTheme
 
 /**
- * A titled group on a panel (docs/design/ui-redesign.md §3): 16 dp corners, a 1 dp line border
+ * A titled group on a panel (docs/design/ui-redesign.md §3): 20 dp corners, a 1 dp line border
  * and no elevation. The title row and the content pad themselves 16 dp from the sides.
  *
  * With [onToggleExpanded], the card folds: tapping the title row (or its chevron) shows or hides
@@ -52,7 +52,7 @@ fun SectionCard(
         contentColor = colors.ink,
         border = BorderStroke(1.dp, colors.line),
     ) {
-        Column(modifier = Modifier.padding(vertical = 16.dp)) {
+        Column(modifier = Modifier.padding(vertical = 18.dp)) {
             val hasTitleRow = title != null || action != null
             if (hasTitleRow) {
                 Row(

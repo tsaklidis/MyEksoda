@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,9 +33,10 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import io.eksoda.core.designsystem.theme.ButtonShape
 import io.eksoda.core.designsystem.theme.EksodaTheme
+import io.eksoda.core.designsystem.theme.PillShape
 
 /**
- * Two or three options in a dark well, the selected one on a line-colored segment
+ * Two or three options in a pill-shaped well, the selected one on a raised segment
  * (docs/design/ui-redesign.md §3): "Most spent · Most bought", "€ / l · € / piece".
  *
  * A label is never cut (§2). Side by side, a label that does not fit wraps to a second line, and
@@ -109,7 +109,16 @@ private fun Segment(
         modifier = modifier
             .heightIn(min = 40.dp)
             .clip(SegmentShape)
-            .background(if (selected) colors.line else Color.Transparent)
+            .background(
+                when {
+                    !selected -> Color.Transparent
+                    colors.isDark -> colors.line
+                    else -> colors.panel
+                },
+            )
+            .then(
+                if (selected && !colors.isDark) Modifier.border(1.dp, colors.line, SegmentShape) else Modifier,
+            )
             .selectable(selected = selected, onClick = onClick, role = Role.RadioButton),
         contentAlignment = Alignment.Center,
     ) {
@@ -141,7 +150,7 @@ private fun fitsInSegment(
     }
 }
 
-private val SegmentShape = RoundedCornerShape(8.dp)
+private val SegmentShape = PillShape
 private val WellPadding = 3.dp
 private val LabelPadding = 8.dp
 
