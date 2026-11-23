@@ -30,6 +30,7 @@ import io.eksoda.R
 import io.eksoda.core.model.Period
 import io.eksoda.core.ui.motion.LocalNavAnimatedVisibilityScope
 import io.eksoda.core.ui.motion.LocalSharedTransitionScope
+import io.eksoda.feature.home.bills.BillsRoute
 import io.eksoda.feature.household.sync.SyncRoute
 import io.eksoda.feature.insights.budgets.BudgetsRoute
 import io.eksoda.feature.insights.category.CategoryDetailRoute
@@ -117,7 +118,10 @@ private fun MainNavHost(launch: AppLaunch?, onLaunchHandled: () -> Unit) {
                     )
                 }
                 composable<SyncDestination> { SyncRoute(onBack = back) }
-                composable<BudgetsDestination> { BudgetsRoute(onBack = back, onBillsClick = {}) }
+                composable<BudgetsDestination> {
+                    BudgetsRoute(onBack = back, onBillsClick = actions::openBills)
+                }
+                composable<BillsDestination> { BillsRoute(onBack = back) }
                 composable<CategoryDetailDestination> {
                     CategoryDetailRoute(
                         onBack = back,
@@ -241,6 +245,8 @@ private class NavActions(private val nav: NavHostController) : MainActions {
     override fun openReceipts() = nav.navigate(ReceiptsDestination)
 
     override fun openBudget() = nav.navigate(BudgetsDestination)
+
+    override fun openBills() = nav.navigate(BillsDestination)
 
     override fun openProducts() = nav.navigate(ProductsDestination)
 

@@ -192,7 +192,7 @@ private fun Header(greeting: Greeting, onBudgetClick: () -> Unit) {
  * over its budget; the others gray, with a red dot when they went over. No boxes (§1).
  */
 @Composable
-private fun MonthTabs(
+internal fun MonthTabs(
     months: List<YearMonth>,
     selected: YearMonth,
     over: Set<YearMonth>,
@@ -603,7 +603,7 @@ private fun AttentionRow(icon: ImageVector, title: String, body: String, onClick
 
 /** A 40 dp round neutral tile with an ink icon, like a category's. */
 @Composable
-private fun Tile(icon: ImageVector) {
+internal fun Tile(icon: ImageVector) {
     val colors = EksodaTheme.colors
     Box(
         modifier = Modifier.size(40.dp).clip(CircleShape).background(colors.tile),

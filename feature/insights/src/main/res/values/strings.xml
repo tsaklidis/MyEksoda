@@ -119,8 +119,8 @@
     <string name="budgets_every_month_hint">Σούπερ μάρκετ, καφές, delivery, έξοδοι. Οι λογαριασμοί μετράνε χωριστά.</string>
     <string name="budgets_this_month">Άλλο ποσό αυτόν τον μήνα (%1$s)</string>
     <string name="budgets_this_month_hint">Ένα ταξίδι, μια γιορτή, ένας βαρύς μήνας. Μόνο αυτόν τον μήνα.</string>
-    <string name="budgets_month_only">Μόνο τον μήνα %1$s</string>
-    <string name="budgets_back_to">Από %1$s επιστρέφει στα %2$s</string>
+    <string name="budgets_month_only">Μόνο αυτόν τον μήνα (%1$s)</string>
+    <string name="budgets_back_to">Τον επόμενο μήνα (%1$s) επιστρέφει στα %2$s</string>
     <string name="budgets_bills">Λογαριασμοί</string>
     <string name="budgets_bills_hint">Ενοίκιο, ρεύμα, νερό, internet: χωριστά από τις αποδείξεις</string>
     <string name="budgets_note_past">Οι παλιοί μήνες κρατούν τον προϋπολογισμό που είχαν. Δεν αλλάζουν.</string>

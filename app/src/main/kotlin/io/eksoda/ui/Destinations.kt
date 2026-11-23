@@ -48,6 +48,10 @@ data object SettingsDestination
 @Serializable
 data object BudgetsDestination
 
+/** The bills, from More, the Overview or the budget. */
+@Serializable
+data object BillsDestination
+
 /** Household sync, opened from Settings. */
 @Serializable
 data object SyncDestination
