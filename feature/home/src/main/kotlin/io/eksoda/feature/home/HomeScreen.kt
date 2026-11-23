@@ -122,7 +122,7 @@ fun HomeScreen(state: HomeUiState, onEvent: (HomeEvent) -> Unit, actions: HomeAc
             )
             val spending = state.spending
             val buckets = spending?.buckets.orEmpty().filter { it.total.signum() > 0 }
-            if (buckets.isEmpty() && state.isCurrent && state.budgets?.isEmpty != false) {
+            if (buckets.isEmpty() && state.isCurrent) {
                 EmptyState(
                     title = stringResource(R.string.home_empty_title),
                     description = stringResource(R.string.home_empty_body),

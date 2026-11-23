@@ -28,8 +28,9 @@ Tokens: `core:designsystem` `theme/Color.kt` (`EksodaColors`, also mapped to
 ## 2. Type
 
 - Inter for words and numbers. Numbers use tabular digits (`MoneyText`, `HeroMoney`,
-  `tabular()`), so amounts line up and don't shift. Chart axis labels stay in IBM Plex Mono
-  (`ChartLabelStyle`, `monoNumbers()`), which has no Greek, ▲ or ▼: never set it on words.
+  `tabular()`, and `monoNumbers()` for figures inside a sentence), so amounts line up and don't
+  shift. Chart axis labels stay in IBM Plex Mono (`ChartLabelStyle`), which has no Greek, ▲ or
+  ▼: never set it on words.
 - The unit follows the number, smaller, in ink-2 ("342,60 €", "1,29 € / l").
 - Labels in sentence case, never capitals. When a label does not fit, wrap or stack; never cut.
 

@@ -7,12 +7,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
@@ -274,12 +277,12 @@ private fun AmountField(
             singleLine = true,
             textStyle = HeroNumberStyle.copy(
                 color = if (wrong) colors.overText else colors.ink,
-                textAlign = TextAlign.End,
+                textAlign = TextAlign.Center,
             ),
             cursorBrush = SolidColor(colors.compare),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             decorationBox = { field ->
-                Box(contentAlignment = Alignment.CenterEnd) {
+                Box(contentAlignment = Alignment.Center) {
                     if (text.isEmpty()) {
                         Text("0", style = HeroNumberStyle, color = colors.guide)
                     }
@@ -289,7 +292,8 @@ private fun AmountField(
             modifier = Modifier
                 .focusRequester(focus)
                 .semantics { contentDescription = label }
-                .weight(1f, fill = false),
+                .width(IntrinsicSize.Min)
+                .widthIn(min = 48.dp),
         )
         Text(
             " " + currencySymbol("EUR", appLocale()),

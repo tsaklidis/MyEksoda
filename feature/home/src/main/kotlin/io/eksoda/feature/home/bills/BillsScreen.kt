@@ -372,7 +372,8 @@ private fun AmountEditor(
             if (fixed) R.string.bills_amount_fixed else R.string.bills_amount_variable,
             monthName(month.month, appLocale()),
         ),
-        initial = line.amount ?: line.bill.amount,
+        // A variable bill's usual amount is only a hint: the month's own is typed fresh.
+        initial = if (fixed) line.amount ?: line.bill.amount else line.amount,
         currency = month.currency,
         onConfirm = {
             onClose()

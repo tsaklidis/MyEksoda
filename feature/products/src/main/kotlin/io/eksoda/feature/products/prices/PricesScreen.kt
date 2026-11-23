@@ -157,11 +157,13 @@ private fun Loaded(
                 style = MaterialTheme.typography.titleMedium,
             )
         }
-        Text(
-            pluralStringResource(R.plurals.prices_source, board.shops, board.shops),
-            style = MaterialTheme.typography.bodySmall,
-            color = colors.ink2,
-        )
+        if (board.shops > 0) {
+            Text(
+                pluralStringResource(R.plurals.prices_source, board.shops, board.shops),
+                style = MaterialTheme.typography.bodySmall,
+                color = colors.ink2,
+            )
+        }
     }
     Tabs(view, onView)
     Column(
