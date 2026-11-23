@@ -124,4 +124,17 @@
     <string name="budgets_bills_hint">Rent, power, water, internet: kept apart from receipts</string>
     <string name="budgets_note_past">Past months keep the budget they had. They can\'t be changed.</string>
     <string name="budgets_note_limits">Want a limit for one category? Open it from the Overview and set it there.</string>
+    <string name="category_save_failed">The change could not be saved.</string>
+    <string name="category_rename">Rename the category</string>
+    <string name="category_rename_hint">Empty: back to “%1$s”</string>
+    <string name="category_rename_save">Save</string>
+    <string name="category_cancel">Cancel</string>
+    <string name="category_limit">Monthly limit</string>
+    <string name="category_limit_none">No limit. A limit tells you when you get close.</string>
+    <string name="category_limit_this_month">Limit %1$s this month</string>
+    <string name="category_limit_left">%1$s left</string>
+    <string name="category_limit_over">%1$s over</string>
+    <string name="category_limit_no">No limit</string>
+    <string name="category_limit_custom">Custom</string>
+    <string name="category_limit_hint">Applies from this month on. Past months keep what they had.</string>
 </resources>

@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -26,6 +27,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import io.eksoda.R
+import io.eksoda.core.model.Period
 import io.eksoda.core.ui.motion.LocalNavAnimatedVisibilityScope
 import io.eksoda.core.ui.motion.LocalSharedTransitionScope
 import io.eksoda.feature.household.sync.SyncRoute
@@ -75,6 +77,7 @@ private fun MainNavHost(launch: AppLaunch?, onLaunchHandled: () -> Unit) {
     val openReceipt: (String) -> Unit = { navController.navigate(ReceiptDetailDestination(it)) }
     val openProduct: (String) -> Unit = { navController.navigate(ProductDetailDestination(it)) }
     val back: () -> Unit = { navController.navigateUp() }
+    val actions = remember(navController) { NavActions(navController) }
 
     // Shared elements (the merchant name and total) travel from a receipt row to its detail.
     SharedTransitionLayout {
@@ -82,33 +85,7 @@ private fun MainNavHost(launch: AppLaunch?, onLaunchHandled: () -> Unit) {
             NavHost(navController = navController, startDestination = MainDestination) {
                 composable<MainDestination> {
                     WithNavAnimation {
-                        MainTabs(
-                            MainActions(
-                                openReceipt = openReceipt,
-                                openProduct = openProduct,
-                                openReceipts = { navController.navigate(ReceiptsDestination) },
-                                openProducts = { navController.navigate(ProductsDestination) },
-                                scan = { navController.navigate(ScanDestination) },
-                                addByHand = {},
-                                openImports = { navController.navigate(ImportsDestination) },
-                                openReview = { navController.navigate(ReviewDestination) },
-                                openCategories = { navController.navigate(CategoriesDestination) },
-                                openMerchants = { navController.navigate(MerchantsDestination) },
-                                openSettings = { navController.navigate(SettingsDestination) },
-                                openBudget = { navController.navigate(BudgetsDestination) },
-                                openBills = {},
-                                openSync = { navController.navigate(SyncDestination) },
-                                openCategory = { categoryId, period ->
-                                    navController.navigate(
-                                        CategoryDetailDestination(
-                                            categoryId = categoryId,
-                                            from = period.start.toString(),
-                                            to = period.end.toString(),
-                                        ),
-                                    )
-                                },
-                            ),
-                        )
+                        MainTabs(actions)
                     }
                 }
                 composable<ReceiptsDestination> {
@@ -239,4 +216,41 @@ private fun DataUnavailable() {
             )
         }
     }
+}
+
+/** The tabs' way out: each opens its screen over them. */
+private class NavActions(private val nav: NavHostController) : MainActions {
+    override fun openReceipt(receiptId: String) = nav.navigate(ReceiptDetailDestination(receiptId))
+
+    override fun openProduct(productId: String) = nav.navigate(ProductDetailDestination(productId))
+
+    override fun scan() = nav.navigate(ScanDestination)
+
+    override fun addByHand() = Unit
+
+    override fun openReview() = nav.navigate(ReviewDestination)
+
+    override fun openCategory(categoryId: String?, period: Period) = nav.navigate(
+        CategoryDetailDestination(
+            categoryId = categoryId,
+            from = period.start.toString(),
+            to = period.end.toString(),
+        ),
+    )
+
+    override fun openReceipts() = nav.navigate(ReceiptsDestination)
+
+    override fun openBudget() = nav.navigate(BudgetsDestination)
+
+    override fun openProducts() = nav.navigate(ProductsDestination)
+
+    override fun openCategories() = nav.navigate(CategoriesDestination)
+
+    override fun openMerchants() = nav.navigate(MerchantsDestination)
+
+    override fun openImports() = nav.navigate(ImportsDestination)
+
+    override fun openSync() = nav.navigate(SyncDestination)
+
+    override fun openSettings() = nav.navigate(SettingsDestination)
 }

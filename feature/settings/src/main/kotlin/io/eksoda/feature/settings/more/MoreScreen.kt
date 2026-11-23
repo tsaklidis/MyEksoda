@@ -43,19 +43,6 @@ import io.eksoda.core.designsystem.component.SectionCard
 import io.eksoda.core.designsystem.theme.EksodaTheme
 import io.eksoda.feature.settings.R
 
-/** Where the More tab leads. */
-class MoreActions(
-    val onReceiptsClick: () -> Unit,
-    val onBudgetClick: () -> Unit,
-    val onBillsClick: () -> Unit,
-    val onProductsClick: () -> Unit,
-    val onCategoriesClick: () -> Unit,
-    val onMerchantsClick: () -> Unit,
-    val onImportsClick: () -> Unit,
-    val onSyncClick: () -> Unit,
-    val onSettingsClick: () -> Unit,
-)
-
 private class Entry(
     val label: Int,
     val supporting: Int,
@@ -77,19 +64,19 @@ fun MoreScreen(actions: MoreActions) {
                 R.string.more_receipts,
                 R.string.more_receipts_hint,
                 Icons.AutoMirrored.Outlined.ReceiptLong,
-                actions.onReceiptsClick,
+                actions::openReceipts,
             ),
             Entry(
                 R.string.more_budget,
                 R.string.more_budget_hint,
                 Icons.Outlined.Savings,
-                actions.onBudgetClick,
+                actions::openBudget,
             ),
             Entry(
                 R.string.more_bills,
                 R.string.more_bills_hint,
                 Icons.Outlined.Home,
-                actions.onBillsClick,
+                actions::openBills,
             ),
         ),
         R.string.more_catalog to listOf(
@@ -97,19 +84,19 @@ fun MoreScreen(actions: MoreActions) {
                 R.string.more_products,
                 R.string.more_products_hint,
                 Icons.Outlined.Inventory2,
-                actions.onProductsClick,
+                actions::openProducts,
             ),
             Entry(
                 R.string.more_categories,
                 R.string.more_categories_hint,
                 Icons.Outlined.Category,
-                actions.onCategoriesClick,
+                actions::openCategories,
             ),
             Entry(
                 R.string.more_merchants,
                 R.string.more_merchants_hint,
                 Icons.Outlined.Storefront,
-                actions.onMerchantsClick,
+                actions::openMerchants,
             ),
         ),
         R.string.more_app to listOf(
@@ -117,19 +104,19 @@ fun MoreScreen(actions: MoreActions) {
                 R.string.more_imports,
                 R.string.more_imports_hint,
                 Icons.Outlined.CloudDownload,
-                actions.onImportsClick,
+                actions::openImports,
             ),
             Entry(
                 R.string.more_sync,
                 R.string.more_sync_hint,
                 Icons.Outlined.Sync,
-                actions.onSyncClick,
+                actions::openSync,
             ),
             Entry(
                 R.string.more_settings,
                 R.string.more_settings_hint,
                 Icons.Outlined.Settings,
-                actions.onSettingsClick,
+                actions::openSettings,
             ),
         ),
     )
@@ -196,6 +183,6 @@ private fun MoreRow(entry: Entry) {
 @Composable
 private fun MoreScreenPreview() {
     EksodaTheme {
-        MoreScreen(MoreActions({}, {}, {}, {}, {}, {}, {}, {}, {}))
+        MoreScreen(object : MoreActions {})
     }
 }

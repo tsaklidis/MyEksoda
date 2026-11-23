@@ -43,6 +43,7 @@ import io.eksoda.core.designsystem.component.EksodaNavigationBarItem
 import io.eksoda.core.designsystem.component.EksodaNavigationRail
 import io.eksoda.core.designsystem.component.EksodaNavigationRailItem
 import io.eksoda.core.model.Period
+import io.eksoda.feature.home.HomeActions
 import io.eksoda.feature.home.HomeRoute
 import io.eksoda.feature.insights.InsightsRoute
 import io.eksoda.feature.products.list.ProductListRoute
@@ -69,23 +70,19 @@ private val TABS_AFTER_ADD = listOf(Tab.PRICES, Tab.MORE)
 private val RAIL_WIDTH = 600.dp
 
 /** Where the tabs lead outside themselves: screens pushed over the tabs. */
-class MainActions(
-    val openReceipt: (String) -> Unit,
-    val openProduct: (String) -> Unit,
-    val openReceipts: () -> Unit,
-    val openProducts: () -> Unit,
-    val scan: () -> Unit,
-    val addByHand: () -> Unit,
-    val openImports: () -> Unit,
-    val openReview: () -> Unit,
-    val openCategories: () -> Unit,
-    val openMerchants: () -> Unit,
-    val openSettings: () -> Unit,
-    val openBudget: () -> Unit,
-    val openBills: () -> Unit,
-    val openSync: () -> Unit,
-    val openCategory: (categoryId: String?, period: Period) -> Unit,
-)
+interface MainActions : MoreActions {
+    fun openReceipt(receiptId: String)
+
+    fun openProduct(productId: String)
+
+    fun scan()
+
+    fun addByHand()
+
+    fun openReview()
+
+    fun openCategory(categoryId: String?, period: Period)
+}
 
 /**
  * The tabs with the redesign's docked bottom bar on phones (the round "+" in the middle) and a
@@ -218,44 +215,33 @@ private fun TabContent(
 ) {
     when (tab) {
         Tab.OVERVIEW -> HomeRoute(
-            onReceiptsClick = actions.openReceipts,
-            onInsightsClick = { showSpending(false) },
-            onBudgetsOverClick = { showSpending(true) },
-            onReviewClick = actions.openReview,
-            onImportsClick = actions.openImports,
-            onReceiptClick = actions.openReceipt,
-            onSettingsClick = actions.openSettings,
+            HomeActions(
+                onBudgetClick = actions::openBudget,
+                onBillsClick = actions::openBills,
+                onCategoryClick = actions::openCategory,
+                onSpendingClick = { showSpending(true) },
+                onReviewClick = actions::openReview,
+                onImportsClick = actions::openImports,
+            ),
         )
 
         Tab.SPENDING -> InsightsRoute(
-            onProductClick = actions.openProduct,
-            onMerchantsClick = actions.openMerchants,
-            onBudgetsClick = actions.openBudget,
-            onCategoryClick = actions.openCategory,
+            onProductClick = actions::openProduct,
+            onMerchantsClick = actions::openMerchants,
+            onBudgetsClick = actions::openBudget,
+            onCategoryClick = actions::openCategory,
             showThisMonth = spendingThisMonth,
             onThisMonthShown = onThisMonthShown,
         )
 
         Tab.PRICES -> ProductListRoute(
-            onProductClick = actions.openProduct,
-            onReviewClick = actions.openReview,
-            onCategoriesClick = actions.openCategories,
-            onMerchantsClick = actions.openMerchants,
+            onProductClick = actions::openProduct,
+            onReviewClick = actions::openReview,
+            onCategoriesClick = actions::openCategories,
+            onMerchantsClick = actions::openMerchants,
         )
 
-        Tab.MORE -> MoreScreen(
-            MoreActions(
-                onReceiptsClick = actions.openReceipts,
-                onBudgetClick = actions.openBudget,
-                onBillsClick = actions.openBills,
-                onProductsClick = actions.openProducts,
-                onCategoriesClick = actions.openCategories,
-                onMerchantsClick = actions.openMerchants,
-                onImportsClick = actions.openImports,
-                onSyncClick = actions.openSync,
-                onSettingsClick = actions.openSettings,
-            ),
-        )
+        Tab.MORE -> MoreScreen(actions)
     }
 }
 

@@ -3,15 +3,7 @@
     <string name="home_greeting_morning">Good morning</string>
     <string name="home_greeting_day">Good afternoon</string>
     <string name="home_greeting_evening">Good evening</string>
-    <string name="home_settings">Settings</string>
 
-    <string name="home_spent_so_far">Spent in %1$s so far</string>
-    <string name="home_change_less">%1$s less</string>
-    <string name="home_change_more">%1$s more</string>
-    <string name="home_change_same">The same</string>
-    <string name="home_change_than">than by %1$s (%2$s)</string>
-    <string name="home_change_first">First month with receipts</string>
-    <string name="home_change_nothing_before">Nothing spent by %1$s last month</string>
 
     <plurals name="home_to_match">
         <item quantity="one">%d item to match</item>
@@ -22,20 +14,41 @@
         <item quantity="one">%d receipt importing…</item>
         <item quantity="other">%d receipts importing…</item>
     </plurals>
-    <plurals name="home_budgets_over">
-        <item quantity="one">%d budget exceeded</item>
-        <item quantity="other">%d budgets exceeded</item>
-    </plurals>
-    <string name="home_budgets_over_body">See which in Insights</string>
     <string name="home_importing_body">They\'ll show up here when done</string>
 
-    <string name="home_where_it_went">Where it went</string>
-    <string name="home_all_categories">All categories</string>
-    <string name="home_recent">Recent receipts</string>
-    <string name="home_see_all">See all</string>
+    <string name="home_all_categories">All ›</string>
 
     <string name="home_empty_title">No receipts yet</string>
     <string name="home_empty_body">Scan the QR code at the bottom of a receipt to start.</string>
     <string name="home_failed">Some figures could not be loaded.</string>
     <string name="home_retry">Try again</string>
+    <string name="home_title">Overview</string>
+    <string name="home_budget">Budget</string>
+    <string name="home_month_over">%1$s, over budget</string>
+    <string name="home_everyday_so_far">Everyday spending · %1$s so far</string>
+    <string name="home_everyday">Everyday spending · %1$s</string>
+    <string name="home_badge_over">Over</string>
+    <string name="home_badge_on_track">On track</string>
+    <string name="home_badge_within">Within</string>
+    <string name="home_spent_word">spent</string>
+    <string name="home_left_word">left</string>
+    <string name="home_over_word">over</string>
+    <string name="home_set_budget">Set a monthly budget ›</string>
+    <string name="home_of">%1$s of %2$s</string>
+    <string name="home_budget_default">Default ›</string>
+    <string name="home_budget_changed">Changed for this month ›</string>
+    <string name="home_per_day">About %1$s a day for the rest of the month.</string>
+    <string name="home_bills">Bills</string>
+    <string name="home_bills_none">Rent, power, water: add them apart</string>
+    <plurals name="home_bills_to_enter">
+        <item quantity="one">%d bill still to enter</item>
+        <item quantity="other">%d bills still to enter</item>
+    </plurals>
+    <plurals name="home_bills_count">
+        <item quantity="one">%d bill</item>
+        <item quantity="other">%d bills</item>
+    </plurals>
+    <string name="home_categories">Categories</string>
+    <string name="home_limit_left">Limit %1$s · %2$s left</string>
+    <string name="home_limit_over">Limit %1$s · %2$s over</string>
 </resources>

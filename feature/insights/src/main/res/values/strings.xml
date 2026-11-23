@@ -125,4 +125,17 @@
     <string name="budgets_bills_hint">Ενοίκιο, ρεύμα, νερό, internet: χωριστά από τις αποδείξεις</string>
     <string name="budgets_note_past">Οι παλιοί μήνες κρατούν τον προϋπολογισμό που είχαν. Δεν αλλάζουν.</string>
     <string name="budgets_note_limits">Θέλετε όριο για μια κατηγορία; Ανοίξτε την από τη Σύνοψη και ορίστε το εκεί.</string>
+    <string name="category_save_failed">Η αλλαγή δεν αποθηκεύτηκε.</string>
+    <string name="category_rename">Μετονομασία κατηγορίας</string>
+    <string name="category_rename_hint">Κενό: ξανά «%1$s»</string>
+    <string name="category_rename_save">Αποθήκευση</string>
+    <string name="category_cancel">Άκυρο</string>
+    <string name="category_limit">Μηνιαίο όριο</string>
+    <string name="category_limit_none">Χωρίς όριο. Ένα όριο σας λέει πότε πλησιάζετε.</string>
+    <string name="category_limit_this_month">Όριο %1$s αυτόν τον μήνα</string>
+    <string name="category_limit_left">απομένουν %1$s</string>
+    <string name="category_limit_over">%1$s πάνω</string>
+    <string name="category_limit_no">Χωρίς όριο</string>
+    <string name="category_limit_custom">Άλλο ποσό</string>
+    <string name="category_limit_hint">Ισχύει από αυτόν τον μήνα. Οι παλιοί μήνες κρατούν ό,τι είχαν.</string>
 </resources>

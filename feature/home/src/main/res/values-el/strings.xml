@@ -3,15 +3,7 @@
     <string name="home_greeting_morning">Καλημέρα</string>
     <string name="home_greeting_day">Καλό απόγευμα</string>
     <string name="home_greeting_evening">Καλησπέρα</string>
-    <string name="home_settings">Ρυθμίσεις</string>
 
-    <string name="home_spent_so_far">Δαπάνες %1$s μέχρι σήμερα</string>
-    <string name="home_change_less">%1$s λιγότερα</string>
-    <string name="home_change_more">%1$s περισσότερα</string>
-    <string name="home_change_same">Ίδια ποσά</string>
-    <string name="home_change_than">σε σχέση με το διάστημα ως τις %1$s (%2$s)</string>
-    <string name="home_change_first">Πρώτος μήνας με αποδείξεις</string>
-    <string name="home_change_nothing_before">Καμία δαπάνη ως τις %1$s τον προηγούμενο μήνα</string>
 
     <plurals name="home_to_match">
         <item quantity="one">%d είδος για αντιστοίχιση</item>
@@ -22,20 +14,41 @@
         <item quantity="one">%d απόδειξη σε εισαγωγή…</item>
         <item quantity="other">%d αποδείξεις σε εισαγωγή…</item>
     </plurals>
-    <plurals name="home_budgets_over">
-        <item quantity="one">Ξεπεράστηκε %d προϋπολογισμός</item>
-        <item quantity="other">Ξεπεράστηκαν %d προϋπολογισμοί</item>
-    </plurals>
-    <string name="home_budgets_over_body">Δείτε ποιοι στα Στατιστικά</string>
     <string name="home_importing_body">Θα εμφανιστούν εδώ μόλις ολοκληρωθούν</string>
 
-    <string name="home_where_it_went">Πού πήγαν τα χρήματα</string>
-    <string name="home_all_categories">Όλες οι κατηγορίες</string>
-    <string name="home_recent">Πρόσφατες αποδείξεις</string>
-    <string name="home_see_all">Όλες</string>
+    <string name="home_all_categories">Όλες ›</string>
 
     <string name="home_empty_title">Καμία απόδειξη ακόμη</string>
     <string name="home_empty_body">Σαρώστε τον κωδικό QR στο κάτω μέρος μιας απόδειξης για να ξεκινήσετε.</string>
     <string name="home_failed">Ορισμένα στοιχεία δεν φόρτωσαν.</string>
     <string name="home_retry">Δοκιμάστε ξανά</string>
+    <string name="home_title">Σύνοψη</string>
+    <string name="home_budget">Προϋπολογισμός</string>
+    <string name="home_month_over">%1$s, πάνω από τον προϋπολογισμό</string>
+    <string name="home_everyday_so_far">Καθημερινά έξοδα · %1$s μέχρι τώρα</string>
+    <string name="home_everyday">Καθημερινά έξοδα · %1$s</string>
+    <string name="home_badge_over">Πάνω</string>
+    <string name="home_badge_on_track">Εντός</string>
+    <string name="home_badge_within">Εντός</string>
+    <string name="home_spent_word">ξοδεύτηκαν</string>
+    <string name="home_left_word">απομένουν</string>
+    <string name="home_over_word">πάνω</string>
+    <string name="home_set_budget">Ορίστε μηνιαίο προϋπολογισμό ›</string>
+    <string name="home_of">%1$s από %2$s</string>
+    <string name="home_budget_default">Κανονικός ›</string>
+    <string name="home_budget_changed">Άλλαξε αυτόν τον μήνα ›</string>
+    <string name="home_per_day">Περίπου %1$s τη μέρα για τον υπόλοιπο μήνα.</string>
+    <string name="home_bills">Λογαριασμοί</string>
+    <string name="home_bills_none">Ενοίκιο, ρεύμα, νερό: προσθέστε τους χωριστά</string>
+    <plurals name="home_bills_to_enter">
+        <item quantity="one">%d λογαριασμός μένει να μπει</item>
+        <item quantity="other">%d λογαριασμοί μένουν να μπουν</item>
+    </plurals>
+    <plurals name="home_bills_count">
+        <item quantity="one">%d λογαριασμός</item>
+        <item quantity="other">%d λογαριασμοί</item>
+    </plurals>
+    <string name="home_categories">Κατηγορίες</string>
+    <string name="home_limit_left">Όριο %1$s · απομένουν %2$s</string>
+    <string name="home_limit_over">Όριο %1$s · %2$s πάνω</string>
 </resources>
