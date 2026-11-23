@@ -37,6 +37,7 @@ import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Savings
 import androidx.compose.material.icons.outlined.Storefront
 import androidx.compose.material.icons.outlined.Sync
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material.icons.outlined.VolunteerActivism
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -236,8 +237,10 @@ fun SettingsScreen(
             PreferencesCard(
                 language = language,
                 notifyImports = state.notifyImports,
+                hideContent = state.hideContent,
                 onLanguageSelect = onLanguageSelect,
                 onNotifyImportsChange = onNotifyImportsChange,
+                onHideContentChange = { onEvent(SettingsEvent.HideContentChanged(it)) },
             )
             SectionCard(title = stringResource(R.string.settings_data)) {
                 Hint(stringResource(R.string.settings_data_hint))
@@ -265,13 +268,15 @@ fun SettingsScreen(
     }
 }
 
-/** Language (one row, a picker on tap) and the import notifications. */
+/** Language (one row, a picker on tap), import notifications and hiding the app's content. */
 @Composable
 private fun PreferencesCard(
     language: String,
     notifyImports: Boolean,
+    hideContent: Boolean,
     onLanguageSelect: (String) -> Unit,
     onNotifyImportsChange: (Boolean) -> Unit,
+    onHideContentChange: (Boolean) -> Unit,
 ) {
     var picking by rememberSaveable { mutableStateOf(false) }
     val current = LANGUAGES.firstOrNull { it.first == language }?.second
@@ -284,33 +289,21 @@ private fun PreferencesCard(
             onClick = { picking = true },
         )
         HorizontalDivider(color = EksodaTheme.colors.line)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 56.dp)
-                .toggleable(
-                    value = notifyImports,
-                    role = Role.Switch,
-                    onValueChange = onNotifyImportsChange,
-                )
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            RowIcon(Icons.Outlined.Notifications)
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    stringResource(R.string.settings_notify_imports),
-                    style = MaterialTheme.typography.bodyLarge,
-                )
-                Text(
-                    stringResource(R.string.settings_notify_imports_hint),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = EksodaTheme.colors.ink2,
-                )
-            }
-            Switch(checked = notifyImports, onCheckedChange = null)
-        }
+        SwitchRow(
+            label = stringResource(R.string.settings_notify_imports),
+            supporting = stringResource(R.string.settings_notify_imports_hint),
+            icon = Icons.Outlined.Notifications,
+            checked = notifyImports,
+            onCheckedChange = onNotifyImportsChange,
+        )
+        HorizontalDivider(color = EksodaTheme.colors.line)
+        SwitchRow(
+            label = stringResource(R.string.settings_hide_content),
+            supporting = stringResource(R.string.settings_hide_content_hint),
+            icon = Icons.Outlined.VisibilityOff,
+            checked = hideContent,
+            onCheckedChange = onHideContentChange,
+        )
     }
     if (picking) {
         LanguageDialog(
@@ -321,6 +314,37 @@ private fun PreferencesCard(
             },
             onDismiss = { picking = false },
         )
+    }
+}
+
+/** A preference with a switch; the whole row toggles it. */
+@Composable
+private fun SwitchRow(
+    label: String,
+    supporting: String,
+    icon: ImageVector,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 56.dp)
+            .toggleable(value = checked, role = Role.Switch, onValueChange = onCheckedChange)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        RowIcon(icon)
+        Column(modifier = Modifier.weight(1f)) {
+            Text(label, style = MaterialTheme.typography.bodyLarge)
+            Text(
+                supporting,
+                style = MaterialTheme.typography.bodySmall,
+                color = EksodaTheme.colors.ink2,
+            )
+        }
+        Switch(checked = checked, onCheckedChange = null)
     }
 }
 

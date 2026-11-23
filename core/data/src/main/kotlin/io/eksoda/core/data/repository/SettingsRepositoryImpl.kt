@@ -2,6 +2,7 @@ package io.eksoda.core.data.repository
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import io.eksoda.core.data.imports.ImportNotifier
@@ -20,6 +21,13 @@ class SettingsRepositoryImpl @Inject constructor(private val preferences: DataSt
         preferences.edit { it[ImportNotifier.NOTIFY_IMPORTS_KEY] = enabled }
     }
 
+    override val hideContent: Flow<Boolean> =
+        preferences.data.map { it[HIDE_CONTENT_KEY] == true }
+
+    override suspend fun setHideContent(enabled: Boolean) {
+        preferences.edit { it[HIDE_CONTENT_KEY] = enabled }
+    }
+
     override val foldedInsightsCards: Flow<Set<String>> =
         preferences.data.map { it[FOLDED_INSIGHTS_CARDS_KEY].orEmpty() }
 
@@ -32,6 +40,7 @@ class SettingsRepositoryImpl @Inject constructor(private val preferences: DataSt
     }
 
     private companion object {
+        val HIDE_CONTENT_KEY = booleanPreferencesKey("hide_content")
         val FOLDED_INSIGHTS_CARDS_KEY = stringSetPreferencesKey("folded_insights_cards")
     }
 }

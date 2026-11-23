@@ -49,6 +49,17 @@ class SettingsRepositoryTest {
     }
 
     @Test
+    fun `hiding the app's content is off until turned on`() = runTest {
+        assertThat(settings.hideContent.first()).isFalse()
+        settings.setHideContent(true)
+        assertThat(settings.hideContent.first()).isTrue()
+        // Its own preference: import notifications are left as they were.
+        assertThat(settings.notifyImports.first()).isFalse()
+        settings.setHideContent(false)
+        assertThat(settings.hideContent.first()).isFalse()
+    }
+
+    @Test
     fun `an insights card folds and unfolds`() = runTest {
         assertThat(settings.foldedInsightsCards.first()).isEqualTo(emptySet())
         settings.toggleInsightsCardFolded("trend")

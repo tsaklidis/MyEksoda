@@ -31,6 +31,7 @@ import javax.inject.Inject
 data class SettingsUiState(
     val household: Household? = null,
     val notifyImports: Boolean = false,
+    val hideContent: Boolean = false,
     val sync: SyncSummary = SyncSummary(),
     val backup: BackupDialog = BackupDialog.None,
 )
@@ -62,6 +63,8 @@ enum class BackupStep { EXPORT, OPEN, RESTORE }
 
 sealed interface SettingsEvent {
     data class NotifyImportsChanged(val enabled: Boolean) : SettingsEvent
+
+    data class HideContentChanged(val enabled: Boolean) : SettingsEvent
 
     /** The annual income for the e-payment target; null clears it. */
     data class AnnualIncomeChanged(val income: BigDecimal?) : SettingsEvent
@@ -118,12 +121,14 @@ class SettingsViewModel @Inject constructor(
     val uiState: StateFlow<SettingsUiState> = combine(
         households.household,
         settings.notifyImports,
+        settings.hideContent,
         syncSummary,
         backup,
-    ) { household, notify, syncRow, dialog ->
+    ) { household, notify, hide, syncRow, dialog ->
         SettingsUiState(
             household = household,
             notifyImports = notify,
+            hideContent = hide,
             sync = syncRow,
             backup = dialog,
         )
@@ -133,6 +138,9 @@ class SettingsViewModel @Inject constructor(
         when (event) {
             is SettingsEvent.NotifyImportsChanged ->
                 viewModelScope.launch { settings.setNotifyImports(event.enabled) }
+
+            is SettingsEvent.HideContentChanged ->
+                viewModelScope.launch { settings.setHideContent(event.enabled) }
 
             is SettingsEvent.AnnualIncomeChanged -> viewModelScope.launch {
                 if (households.setAnnualIncome(event.income).isFailure) {

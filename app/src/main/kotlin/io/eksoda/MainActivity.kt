@@ -4,12 +4,17 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
+import android.view.Window
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import io.eksoda.core.data.imports.ImportNotifier
 import io.eksoda.core.designsystem.theme.EksodaTheme
@@ -41,10 +46,18 @@ class MainActivity : ComponentActivity() {
         // After a configuration change the launch was already handled (it lives in the ViewModel).
         if (savedInstanceState == null) handle(intent)
         setContent {
+            // Settings → "Hide app content": no screenshots, and a blank card in recent apps.
+            val hideContent by appViewModel.hideContent.collectAsStateWithLifecycle()
+            LaunchedEffect(hideContent) { window.setSecure(hideContent) }
             EksodaTheme {
                 EksodaApp(viewModel = appViewModel)
             }
         }
+    }
+
+    private fun Window.setSecure(secure: Boolean) {
+        val flag = WindowManager.LayoutParams.FLAG_SECURE
+        if (secure) addFlags(flag) else clearFlags(flag)
     }
 
     override fun onNewIntent(intent: Intent) {
