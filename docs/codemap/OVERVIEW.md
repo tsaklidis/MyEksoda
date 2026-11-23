@@ -16,10 +16,17 @@ the household's phones on the local network (private addresses, never the intern
 Data is in a SQLCipher database; Android cloud backup is off (`allowBackup=false`,
 `dataExtractionRules`); the user's own encrypted export is the only backup.
 
-Not built yet: backup reminder, restore from onboarding, app lock, hide content
-(`FLAG_SECURE`), delete all data, light theme, R8 and a baseline profile for the release build
-(it is signed and published, but not minified). What is
-left of household sync is under "Not built yet" in `docs/design/household-sync.md`.
+Settings → "Hide app content" (off by default, this phone only) makes `MainActivity`'s window
+secure (`FLAG_SECURE`: no screenshots, blank in recent apps), from
+`SettingsRepository.hideContent` through `AppViewModel.hideContent`. That value is null until the
+preference is read; the splash screen waits for it, and `MainActivity` sets the flag in
+`onCreate` (not from the composition), so no frame is drawn before the window is secure. A
+settings file that cannot be read counts as on (fail closed, `safePreferences`).
+
+Not built yet: backup reminder, restore from onboarding, app lock, delete all data, light
+theme, R8 and a baseline profile for the release build (it is signed and published, but not
+minified). What is left of household sync is under "Not built yet" in
+`docs/design/household-sync.md`.
 
 ## Modules and dependency rules
 
@@ -34,7 +41,8 @@ core:data              Repositories (interface + Impl), imports/ pipeline, backu
                        WriteCoordinator, Fixed, DI modules (di/)
 core:designsystem      Theme (dark scheme + EksodaColors, Inter + IBM Plex Mono, shapes),
                        components (SectionCard, ChangeBadge, HeroAmount, StatRow, OverlineText,
-                       PeriodSelector, SegmentedToggle, navigation bar/rail + ScanButton,
+                       PeriodSelector, SegmentedToggle, SwitchRow, navigation bar/rail +
+                       ScanButton,
                        CategoryTile/Icon, MerchantAvatar, groupedItem, Button), chart/
                        (MinMaxBar, RangeDotPlot, BarChart, LineChart, DonutChart, ShareBar),
                        text/monoNumbers
@@ -167,7 +175,10 @@ Text helpers (stored keys depend on their exact behavior; reuse them, don't rein
 - Repositories return `core:model` types, `Result<T>` for suspend calls, `Flow` for reads.
   Mapping entity/row → model is private in the `*Impl` (`toModel()`), using
   `HouseholdZone.current()` for dates.
-- DI: `di/AppModule.kt` (Engine, WorkManager, DataStore, `@ApplicationScope`,
+- DI: `di/AppModule.kt` (Engine, WorkManager, DataStore from `settingsDataStore`: a corrupt
+  preferences file is replaced with `safePreferences`, a failed read gets them and is retried,
+  for every reader; content hidden, sync off, backfill not re-run; a write still throws
+  `IOException`, so every `edit` caller catches it), `@ApplicationScope`,
   `RepositoryModule` @Binds; `di/SyncModule.kt` for sync), `di/DatabaseModule.kt` (DB + one
   `@Provides` per DAO),
   `di/CoreModule.kt` (`Clock`, `@IoDispatcher`, `@DefaultDispatcher`). Parsing and analytics
@@ -286,7 +297,8 @@ Text helpers (stored keys depend on their exact behavior; reuse them, don't rein
   in the screen
   (`rememberSaveable`) and send changes to the ViewModel; never feed a `TextField` from a
   Flow. Lazy rows use `Modifier.animateItem()`.
-- The splash screen stays up while `AppState` is `LOADING` (`MainActivity`).
+- The splash screen stays up while `AppState` is `LOADING` and while "Hide app content" is
+  not known yet (`MainActivity`).
 
 ## Hard rules that are easy to break (beyond the ground rules)
 

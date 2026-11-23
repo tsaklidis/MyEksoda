@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -37,6 +36,7 @@ import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Savings
 import androidx.compose.material.icons.outlined.Storefront
 import androidx.compose.material.icons.outlined.Sync
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material.icons.outlined.VolunteerActivism
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -48,7 +48,6 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -72,7 +71,9 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.eksoda.core.designsystem.component.RowIcon
 import io.eksoda.core.designsystem.component.SectionCard
+import io.eksoda.core.designsystem.component.SwitchRow
 import io.eksoda.core.designsystem.theme.EksodaTheme
 import io.eksoda.core.designsystem.theme.tabular
 import io.eksoda.core.model.Household
@@ -96,6 +97,7 @@ fun SettingsRoute(
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val switches by viewModel.switches.collectAsStateWithLifecycle()
     val activity = LocalActivity.current
     val context = LocalContext.current
     val language = remember { AppLanguage.current(context) }
@@ -111,10 +113,13 @@ fun SettingsRoute(
     ) { uri -> viewModel.onEvent(SettingsEvent.ImportFileChosen(uri)) }
     val snackbarHostState = remember { SnackbarHostState() }
     val incomeFailed = stringResource(UiR.string.income_save_failed)
+    val settingFailed = stringResource(R.string.settings_save_failed)
     LaunchedEffect(viewModel) {
         viewModel.effects.collect { effect ->
             when (effect) {
                 SettingsEffect.IncomeSaveFailed -> snackbarHostState.showSnackbar(incomeFailed)
+
+                SettingsEffect.SettingSaveFailed -> snackbarHostState.showSnackbar(settingFailed)
 
                 // No app may handle the picker on a stripped-down device: then nothing happens.
                 is SettingsEffect.ChooseExportFile ->
@@ -126,6 +131,7 @@ fun SettingsRoute(
     }
     SettingsScreen(
         state = state,
+        switches = switches,
         language = language,
         version = remember { appVersion(context) },
         onBack = onBack,
@@ -162,6 +168,7 @@ private fun appVersion(context: Context): String = runCatching {
 @Composable
 fun SettingsScreen(
     state: SettingsUiState,
+    switches: PreferenceSwitches?,
     language: String,
     version: String,
     onBack: () -> Unit,
@@ -235,9 +242,10 @@ fun SettingsScreen(
             }
             PreferencesCard(
                 language = language,
-                notifyImports = state.notifyImports,
+                switches = switches,
                 onLanguageSelect = onLanguageSelect,
                 onNotifyImportsChange = onNotifyImportsChange,
+                onHideContentChange = { onEvent(SettingsEvent.HideContentChanged(it)) },
             )
             SectionCard(title = stringResource(R.string.settings_data)) {
                 Hint(stringResource(R.string.settings_data_hint))
@@ -265,13 +273,18 @@ fun SettingsScreen(
     }
 }
 
-/** Language (one row, a picker on tap) and the import notifications. */
+/**
+ * Language (one row, a picker on tap), import notifications and hiding the app's content. Until
+ * the stored [switches] are read (null) the switches show off and take no taps, so a switch is
+ * never flipped from a placeholder.
+ */
 @Composable
 private fun PreferencesCard(
     language: String,
-    notifyImports: Boolean,
+    switches: PreferenceSwitches?,
     onLanguageSelect: (String) -> Unit,
     onNotifyImportsChange: (Boolean) -> Unit,
+    onHideContentChange: (Boolean) -> Unit,
 ) {
     var picking by rememberSaveable { mutableStateOf(false) }
     val current = LANGUAGES.firstOrNull { it.first == language }?.second
@@ -284,33 +297,23 @@ private fun PreferencesCard(
             onClick = { picking = true },
         )
         HorizontalDivider(color = EksodaTheme.colors.line)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 56.dp)
-                .toggleable(
-                    value = notifyImports,
-                    role = Role.Switch,
-                    onValueChange = onNotifyImportsChange,
-                )
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            RowIcon(Icons.Outlined.Notifications)
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    stringResource(R.string.settings_notify_imports),
-                    style = MaterialTheme.typography.bodyLarge,
-                )
-                Text(
-                    stringResource(R.string.settings_notify_imports_hint),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = EksodaTheme.colors.ink2,
-                )
-            }
-            Switch(checked = notifyImports, onCheckedChange = null)
-        }
+        SwitchRow(
+            label = stringResource(R.string.settings_notify_imports),
+            supporting = stringResource(R.string.settings_notify_imports_hint),
+            icon = Icons.Outlined.Notifications,
+            checked = switches?.notifyImports == true,
+            onCheckedChange = onNotifyImportsChange,
+            enabled = switches != null,
+        )
+        HorizontalDivider(color = EksodaTheme.colors.line)
+        SwitchRow(
+            label = stringResource(R.string.settings_hide_content),
+            supporting = stringResource(R.string.settings_hide_content_hint),
+            icon = Icons.Outlined.VisibilityOff,
+            checked = switches?.hideContent == true,
+            onCheckedChange = onHideContentChange,
+            enabled = switches != null,
+        )
     }
     if (picking) {
         LanguageDialog(
@@ -354,12 +357,6 @@ private fun Hint(text: String) {
         color = EksodaTheme.colors.ink2,
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
     )
-}
-
-/** The leading icon of a row: decorative, the row's text says what it is. */
-@Composable
-private fun RowIcon(icon: ImageVector) {
-    Icon(icon, contentDescription = null, tint = EksodaTheme.colors.ink2)
 }
 
 /**
@@ -593,10 +590,8 @@ private fun HouseholdCard(
 private fun SettingsScreenPreview() {
     EksodaTheme {
         SettingsScreen(
-            state = SettingsUiState(
-                household = Household("1", "Σπίτι", "EUR", "Europe/Athens"),
-                notifyImports = true,
-            ),
+            state = SettingsUiState(household = Household("1", "Σπίτι", "EUR", "Europe/Athens")),
+            switches = PreferenceSwitches(notifyImports = true, hideContent = false),
             language = AppLanguage.GREEK,
             version = "0.1.0",
             onBack = {},

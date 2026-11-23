@@ -2,6 +2,7 @@ package io.eksoda.core.data.repository
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import io.eksoda.core.data.imports.ImportNotifier
@@ -13,11 +14,18 @@ import javax.inject.Singleton
 @Singleton
 class SettingsRepositoryImpl @Inject constructor(private val preferences: DataStore<Preferences>) :
     SettingsRepository {
+    // A file that cannot be read gives safePreferences (settingsDataStore), not an I/O error.
     override val notifyImports: Flow<Boolean> =
         preferences.data.map { it[ImportNotifier.NOTIFY_IMPORTS_KEY] == true }
 
     override suspend fun setNotifyImports(enabled: Boolean) {
         preferences.edit { it[ImportNotifier.NOTIFY_IMPORTS_KEY] = enabled }
+    }
+
+    override val hideContent: Flow<Boolean> = preferences.data.map { it[HIDE_CONTENT_KEY] == true }
+
+    override suspend fun setHideContent(enabled: Boolean) {
+        preferences.edit { it[HIDE_CONTENT_KEY] = enabled }
     }
 
     override val foldedInsightsCards: Flow<Set<String>> =
@@ -31,7 +39,9 @@ class SettingsRepositoryImpl @Inject constructor(private val preferences: DataSt
         }
     }
 
-    private companion object {
-        val FOLDED_INSIGHTS_CARDS_KEY = stringSetPreferencesKey("folded_insights_cards")
+    // Internal: an unreadable settings file hides the content (safePreferences).
+    internal companion object {
+        val HIDE_CONTENT_KEY = booleanPreferencesKey("hide_content")
+        private val FOLDED_INSIGHTS_CARDS_KEY = stringSetPreferencesKey("folded_insights_cards")
     }
 }

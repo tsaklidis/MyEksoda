@@ -3,6 +3,30 @@
 What changed in each release of Eksoda. Earlier releases are described on the
 [Releases](https://github.com/tsaklidis/MyEksoda/releases) page.
 
+## 0.3.5 - Hide the app's content
+
+A small update. Install it over 0.3.4 as usual: your data stays, and household sync keeps
+working between 0.3.4 and 0.3.5.
+
+### New
+
+- **Hide app content.** Settings → Preferences has a new "Hide app content" switch. When it is
+  on, screenshots and screen recordings of Eksoda come out blank, and its card in the recent
+  apps screen is empty, so your receipts and spending do not show when you switch apps or share
+  your screen. It is off by default and applies to this phone only: it is not synced to the
+  household's other phones and is not part of a backup. If the app's settings file is ever
+  damaged, Eksoda keeps hiding its content (and leaves household sync off) until you change it
+  in Settings.
+
+### Improved
+
+- **Labels in toggles are no longer cut.** In Insights → Top products, the Greek
+  "Περισσότερα χρήματα" showed as "Περισσότερα χρήμ…" on most phones. A label that does not fit
+  now wraps to a second line, with both options keeping the same height; when the options do
+  not fit side by side at all (three units on a narrow phone, large text), they stack.
+- **Filter switches respond on the whole row.** The switches in the receipt filters ("Needs
+  review" and the others) now toggle when you tap anywhere on their row, like those in Settings.
+
 ## 0.3.4 - A way to support Eksoda
 
 A small update. Install it over 0.3.3 as usual: your data stays, and household sync keeps

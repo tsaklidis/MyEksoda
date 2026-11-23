@@ -1,6 +1,8 @@
 package io.eksoda.core.data.imports
 
+import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.Preferences
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.work.WorkInfo
 import assertk.assertThat
@@ -19,6 +21,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
+import java.io.IOException
 
 /** What runs at every app start: queued imports, and the retry after an update. */
 @RunWith(AndroidJUnit4::class)
@@ -41,16 +44,19 @@ class ImportStartupTest {
     }
 
     /** The app start with its preferences in [file]: another file is a start with them cleared. */
-    private fun startupWith(file: String) = ImportStartup(
-        app.jobs,
-        app.coordinator,
-        ImportScheduler(app.workManager),
-        PreferenceDataStoreFactory.create(scope = scope) {
+    private fun startupWith(file: String, writable: Boolean = true): ImportStartup {
+        val preferences = PreferenceDataStoreFactory.create(scope = scope) {
             folder.root.resolve("$file.preferences_pb")
-        },
-        version,
-        app.clock,
-    )
+        }
+        return ImportStartup(
+            app.jobs,
+            app.coordinator,
+            ImportScheduler(app.workManager),
+            if (writable) preferences else ReadOnly(preferences),
+            version,
+            app.clock,
+        )
+    }
 
     @After
     fun tearDown() {
@@ -112,6 +118,18 @@ class ImportStartupTest {
     }
 
     @Test
+    fun `a settings file that cannot be written still queues the lost imports`() = runTest {
+        val submission = app.service.submit(Fixtures.url(MYMARKET))
+        val jobId = (submission as ImportSubmission.Queued).jobId
+        app.workManager.cancelUniqueWork("import-$jobId")
+
+        // Recording the version fails; the start goes on.
+        startupWith("read-only", writable = false).run()
+        assertThat(runs(jobId).last()).isEqualTo(WorkInfo.State.ENQUEUED)
+        assertThat(status(jobId)).isEqualTo("pending")
+    }
+
+    @Test
     fun `a pending import whose run was lost is queued again`() = runTest {
         val submission = app.service.submit(Fixtures.url(MYMARKET))
         val jobId = (submission as ImportSubmission.Queued).jobId
@@ -122,4 +140,13 @@ class ImportStartupTest {
         assertThat(runs(jobId).last()).isEqualTo(WorkInfo.State.ENQUEUED)
         assertThat(status(jobId)).isEqualTo("pending")
     }
+}
+
+/** Reads work; every write fails as on a full or failing disk. */
+private class ReadOnly(delegate: DataStore<Preferences>) : DataStore<Preferences> {
+    override val data = delegate.data
+
+    override suspend fun updateData(
+        transform: suspend (t: Preferences) -> Preferences,
+    ): Preferences = throw IOException("cannot write")
 }

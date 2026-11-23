@@ -10,6 +10,9 @@
     <string name="settings_cancel">Cancel</string>
     <string name="settings_notify_imports">Import notifications</string>
     <string name="settings_notify_imports_hint">When a receipt finishes importing while the app is closed. The receipt link is never shown.</string>
+    <string name="settings_hide_content">Hide app content</string>
+    <string name="settings_hide_content_hint">No screenshots or screen recording, and Eksoda shows blank in recent apps.</string>
+    <string name="settings_save_failed">The setting was not saved. Please try again.</string>
     <string name="settings_catalog">Organize</string>
     <string name="settings_categories">Categories</string>
     <string name="settings_merchants">Shops</string>

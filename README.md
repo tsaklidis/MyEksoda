@@ -58,6 +58,8 @@ Eksoda is a standalone, privacy-first Android household expense app built around
 **Your data**
 - **Encrypted backups** you can export and restore, and open on a computer with
   [`tools/decrypt_backup.py`](tools/decrypt_backup.py).
+- **Hide app content:** an optional switch that blanks screenshots, screen recordings and the
+  app's card in recent apps.
 - **Greek and English.**
 
 ## 🔒 Privacy First

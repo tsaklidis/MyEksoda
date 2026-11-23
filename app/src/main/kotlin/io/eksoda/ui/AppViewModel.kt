@@ -6,6 +6,7 @@ import dagger.Lazy
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.eksoda.core.data.di.IoDispatcher
 import io.eksoda.core.data.repository.HouseholdRepository
+import io.eksoda.core.data.repository.SettingsRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -40,12 +41,14 @@ sealed interface AppLaunch {
 }
 
 /**
- * Whether the household exists, and what the app was opened with. The repository is created
- * lazily on the IO dispatcher: opening the encrypted database must not run on the main thread.
+ * Whether the household exists, what the app was opened with, and whether its window hides its
+ * content. The household repository is created lazily on the IO dispatcher: opening the
+ * encrypted database must not run on the main thread.
  */
 @HiltViewModel
 class AppViewModel @Inject constructor(
     households: Lazy<HouseholdRepository>,
+    settings: SettingsRepository,
     @IoDispatcher ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
     val state: StateFlow<AppState> = flow { emitAll(households.get().household) }
@@ -53,6 +56,15 @@ class AppViewModel @Inject constructor(
         .catch { emit(AppState.UNAVAILABLE) }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, AppState.LOADING)
+
+    /**
+     * Settings → "Hide app content": the window is secure (MainActivity). Null until the
+     * preference is read, so "not known yet" never passes for "off": the splash screen stays
+     * until it is known. A settings file that cannot be read gives "on" and is read again until
+     * it works (settingsDataStore in core:data), so the window follows the setting either way.
+     */
+    val hideContent: StateFlow<Boolean?> = settings.hideContent
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val _launch = MutableStateFlow<AppLaunch?>(null)
     val launch: StateFlow<AppLaunch?> = _launch.asStateFlow()

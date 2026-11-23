@@ -10,6 +10,9 @@
     <string name="settings_cancel">Ακύρωση</string>
     <string name="settings_notify_imports">Ειδοποιήσεις εισαγωγής</string>
     <string name="settings_notify_imports_hint">Όταν ολοκληρώνεται η εισαγωγή μιας απόδειξης ενώ η εφαρμογή είναι κλειστή. Ο σύνδεσμος της απόδειξης δεν εμφανίζεται ποτέ.</string>
+    <string name="settings_hide_content">Απόκρυψη περιεχομένου</string>
+    <string name="settings_hide_content_hint">Χωρίς στιγμιότυπα και εγγραφή οθόνης· στις πρόσφατες εφαρμογές η Eksoda εμφανίζεται κενή.</string>
+    <string name="settings_save_failed">Η ρύθμιση δεν αποθηκεύτηκε. Δοκιμάστε ξανά.</string>
     <string name="settings_catalog">Οργάνωση</string>
     <string name="settings_categories">Κατηγορίες</string>
     <string name="settings_merchants">Καταστήματα</string>

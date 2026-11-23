@@ -2,7 +2,6 @@ package io.eksoda.core.data.di
 
 import android.content.Context
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.work.WorkManager
@@ -34,6 +33,7 @@ import io.eksoda.core.data.repository.ReviewRepository
 import io.eksoda.core.data.repository.ReviewRepositoryImpl
 import io.eksoda.core.data.repository.SettingsRepository
 import io.eksoda.core.data.repository.SettingsRepositoryImpl
+import io.eksoda.core.data.repository.settingsDataStore
 import io.eksoda.engine.Engine
 import io.eksoda.engine.fetch.SafeFetcher
 import kotlinx.coroutines.CoroutineDispatcher
@@ -63,7 +63,7 @@ object AppModule {
     @Provides
     @Singleton
     fun providePreferences(@ApplicationContext context: Context): DataStore<Preferences> =
-        PreferenceDataStoreFactory.create { context.preferencesDataStoreFile("settings") }
+        settingsDataStore { context.preferencesDataStoreFile("settings") }
 
     @Provides
     @Singleton

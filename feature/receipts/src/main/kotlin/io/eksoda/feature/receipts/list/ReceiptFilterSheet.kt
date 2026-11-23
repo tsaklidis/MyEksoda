@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -24,7 +25,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -35,7 +35,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
@@ -43,6 +42,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import io.eksoda.core.designsystem.component.CategoryIcon
+import io.eksoda.core.designsystem.component.SwitchRow
 import io.eksoda.core.model.DocumentKind
 import io.eksoda.core.model.Option
 import io.eksoda.core.model.PeriodPreset
@@ -373,12 +373,17 @@ private fun TypeSection(selected: DocumentKind?, onSelect: (DocumentKind?) -> Un
     }
 }
 
+/** A filter switch; the whole row toggles it. The sheet already pads its sides. */
 @Composable
 private fun ToggleRow(label: Int, checked: Boolean, onChange: (Boolean) -> Unit) {
-    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(stringResource(label), modifier = Modifier.weight(1f))
-        Switch(checked = checked, onCheckedChange = onChange)
-    }
+    SwitchRow(
+        label = stringResource(label),
+        checked = checked,
+        onCheckedChange = onChange,
+        contentPadding = PaddingValues(vertical = 4.dp),
+        // The sheet is dense: the touch target, not a list row's height.
+        minHeight = 48.dp,
+    )
 }
 
 @Composable

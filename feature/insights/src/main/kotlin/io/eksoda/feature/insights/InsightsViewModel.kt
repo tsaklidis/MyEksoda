@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.io.IOException
 import java.math.BigDecimal
 import java.time.LocalDate
 import javax.inject.Inject
@@ -143,8 +144,14 @@ class InsightsViewModel @Inject constructor(
                 }
             }
 
-            is InsightsEvent.CardToggled ->
-                viewModelScope.launch { settings.toggleInsightsCardFolded(event.card.name) }
+            is InsightsEvent.CardToggled -> viewModelScope.launch {
+                try {
+                    settings.toggleInsightsCardFolded(event.card.name)
+                } catch (ignored: IOException) {
+                    // The settings file cannot be written: the card stays as it was, which the
+                    // user sees, so there is nothing else to say.
+                }
+            }
         }
     }
 

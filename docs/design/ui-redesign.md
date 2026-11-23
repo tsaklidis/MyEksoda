@@ -28,7 +28,8 @@ Tokens: `core:designsystem` `theme/Color.kt` (`EksodaColors`, also mapped to
 ## 3. Components
 
 Use what `core:designsystem` has (`SectionCard`, `ChangeBadge`, `HeroAmount`, `StatRow`,
-`OverlineText`, `PeriodSelector`, `SegmentedToggle`, navigation, `CategoryTile`); shapes are in
+`OverlineText`, `PeriodSelector`, `SegmentedToggle`, `SwitchRow`, navigation, `CategoryTile`);
+shapes are in
 `theme/Shape.kt`. Cards have a line border and no elevation. Categories have no color: their
 identity is the name and icon on a neutral tile.
 

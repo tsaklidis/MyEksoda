@@ -34,6 +34,7 @@
     <string name="sync_leave_confirm">Αποχώρηση</string>
     <string name="sync_left">Αυτό το κινητό δεν συγχρονίζεται πια. Τα δεδομένα σας έμειναν εδώ.</string>
     <string name="sync_leave_failed">Η αποχώρηση απέτυχε. Δοκιμάστε ξανά.</string>
+    <string name="sync_switch_failed">Ο συγχρονισμός δεν άλλαξε. Δοκιμάστε ξανά.</string>
     <string name="sync_peer_last">Τελευταίος συγχρονισμός: %1$s</string>
     <string name="sync_peer_never">Δεν έχει συγχρονιστεί ακόμη</string>
     <string name="sync_history">Ιστορικό</string>
