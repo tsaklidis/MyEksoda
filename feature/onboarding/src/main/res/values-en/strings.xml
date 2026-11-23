@@ -21,7 +21,18 @@
     <string name="onboarding_way_share_body">Share a receipt link from any app.</string>
     <string name="onboarding_way_manual">By hand</string>
     <string name="onboarding_way_manual_body">Type in rent, the doctor or a handwritten receipt: amount, date and category.</string>
-    <string name="onboarding_budget">Monthly budget (optional)</string>
-    <string name="onboarding_budget_hint">You can change it any time in Settings → Budgets.</string>
+    <string name="onboarding_budget">Everyday spending (optional)</string>
+    <string name="onboarding_budget_hint">Supermarket, coffee, delivery, fuel, going out. Change it in More → Budget.</string>
     <string name="onboarding_budget_invalid">Type an amount, like 600.</string>
+    <string name="onboarding_month_title">What does your month cost?</string>
+    <string name="onboarding_month_body">Type what you pay. Leave out what you don\'t have. You can change any of it later.</string>
+    <string name="onboarding_month_bills">Bills every month</string>
+    <string name="onboarding_month_variable">Changes every month: type about how much</string>
+    <string name="onboarding_month_total">Your month: %1$s</string>
+    <string name="onboarding_bill_rent">Rent</string>
+    <string name="onboarding_bill_electricity">Electricity</string>
+    <string name="onboarding_bill_water">Water</string>
+    <string name="onboarding_bill_internet">Internet</string>
+    <string name="onboarding_bill_mobile">Mobile phones</string>
+    <string name="onboarding_bill_tv">TV and subscriptions</string>
 </resources>

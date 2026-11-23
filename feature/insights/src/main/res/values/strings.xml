@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="insights_title">Στατιστικά</string>
+    <string name="insights_title">Έξοδα</string>
     <string name="insights_period_today">Σήμερα</string>
     <string name="insights_period_this_week">Αυτή η εβδομάδα</string>
     <string name="insights_period_this_month">Αυτός ο μήνας</string>

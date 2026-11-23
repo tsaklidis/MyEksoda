@@ -58,7 +58,11 @@ internal fun ReceiptRow(receipt: Receipt, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        MerchantAvatar(receipt.merchant.id, receipt.merchant.name)
+        MerchantAvatar(
+            receipt.merchant.id,
+            receipt.merchant.name,
+            vatNumber = receipt.merchant.vatNumber,
+        )
         Column(modifier = Modifier.weight(1f)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,

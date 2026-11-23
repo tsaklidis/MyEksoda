@@ -153,7 +153,7 @@
     <string name="merchant_address">Address</string>
     <string name="merchant_open_maps">Open in Maps</string>
     <string name="merchant_default_category">Default category</string>
-    <string name="merchant_default_category_hint">Used for this shop\'s receipts in the category filter and in Insights.</string>
+    <string name="merchant_default_category_hint">Used for this shop\'s receipts in the category filter and in Spending.</string>
     <string name="merchant_stores">Stores</string>
     <string name="merchant_store_unnamed">Store without an address</string>
     <string name="merchant_rename">Rename</string>

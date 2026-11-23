@@ -153,7 +153,7 @@
     <string name="merchant_address">Διεύθυνση</string>
     <string name="merchant_open_maps">Άνοιγμα στους Χάρτες</string>
     <string name="merchant_default_category">Προεπιλεγμένη κατηγορία</string>
-    <string name="merchant_default_category_hint">Ισχύει για όσα είδη αυτού του καταστήματος δεν έχουν δική τους κατηγορία, στο φίλτρο κατηγορίας και στα Στατιστικά.</string>
+    <string name="merchant_default_category_hint">Ισχύει για όσα είδη αυτού του καταστήματος δεν έχουν δική τους κατηγορία, στο φίλτρο κατηγορίας και στα Έξοδα.</string>
     <string name="merchant_stores">Υποκαταστήματα</string>
     <string name="merchant_store_unnamed">Υποκατάστημα χωρίς διεύθυνση</string>
     <string name="merchant_rename">Μετονομασία</string>

@@ -53,10 +53,14 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.eksoda.core.designsystem.component.EksodaButton
 import io.eksoda.core.designsystem.component.OverlineText
+import io.eksoda.core.designsystem.text.monoNumbers
 import io.eksoda.core.designsystem.theme.DisplayTitleStyle
 import io.eksoda.core.designsystem.theme.EksodaTheme
+import io.eksoda.core.model.BillKind
+import io.eksoda.core.model.Money
 import io.eksoda.core.ui.text.appLocale
 import io.eksoda.core.ui.text.currencySymbol
+import io.eksoda.core.ui.text.formatMoney
 import kotlinx.coroutines.launch
 
 @Composable
@@ -66,11 +70,12 @@ fun OnboardingRoute(viewModel: OnboardingViewModel = hiltViewModel()) {
 }
 
 /** The pages, in order. Only the last one writes anything (OnboardingViewModel). */
-private enum class Page { WELCOME, WAYS, PRIVACY, HOUSEHOLD }
+private enum class Page { WELCOME, WAYS, PRIVACY, MONTH, HOUSEHOLD }
 
 /**
- * Four pages: what Eksoda does, the three ways to add an expense, the privacy promise, then the
- * household (its name and, optionally, a monthly budget). The intro pages can be skipped.
+ * Five pages: what Eksoda does, the three ways to add an expense, the privacy promise, what the
+ * month costs (bills and everyday spending, all optional), then the household's name. The intro
+ * pages can be skipped.
  */
 @Composable
 fun OnboardingScreen(
@@ -83,6 +88,7 @@ fun OnboardingScreen(
     val pager = rememberPagerState(initialPage = initialPage) { pages.size }
     val scope = rememberCoroutineScope()
     val last = pager.currentPage == pages.lastIndex
+    val billNames = StarterBill.entries.associateWith { stringResource(billName(it)) }
     Surface(modifier = modifier.fillMaxSize(), color = EksodaTheme.colors.page) {
         Column(modifier = Modifier.safeDrawingPadding().imePadding()) {
             Row(
@@ -122,7 +128,8 @@ fun OnboardingScreen(
                         Page.WELCOME -> WelcomePage()
                         Page.WAYS -> WaysPage()
                         Page.PRIVACY -> PrivacyPage()
-                        Page.HOUSEHOLD -> HouseholdPage(state, onEvent)
+                        Page.MONTH -> MonthPage(state, onEvent)
+                        Page.HOUSEHOLD -> HouseholdPage(state, onEvent, billNames)
                     }
                 }
             }
@@ -134,7 +141,7 @@ fun OnboardingScreen(
                 PageDots(pager)
                 if (last) {
                     EksodaButton(
-                        onClick = { onEvent(OnboardingEvent.Create) },
+                        onClick = { onEvent(OnboardingEvent.Create(billNames)) },
                         text = stringResource(R.string.onboarding_create),
                         enabled = state.canCreate,
                         isLoading = state.creating,
@@ -187,29 +194,52 @@ private fun ColumnScope.PrivacyPage() {
     PageBody(stringResource(R.string.onboarding_promise_body))
 }
 
+/**
+ * "What does your month cost?": the usual Greek bills (rent, electricity, water, internet,
+ * phones, TV) and the everyday budget, each optional, with the month's total as it is typed.
+ */
 @Composable
-private fun ColumnScope.HouseholdPage(
-    state: OnboardingUiState,
-    onEvent: (OnboardingEvent) -> Unit,
-) {
-    PageTitle(stringResource(R.string.onboarding_create_title))
-    OutlinedTextField(
-        value = state.name,
-        onValueChange = { onEvent(OnboardingEvent.NameChanged(it)) },
-        label = { Text(stringResource(R.string.onboarding_household_name)) },
-        placeholder = { Text(stringResource(R.string.onboarding_household_name_hint)) },
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(
-            capitalization = KeyboardCapitalization.Words,
-            imeAction = ImeAction.Next,
-        ),
-        modifier = Modifier.fillMaxWidth(),
+private fun ColumnScope.MonthPage(state: OnboardingUiState, onEvent: (OnboardingEvent) -> Unit) {
+    val locale = appLocale()
+    val symbol = currencySymbol(state.currency, locale)
+    PageTitle(stringResource(R.string.onboarding_month_title))
+    PageBody(stringResource(R.string.onboarding_month_body))
+    Text(
+        stringResource(R.string.onboarding_month_bills),
+        style = MaterialTheme.typography.titleMedium,
+        color = EksodaTheme.colors.ink,
     )
+    StarterBill.entries.forEach { bill ->
+        OutlinedTextField(
+            value = state.bills[bill].orEmpty(),
+            onValueChange = { onEvent(OnboardingEvent.BillChanged(bill, it)) },
+            label = { Text(stringResource(billName(bill))) },
+            suffix = { Text(symbol) },
+            supportingText = when {
+                bill in state.invalidBills -> {
+                    { Text(stringResource(R.string.onboarding_budget_invalid)) }
+                }
+
+                bill.kind == BillKind.VARIABLE -> {
+                    { Text(stringResource(R.string.onboarding_month_variable)) }
+                }
+
+                else -> null
+            },
+            isError = bill in state.invalidBills,
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Decimal,
+                imeAction = ImeAction.Next,
+            ),
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
     OutlinedTextField(
         value = state.budget,
         onValueChange = { onEvent(OnboardingEvent.BudgetChanged(it)) },
         label = { Text(stringResource(R.string.onboarding_budget)) },
-        suffix = { Text(currencySymbol(state.currency, appLocale())) },
+        suffix = { Text(symbol) },
         supportingText = {
             Text(
                 stringResource(
@@ -227,7 +257,47 @@ private fun ColumnScope.HouseholdPage(
             keyboardType = KeyboardType.Decimal,
             imeAction = ImeAction.Done,
         ),
-        keyboardActions = KeyboardActions(onDone = { onEvent(OnboardingEvent.Create) }),
+        modifier = Modifier.fillMaxWidth(),
+    )
+    Text(
+        monoNumbers(
+            stringResource(
+                R.string.onboarding_month_total,
+                formatMoney(Money(state.monthTotal, state.currency), locale),
+            ),
+        ),
+        style = MaterialTheme.typography.titleMedium,
+        color = EksodaTheme.colors.ink,
+    )
+}
+
+private fun billName(bill: StarterBill): Int = when (bill) {
+    StarterBill.RENT -> R.string.onboarding_bill_rent
+    StarterBill.ELECTRICITY -> R.string.onboarding_bill_electricity
+    StarterBill.WATER -> R.string.onboarding_bill_water
+    StarterBill.INTERNET -> R.string.onboarding_bill_internet
+    StarterBill.MOBILE -> R.string.onboarding_bill_mobile
+    StarterBill.TV -> R.string.onboarding_bill_tv
+}
+
+@Composable
+private fun ColumnScope.HouseholdPage(
+    state: OnboardingUiState,
+    onEvent: (OnboardingEvent) -> Unit,
+    billNames: Map<StarterBill, String>,
+) {
+    PageTitle(stringResource(R.string.onboarding_create_title))
+    OutlinedTextField(
+        value = state.name,
+        onValueChange = { onEvent(OnboardingEvent.NameChanged(it)) },
+        label = { Text(stringResource(R.string.onboarding_household_name)) },
+        placeholder = { Text(stringResource(R.string.onboarding_household_name_hint)) },
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(
+            capitalization = KeyboardCapitalization.Words,
+            imeAction = ImeAction.Done,
+        ),
+        keyboardActions = KeyboardActions(onDone = { onEvent(OnboardingEvent.Create(billNames)) }),
         modifier = Modifier.fillMaxWidth(),
     )
     Text(
@@ -331,14 +401,18 @@ private fun OnboardingWelcomePreview() {
     }
 }
 
-@Preview(name = "Household, Greek", locale = "el")
+@Preview(name = "Your month, Greek", locale = "el")
 @Composable
-private fun OnboardingHouseholdPreview() {
+private fun OnboardingMonthPreview() {
     EksodaTheme(darkTheme = false) {
         OnboardingScreen(
-            state = OnboardingUiState(name = "Σπίτι", budget = "600"),
+            state = OnboardingUiState(
+                name = "Σπίτι",
+                budget = "600",
+                bills = mapOf(StarterBill.RENT to "650", StarterBill.INTERNET to "30"),
+            ),
             onEvent = {},
-            initialPage = Page.HOUSEHOLD.ordinal,
+            initialPage = Page.MONTH.ordinal,
         )
     }
 }

@@ -190,6 +190,7 @@ class ReceiptRepositoryImpl @Inject constructor(
         fromOtherPhone = receipt.sourceUrl == null && !isManual,
         manual = isManual,
         categoryKey = categoryKey,
+        issuerVat = receipt.issuerVat,
     ).toModel(zone)
 
     private val ReceiptRow.isManual: Boolean
@@ -197,7 +198,7 @@ class ReceiptRepositoryImpl @Inject constructor(
 
     private fun ReceiptListRow.toModel(zone: ZoneId): Receipt = Receipt(
         id = id,
-        merchant = Merchant(id = merchantId, name = merchantName),
+        merchant = Merchant(id = merchantId, name = merchantName, vatNumber = issuerVat),
         store = storeId?.let {
             Store(
                 id = it,

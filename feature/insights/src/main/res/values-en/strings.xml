@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="insights_title">Insights</string>
+    <string name="insights_title">Spending</string>
     <string name="insights_period_today">Today</string>
     <string name="insights_period_this_week">This week</string>
     <string name="insights_period_this_month">This month</string>

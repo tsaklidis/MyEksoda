@@ -246,7 +246,11 @@ private fun DealRow(deal: ProductDeal, currency: String, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        MerchantAvatar(deal.cheapest.merchant.id, deal.cheapest.merchant.name)
+        MerchantAvatar(
+            deal.cheapest.merchant.id,
+            deal.cheapest.merchant.name,
+            vatNumber = deal.cheapest.merchant.vatNumber,
+        )
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(
                 deal.productName,
@@ -300,7 +304,11 @@ private fun ShopCard(shop: ShopDeals, currency: String, onProductClick: (String)
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            MerchantAvatar(shop.merchant.id, shop.merchant.name)
+            MerchantAvatar(
+                shop.merchant.id,
+                shop.merchant.name,
+                vatNumber = shop.merchant.vatNumber,
+            )
             Column(modifier = Modifier.weight(1f)) {
                 Text(shop.merchant.name, style = MaterialTheme.typography.titleMedium)
                 Text(
@@ -374,7 +382,7 @@ private fun ShopTrendRow(trend: ShopTrend) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        MerchantAvatar(trend.merchant.id, trend.merchant.name)
+        MerchantAvatar(trend.merchant.id, trend.merchant.name, vatNumber = trend.merchant.vatNumber)
         Column(modifier = Modifier.weight(1f)) {
             Text(trend.merchant.name, style = MaterialTheme.typography.bodyLarge)
             Text(

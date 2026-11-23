@@ -54,6 +54,7 @@ import io.eksoda.core.designsystem.component.MerchantAvatar
 import io.eksoda.core.designsystem.component.SectionCard
 import io.eksoda.core.designsystem.theme.EksodaTheme
 import io.eksoda.core.model.Category
+import io.eksoda.core.model.ManualExpense
 import io.eksoda.core.model.MerchantSummary
 import io.eksoda.core.model.Store
 import io.eksoda.core.ui.component.DelayedProgressIndicator
@@ -181,7 +182,7 @@ private fun MerchantDetailContent(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            MerchantAvatar(merchant.id, merchant.name, size = 56.dp)
+            MerchantAvatar(merchant.id, merchant.name, size = 56.dp, vatNumber = merchant.vatNumber)
             Column {
                 Text(merchant.name, style = MaterialTheme.typography.headlineSmall)
                 Text(
@@ -192,7 +193,10 @@ private fun MerchantDetailContent(
             }
         }
         SectionCard(title = stringResource(R.string.merchant_details)) {
-            Detail(R.string.merchant_vat, merchant.vatNumber)
+            // A payee typed in by hand has no VAT number, only a key made from its name.
+            if (!merchant.vatNumber.startsWith(ManualExpense.PAYEE_VAT_PREFIX)) {
+                Detail(R.string.merchant_vat, merchant.vatNumber)
+            }
             Detail(
                 R.string.merchant_receipts,
                 pluralStringResource(

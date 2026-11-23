@@ -21,7 +21,18 @@
     <string name="onboarding_way_share_body">Μοιραστείτε τον σύνδεσμο μιας απόδειξης από οποιαδήποτε εφαρμογή.</string>
     <string name="onboarding_way_manual">Με το χέρι</string>
     <string name="onboarding_way_manual_body">Γράψτε ενοίκιο, γιατρό ή μια χειρόγραφη απόδειξη: ποσό, ημερομηνία και κατηγορία.</string>
-    <string name="onboarding_budget">Μηνιαίος προϋπολογισμός (προαιρετικά)</string>
-    <string name="onboarding_budget_hint">Τον αλλάζετε όποτε θέλετε από Ρυθμίσεις → Προϋπολογισμοί.</string>
+    <string name="onboarding_budget">Καθημερινά έξοδα (προαιρετικό)</string>
+    <string name="onboarding_budget_hint">Σούπερ μάρκετ, καφές, delivery, βενζίνη, έξοδοι. Αλλάζει από Περισσότερα → Προϋπολογισμός.</string>
     <string name="onboarding_budget_invalid">Γράψτε ένα ποσό, π.χ. 600.</string>
+    <string name="onboarding_month_title">Πόσο κοστίζει ο μήνας σας;</string>
+    <string name="onboarding_month_body">Γράψτε ό,τι πληρώνετε. Αφήστε κενό ό,τι δεν έχετε. Όλα αλλάζουν αργότερα.</string>
+    <string name="onboarding_month_bills">Λογαριασμοί κάθε μήνα</string>
+    <string name="onboarding_month_variable">Αλλάζει κάθε μήνα: βάλτε περίπου πόσο</string>
+    <string name="onboarding_month_total">Ο μήνας σας: %1$s</string>
+    <string name="onboarding_bill_rent">Ενοίκιο</string>
+    <string name="onboarding_bill_electricity">Ρεύμα</string>
+    <string name="onboarding_bill_water">Νερό</string>
+    <string name="onboarding_bill_internet">Internet</string>
+    <string name="onboarding_bill_mobile">Κινητά</string>
+    <string name="onboarding_bill_tv">TV και συνδρομές</string>
 </resources>

@@ -113,7 +113,9 @@ private fun MerchantRow(merchant: MerchantSummary, onClick: () -> Unit) {
     ListItem(
         headlineContent = { Text(merchant.name) },
         supportingContent = { Text(listOfNotNull(receipts, category).joinToString(" · ")) },
-        leadingContent = { MerchantAvatar(merchant.id, merchant.name) },
+        leadingContent = {
+            MerchantAvatar(merchant.id, merchant.name, vatNumber = merchant.vatNumber)
+        },
         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
         modifier = Modifier.clickable(onClick = onClick),
     )

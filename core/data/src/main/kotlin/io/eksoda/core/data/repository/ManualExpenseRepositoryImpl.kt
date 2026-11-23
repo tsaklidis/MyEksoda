@@ -149,7 +149,7 @@ class ManualExpenseRepositoryImpl @Inject constructor(
      * never moves to another day in any time zone of the household's country.
      */
     private fun issuedAt(date: LocalDate, zone: ZoneId, now: Long): Long {
-        val today = LocalDate.ofInstant(Instant.ofEpochMilli(now), zone)
+        val today = Instant.ofEpochMilli(now).atZone(zone).toLocalDate()
         return if (date == today) {
             now
         } else {

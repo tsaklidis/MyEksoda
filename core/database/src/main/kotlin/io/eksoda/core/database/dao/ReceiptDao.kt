@@ -69,6 +69,8 @@ data class ReceiptListRow(
     val manual: Boolean = false,
     /** The receipt's own category ([CATEGORY_KEY]: a system slug or a household name). */
     @ColumnInfo(name = "category_key") val categoryKey: String? = null,
+    /** The issuer's VAT number (ΑΦΜ): it picks the shop's logo. */
+    @ColumnInfo(name = "issuer_vat") val issuerVat: String? = null,
 )
 
 /** A line with its product's name and category slug. */
@@ -249,7 +251,7 @@ interface ReceiptDao {
             receipt.payment_method AS payment_method, receipt.document_kind AS document_kind,
             receipt.status AS status, receipt.excluded_from_analytics AS excluded_from_analytics,
             (receipt.source_url IS NULL AND receipt.origin != 'manual') AS from_other_phone,
-            (receipt.origin = 'manual') AS manual,
+            (receipt.origin = 'manual') AS manual, receipt.issuer_vat AS issuer_vat,
             $ROW_EXTRAS"""
     }
 }

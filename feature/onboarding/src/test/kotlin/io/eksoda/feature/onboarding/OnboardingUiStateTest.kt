@@ -45,4 +45,24 @@ class OnboardingUiStateTest {
     fun `nothing is created twice`() {
         assertThat(OnboardingUiState(name = "Home", creating = true).canCreate).isFalse()
     }
+
+    @Test
+    fun `bills are optional, add up with the budget, and must be amounts when typed`() {
+        val state = OnboardingUiState(
+            name = "Home",
+            budget = "600",
+            bills = mapOf(
+                StarterBill.RENT to "650",
+                StarterBill.WATER to "",
+                StarterBill.TV to "13,50",
+            ),
+        )
+        assertThat(state.billAmounts.keys).isEqualTo(setOf(StarterBill.RENT, StarterBill.TV))
+        assertThat(state.monthTotal.toPlainString()).isEqualTo("1263.50")
+        assertThat(state.canCreate).isTrue()
+
+        val wrong = state.copy(bills = state.bills + (StarterBill.INTERNET to "abc"))
+        assertThat(wrong.invalidBills).isEqualTo(setOf(StarterBill.INTERNET))
+        assertThat(wrong.canCreate).isFalse()
+    }
 }
