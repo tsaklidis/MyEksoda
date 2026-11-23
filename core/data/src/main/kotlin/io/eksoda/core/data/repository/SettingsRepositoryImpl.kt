@@ -14,8 +14,7 @@ import javax.inject.Singleton
 @Singleton
 class SettingsRepositoryImpl @Inject constructor(private val preferences: DataStore<Preferences>) :
     SettingsRepository {
-    // A corrupt file reads as the defaults (settingsDataStore); other read errors reach the
-    // caller, which decides what a setting it cannot read means.
+    // A file that cannot be read gives safePreferences (settingsDataStore), never an error.
     override val notifyImports: Flow<Boolean> =
         preferences.data.map { it[ImportNotifier.NOTIFY_IMPORTS_KEY] == true }
 
@@ -40,8 +39,9 @@ class SettingsRepositoryImpl @Inject constructor(private val preferences: DataSt
         }
     }
 
-    private companion object {
+    // Internal: an unreadable settings file hides the content (safePreferences).
+    internal companion object {
         val HIDE_CONTENT_KEY = booleanPreferencesKey("hide_content")
-        val FOLDED_INSIGHTS_CARDS_KEY = stringSetPreferencesKey("folded_insights_cards")
+        private val FOLDED_INSIGHTS_CARDS_KEY = stringSetPreferencesKey("folded_insights_cards")
     }
 }

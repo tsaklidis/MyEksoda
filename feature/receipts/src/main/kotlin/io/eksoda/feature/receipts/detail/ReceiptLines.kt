@@ -171,9 +171,11 @@ internal fun EditSection(
             },
         )
     }
-    ListItem(
-        modifier = Modifier.clickable { onIncludedChange(!included) },
-        headlineContent = { Text(stringResource(R.string.detail_include_in_stats)) },
-        trailingContent = { Switch(checked = included, onCheckedChange = onIncludedChange) },
+    // The rows above are ListItems: the same side padding keeps the switch in line with their icons.
+    SwitchRow(
+        label = stringResource(R.string.detail_include_in_stats),
+        checked = included,
+        onCheckedChange = onIncludedChange,
+        contentPadding = PaddingValues(start = 16.dp, end = 24.dp, top = 8.dp, bottom = 8.dp),
     )
 }

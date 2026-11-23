@@ -97,6 +97,7 @@ fun SettingsRoute(
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val switches by viewModel.switches.collectAsStateWithLifecycle()
     val activity = LocalActivity.current
     val context = LocalContext.current
     val language = remember { AppLanguage.current(context) }
@@ -112,10 +113,13 @@ fun SettingsRoute(
     ) { uri -> viewModel.onEvent(SettingsEvent.ImportFileChosen(uri)) }
     val snackbarHostState = remember { SnackbarHostState() }
     val incomeFailed = stringResource(UiR.string.income_save_failed)
+    val settingFailed = stringResource(R.string.settings_save_failed)
     LaunchedEffect(viewModel) {
         viewModel.effects.collect { effect ->
             when (effect) {
                 SettingsEffect.IncomeSaveFailed -> snackbarHostState.showSnackbar(incomeFailed)
+
+                SettingsEffect.SettingSaveFailed -> snackbarHostState.showSnackbar(settingFailed)
 
                 // No app may handle the picker on a stripped-down device: then nothing happens.
                 is SettingsEffect.ChooseExportFile ->
@@ -127,6 +131,7 @@ fun SettingsRoute(
     }
     SettingsScreen(
         state = state,
+        switches = switches,
         language = language,
         version = remember { appVersion(context) },
         onBack = onBack,
@@ -163,6 +168,7 @@ private fun appVersion(context: Context): String = runCatching {
 @Composable
 fun SettingsScreen(
     state: SettingsUiState,
+    switches: PreferenceSwitches?,
     language: String,
     version: String,
     onBack: () -> Unit,
@@ -236,9 +242,7 @@ fun SettingsScreen(
             }
             PreferencesCard(
                 language = language,
-                notifyImports = state.notifyImports,
-                hideContent = state.hideContent,
-                switchesEnabled = state.preferencesLoaded,
+                switches = switches,
                 onLanguageSelect = onLanguageSelect,
                 onNotifyImportsChange = onNotifyImportsChange,
                 onHideContentChange = { onEvent(SettingsEvent.HideContentChanged(it)) },
@@ -270,16 +274,14 @@ fun SettingsScreen(
 }
 
 /**
- * Language (one row, a picker on tap), import notifications and hiding the app's content. The
- * switches take taps only once [switchesEnabled] (their stored values have loaded), so a switch
- * is never flipped from a placeholder "off".
+ * Language (one row, a picker on tap), import notifications and hiding the app's content. Until
+ * the stored [switches] are read (null) the switches show off and take no taps, so a switch is
+ * never flipped from a placeholder.
  */
 @Composable
 private fun PreferencesCard(
     language: String,
-    notifyImports: Boolean,
-    hideContent: Boolean,
-    switchesEnabled: Boolean,
+    switches: PreferenceSwitches?,
     onLanguageSelect: (String) -> Unit,
     onNotifyImportsChange: (Boolean) -> Unit,
     onHideContentChange: (Boolean) -> Unit,
@@ -299,18 +301,18 @@ private fun PreferencesCard(
             label = stringResource(R.string.settings_notify_imports),
             supporting = stringResource(R.string.settings_notify_imports_hint),
             icon = Icons.Outlined.Notifications,
-            checked = notifyImports,
+            checked = switches?.notifyImports == true,
             onCheckedChange = onNotifyImportsChange,
-            enabled = switchesEnabled,
+            enabled = switches != null,
         )
         HorizontalDivider(color = EksodaTheme.colors.line)
         SwitchRow(
             label = stringResource(R.string.settings_hide_content),
             supporting = stringResource(R.string.settings_hide_content_hint),
             icon = Icons.Outlined.VisibilityOff,
-            checked = hideContent,
+            checked = switches?.hideContent == true,
             onCheckedChange = onHideContentChange,
-            enabled = switchesEnabled,
+            enabled = switches != null,
         )
     }
     if (picking) {
@@ -588,10 +590,8 @@ private fun HouseholdCard(
 private fun SettingsScreenPreview() {
     EksodaTheme {
         SettingsScreen(
-            state = SettingsUiState(
-                household = Household("1", "Σπίτι", "EUR", "Europe/Athens"),
-                notifyImports = true,
-            ),
+            state = SettingsUiState(household = Household("1", "Σπίτι", "EUR", "Europe/Athens")),
+            switches = PreferenceSwitches(notifyImports = true, hideContent = false),
             language = AppLanguage.GREEK,
             version = "0.1.0",
             onBack = {},

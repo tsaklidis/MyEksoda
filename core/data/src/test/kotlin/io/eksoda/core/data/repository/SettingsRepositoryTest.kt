@@ -58,27 +58,6 @@ class SettingsRepositoryTest {
     }
 
     @Test
-    fun `a corrupt settings file is replaced with the defaults, and settings save again`() =
-        runTest {
-            // Not a preferences protobuf: DataStore fails the read with a CorruptionException.
-            folder.root.resolve("settings.preferences_pb").writeBytes(byteArrayOf(-1, -1, -1, -1))
-            assertThat(settings.hideContent.first()).isFalse()
-            assertThat(settings.notifyImports.first()).isFalse()
-            assertThat(settings.foldedInsightsCards.first()).isEqualTo(emptySet())
-            // Writing reads the file first: it must not fail on the corrupt one either.
-            settings.setHideContent(true)
-            assertThat(settings.hideContent.first()).isTrue()
-        }
-
-    @Test
-    fun `a corrupt settings file does not fail a write that comes first`() = runTest {
-        folder.root.resolve("settings.preferences_pb").writeBytes(byteArrayOf(-1, -1, -1, -1))
-        settings.setNotifyImports(true)
-        assertThat(settings.notifyImports.first()).isTrue()
-        assertThat(settings.hideContent.first()).isFalse()
-    }
-
-    @Test
     fun `an insights card folds and unfolds`() = runTest {
         assertThat(settings.foldedInsightsCards.first()).isEqualTo(emptySet())
         settings.toggleInsightsCardFolded("trend")

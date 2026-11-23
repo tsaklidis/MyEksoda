@@ -60,12 +60,10 @@ class AppViewModel @Inject constructor(
     /**
      * Settings → "Hide app content": the window is secure (MainActivity). Null until the
      * preference is read, so "not known yet" never passes for "off": the splash screen stays
-     * until it is known. A read that fails (a corrupt file already reads as the defaults) counts
-     * as on: the app still opens, and content the user asked to hide is never shown because the
-     * setting could not be read. It stays on until the app is restarted.
+     * until it is known. A settings file that cannot be read gives "on" and is read again until
+     * it works (settingsDataStore in core:data), so the window follows the setting either way.
      */
     val hideContent: StateFlow<Boolean?> = settings.hideContent
-        .catch { emit(true) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val _launch = MutableStateFlow<AppLaunch?>(null)

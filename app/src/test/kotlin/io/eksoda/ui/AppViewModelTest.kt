@@ -10,7 +10,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -19,9 +18,12 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import java.io.IOException
 
-/** "Hide app content" as the launch screen sees it (MainActivity makes the window secure). */
+/**
+ * "Hide app content" as the launch screen sees it (MainActivity makes the window secure). What
+ * an unreadable settings file gives is tested with the DataStore (core:data,
+ * SettingsDataStoreTest).
+ */
 @OptIn(ExperimentalCoroutinesApi::class)
 class AppViewModelTest {
     private val dispatcher = UnconfinedTestDispatcher()
@@ -59,14 +61,6 @@ class AppViewModelTest {
     @Test
     fun `a stored preference is known as soon as the view model exists`() = runTest {
         val viewModel = viewModel(flowOf(true))
-        assertThat(viewModel.hideContent.value).isEqualTo(true)
-    }
-
-    @Test
-    fun `a preference that cannot be read counts as on, and the app still opens`() = runTest {
-        // Known (not null), so the splash screen clears; on, so nothing the user may have asked
-        // to hide is shown.
-        val viewModel = viewModel(flow { throw IOException("unreadable") })
         assertThat(viewModel.hideContent.value).isEqualTo(true)
     }
 }

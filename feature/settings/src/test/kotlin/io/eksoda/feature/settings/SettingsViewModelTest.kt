@@ -3,7 +3,10 @@ package io.eksoda.feature.settings
 import android.net.Uri
 import androidx.paging.PagingData
 import assertk.assertThat
+import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
+import assertk.assertions.isNotNull
+import assertk.assertions.isNull
 import assertk.assertions.isTrue
 import io.eksoda.core.data.repository.BackupRepository
 import io.eksoda.core.data.repository.HouseholdRepository
@@ -19,8 +22,10 @@ import io.eksoda.core.model.SyncStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
@@ -31,6 +36,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import java.io.IOException
 import java.math.BigDecimal
 import java.time.Clock
 import java.time.Instant
@@ -50,38 +56,50 @@ class SettingsViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun newViewModel() = SettingsViewModel(
-        households = FakeHouseholds,
-        settings = settings,
-        backups = UnusedBackups,
-        sync = FakeSync,
-        clock = Clock.systemUTC(),
-    )
+    private fun newViewModel(households: HouseholdRepository = FakeHouseholds()) =
+        SettingsViewModel(
+            households = households,
+            settings = settings,
+            backups = UnusedBackups,
+            sync = FakeSync,
+            clock = Clock.systemUTC(),
+        )
 
-    /** The view model, with its state collected (it is shared only while observed). */
-    private fun TestScope.viewModel(): SettingsViewModel = newViewModel().also { observe(it) }
+    /** The view model, with its switches collected (they are shared only while observed). */
+    private fun TestScope.viewModel(
+        households: HouseholdRepository = FakeHouseholds(),
+    ): SettingsViewModel = newViewModel(households).also { observe(it) }
 
     private fun TestScope.observe(viewModel: SettingsViewModel) {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
-            viewModel.uiState.collect {}
+            viewModel.switches.collect {}
         }
     }
 
+    private val SettingsViewModel.shown: PreferenceSwitches get() = checkNotNull(switches.value)
+
     @Test
-    fun `the switches take taps only once the stored settings are read`() = runTest {
-        val viewModel = newViewModel()
-        // Before the settings are read the switches show placeholders, so they stay disabled.
-        assertThat(viewModel.uiState.value.preferencesLoaded).isFalse()
-        observe(viewModel)
-        assertThat(viewModel.uiState.value.preferencesLoaded).isTrue()
+    fun `the switches are unknown, and take no taps, until the stored settings are read`() =
+        runTest {
+            val viewModel = newViewModel()
+            assertThat(viewModel.switches.value).isNull()
+            observe(viewModel)
+            assertThat(viewModel.switches.value).isNotNull()
+        }
+
+    @Test
+    fun `the switches do not wait for the household`() = runTest {
+        // The database has not answered yet: the switches show anyway.
+        val viewModel = viewModel(households = FakeHouseholds(household = MutableSharedFlow()))
+        assertThat(viewModel.shown).isEqualTo(PreferenceSwitches(false, false))
     }
 
     @Test
     fun `the hide content switch shows its own stored preference`() = runTest {
         settings.hideContent.value = true
         val viewModel = viewModel()
-        assertThat(viewModel.uiState.value.hideContent).isTrue()
-        assertThat(viewModel.uiState.value.notifyImports).isFalse()
+        assertThat(viewModel.shown)
+            .isEqualTo(PreferenceSwitches(notifyImports = false, hideContent = true))
     }
 
     @Test
@@ -90,12 +108,12 @@ class SettingsViewModelTest {
         viewModel.onEvent(SettingsEvent.HideContentChanged(true))
         assertThat(settings.hideContent.value).isTrue()
         assertThat(settings.notifyImports.value).isFalse()
-        assertThat(viewModel.uiState.value.hideContent).isTrue()
-        assertThat(viewModel.uiState.value.notifyImports).isFalse()
+        assertThat(viewModel.shown)
+            .isEqualTo(PreferenceSwitches(notifyImports = false, hideContent = true))
 
         viewModel.onEvent(SettingsEvent.HideContentChanged(false))
         assertThat(settings.hideContent.value).isFalse()
-        assertThat(viewModel.uiState.value.hideContent).isFalse()
+        assertThat(viewModel.shown.hideContent).isFalse()
     }
 
     @Test
@@ -104,8 +122,21 @@ class SettingsViewModelTest {
         viewModel.onEvent(SettingsEvent.NotifyImportsChanged(true))
         assertThat(settings.notifyImports.value).isTrue()
         assertThat(settings.hideContent.value).isFalse()
-        assertThat(viewModel.uiState.value.notifyImports).isTrue()
-        assertThat(viewModel.uiState.value.hideContent).isFalse()
+        assertThat(viewModel.shown)
+            .isEqualTo(PreferenceSwitches(notifyImports = true, hideContent = false))
+    }
+
+    @Test
+    fun `a switch that cannot be saved stays as it was, and a message says so`() = runTest {
+        settings.failWrites = true
+        val viewModel = viewModel()
+        viewModel.onEvent(SettingsEvent.HideContentChanged(true))
+        assertThat(viewModel.effects.first()).isEqualTo(SettingsEffect.SettingSaveFailed)
+        assertThat(viewModel.shown.hideContent).isFalse()
+
+        viewModel.onEvent(SettingsEvent.NotifyImportsChanged(true))
+        assertThat(viewModel.effects.first()).isEqualTo(SettingsEffect.SettingSaveFailed)
+        assertThat(viewModel.shown.notifyImports).isFalse()
     }
 }
 
@@ -114,11 +145,16 @@ private class FakeSettings : SettingsRepository {
     override val hideContent = MutableStateFlow(false)
     override val foldedInsightsCards = MutableStateFlow(emptySet<String>())
 
+    /** The settings file cannot be written (full or failing storage). */
+    var failWrites = false
+
     override suspend fun setNotifyImports(enabled: Boolean) {
+        if (failWrites) throw IOException("cannot write")
         notifyImports.value = enabled
     }
 
     override suspend fun setHideContent(enabled: Boolean) {
+        if (failWrites) throw IOException("cannot write")
         hideContent.value = enabled
     }
 
@@ -130,8 +166,9 @@ private class FakeSettings : SettingsRepository {
 }
 
 /** No household yet: these tests are about the preferences only. */
-private object FakeHouseholds : HouseholdRepository {
-    override val household: Flow<Household?> = flowOf(null)
+private class FakeHouseholds(
+    override val household: Flow<Household?> = flowOf(null),
+) : HouseholdRepository {
 
     override suspend fun createHousehold(
         name: String,
