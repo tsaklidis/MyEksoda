@@ -23,8 +23,11 @@ preference is read; the splash screen waits for it, and `MainActivity` sets the 
 `onCreate` (not from the composition), so no frame is drawn before the window is secure. A read
 that fails counts as on (fail closed).
 
-Not built yet: backup reminder, restore from onboarding, app lock, delete all data, light
-theme, R8 and a baseline profile for the release build (it is signed and published, but not
+Settings → "Theme" (the phone's, light or dark) is `core:ui` `AppTheme`, read in `MainActivity`
+before the first frame.
+
+Not built yet: backup reminder, restore from onboarding, app lock, delete all data, bill
+reminders and a warning near a category's limit, R8 and a baseline profile for the release build (it is signed and published, but not
 minified). What is left of household sync is under "Not built yet" in
 `docs/design/household-sync.md`.
 
@@ -129,9 +132,14 @@ Text helpers (stored keys depend on their exact behavior; reuse them, don't rein
 ## Data layer
 
 - **Tables** (`core/database/.../entity/Entities.kt`, `HouseholdEntity.kt`,
-  `BudgetEntity.kt`): household (with `annual_income_minor`), category (19 system ones
-  seeded), budget (id `total` or the category's id), merchant, store, product,
-  merchant_product_mapping, receipt, receipt_item, import_job, tombstone. One DB file = one household (no
+  `BudgetEntity.kt`, `BillEntity.kt`): household (with `annual_income_minor`), category (19
+  system ones seeded; `custom_name` is the household's name for a system one), budget (a
+  scope's default, id `total` or the category's id, and its rows per month, id
+  `<scope>:YYYY-MM`, `month` set, a null amount for "none that month"), bill and bill_month
+  (bills paid every month, kept apart from receipts; a month's amount has id
+  `<bill>:YYYY-MM`), merchant, store, product, merchant_product_mapping, receipt (`origin`
+  `import` or `manual`; a manual one has `manual_kind` and may have its own `category_id`),
+  receipt_item, import_job, tombstone. One DB file = one household (no
   `household_id`). UUID `TEXT` ids, `created_at`/`updated_at` epoch ms UTC, plus
   `issued_local_date` (`YYYY-MM-DD` in the household zone). Deletes write a `tombstone` row
   (a receipt's with its `natural_key`, `SyncSchema.naturalKey`; merged products' with
@@ -139,10 +147,10 @@ Text helpers (stored keys depend on their exact behavior; reuse them, don't rein
   another phone by sync.
   Local to the phone (`SyncEntities.kt`): sync_peer (paired phones) and sync_event (the sync
   history); never backed up and never synced.
-- `EksodaDatabase` version **7**, `exportSchema = true`; schema JSON in
+- `EksodaDatabase` version **8**, `exportSchema = true`; schema JSON in
   `core/database/schemas/`. Version 4 shipped in 0.1.1, so **every schema change needs a
   migration** that keeps the data: an `AutoMigration` when Room can derive it (4 → 5 and
-  5 → 6 and 6 → 7 are), else a manual `Migration`, plus a case in `core/database` `MigrationTest`
+  5 → 6, 6 → 7 and 7 → 8 are), else a manual `Migration`, plus a case in `core/database` `MigrationTest`
   (`MigrationTestHelper` on Robolectric, schemas as test assets). There is no destructive
   fallback: a missing migration fails to open. A new table also goes in `BackupArchive.TABLES`
   (household data) or `BackupArchive.LOCAL_TABLES` (about this phone: not exported, left as it
@@ -188,13 +196,22 @@ Text helpers (stored keys depend on their exact behavior; reuse them, don't rein
   top products, monthly trend, Home pace, over `AnalyticsDao`; `changes()` re-emits on table
   changes), Settings (preferences shown in Settings), Backup (export, open, restore; errors are
   `BackupException(BackupError)`). Each has an `*Impl`. `products/AutoCategoryBackfill`
-  categorizes old products and merchants once (versioned in preferences). Goals (budgets and
-  the e-payment target: `GoalsRepository`; the rules are core:engine `analytics/Budgets.kt`
-  and `analytics/EPayments.kt`; the annual income is set through `HouseholdRepository`). The
+  categorizes old products and merchants once (versioned in preferences). Goals (the
+  everyday budget, category limits and the e-payment target: `GoalsRepository`; the rules are
+  core:engine `analytics/Budgets.kt`, `analytics/MonthAmounts.kt` and `analytics/EPayments.kt`;
+  the annual income is set through `HouseholdRepository`). Budgets, limits and bills hold
+  month by month: a default, and a row for a month that differs; only the current month
+  changes, and before a default changes the past months without a row get one with the old
+  value (`monthsToFreeze`), so they keep what they had. Bills (`BillRepository`: fixed or
+  variable; last month's variable bills stay open until the 10th, `monthEditable`). Manual
+  expenses (`ManualExpenseRepository`: a receipt without lines, `origin = 'manual'`, its
+  description as a payee merchant keyed `manual:<normalized>`). Prices
+  (`PriceBoardRepository` over `ProductDao.observePricesSince`; the rules are core:engine
+  `products/PriceBoard.kt`). `PlanModule` binds these four. The
   e-payment total counts `payment_method` card/bank receipts whole and `mixed` ones by their
   card and bank payments, read from `source_data` by core:engine `electronicPartOf` (credit
-  notes subtract; unreadable data counts 0). Home and Insights pass the month's category
-  spending they already loaded to `getMonthBudgets` instead of querying it twice.
+  notes subtract; unreadable data counts 0). The Overview and Spending pass the month's
+  category spending they already loaded to `getMonthBudgets` instead of querying it twice.
   Sync (`SyncRepository`: the on/off flag in DataStore, off by default, turning it on makes
   the household key; paired phones; the paged history; the last successful sync for the
   Settings row; `pairingCode`, `join`, `leave`).
@@ -252,11 +269,14 @@ Text helpers (stored keys depend on their exact behavior; reuse them, don't rein
   composables (big screens split into `XSections.kt`). Components have a `@Preview`.
 - Navigation: `@Serializable` destinations in `app/ui/Destinations.kt` (ids only, **never a
   receipt URL**), wired in `MainNavHost` in `app/ui/EksodaApp.kt`; top-level sections are tabs
-  in `app/ui/MainTabs.kt` (`EksodaNavigationBar` under 600 dp, `EksodaNavigationRail` wider,
-  Scan as the raised button); add the feature to `app/build.gradle.kts` dependencies. Elements
-  that travel between screens use `Modifier.sharedBoundsIfAvailable(SharedKeys…)` (`core:ui`
-  `motion/`). Back on a tab other than Home returns to the previous tab; only Back on Home
-  leaves the app.
+  in `app/ui/MainTabs.kt`: Overview (feature:home), Spending (feature:insights), Prices
+  (feature:products `prices/`) and More (feature:settings `more/`), with `EksodaNavigationBar`
+  under 600 dp and `EksodaNavigationRail` wider, and the round "+" (`AddButton`) in the middle,
+  which opens `AddSheet` (scan, by hand, paste a link). The tabs reach other screens through
+  `MainActions` (`NavActions` in `EksodaApp.kt`). Add the feature to `app/build.gradle.kts`
+  dependencies. Elements that travel between screens use
+  `Modifier.sharedBoundsIfAvailable(SharedKeys…)` (`core:ui` `motion/`). Back on a tab other
+  than the Overview returns to the previous tab; only Back on the Overview leaves the app.
 - Insights cards fold to their title (`FoldableCard` in feature:insights, `SectionCard`'s
   `expanded`/`onToggleExpanded`): a chevron, and a tap on the title; the folded set is kept in
   `SettingsRepository.foldedInsightsCards`. The summary card at the top does not fold.
