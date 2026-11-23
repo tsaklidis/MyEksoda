@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Close
@@ -79,6 +80,7 @@ fun ReceiptListRoute(
     onReceiptClick: (String) -> Unit,
     onScanClick: () -> Unit,
     onImportsClick: () -> Unit,
+    onBack: (() -> Unit)? = null,
     viewModel: ReceiptListViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -119,12 +121,13 @@ fun ReceiptListRoute(
         onScanClick = onScanClick,
         onImportsClick = onImportsClick,
         snackbarHostState = snackbarHostState,
+        onBack = onBack,
     )
 }
 
 /**
- * Receipts with search and filters. Scan is the raised button in
- * the app's bottom bar (docs/design/ui-redesign.md §3), so the list has no Scan button of its own.
+ * Receipts with search and filters, opened from More ([onBack] shows the back arrow). Adding is
+ * the app's "+" button (docs/design/ui-redesign.md §3), so the list has no Scan button of its own.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -136,6 +139,7 @@ fun ReceiptListScreen(
     onScanClick: () -> Unit,
     onImportsClick: () -> Unit,
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
+    onBack: (() -> Unit)? = null,
 ) {
     var sheetOpen by rememberSaveable { mutableStateOf(false) }
     var pendingDelete by rememberSaveable { mutableStateOf<String?>(null) }
@@ -159,6 +163,13 @@ fun ReceiptListScreen(
         topBar = {
             LargeTopAppBar(
                 title = { Text(stringResource(R.string.receipts_title)) },
+                navigationIcon = {
+                    if (onBack != null) {
+                        IconButton(onClick = onBack) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
+                        }
+                    }
+                },
                 scrollBehavior = scrollBehavior,
                 actions = {
                     SortMenu(filter.ordering) { onEvent(ReceiptListEvent.OrderingChanged(it)) }

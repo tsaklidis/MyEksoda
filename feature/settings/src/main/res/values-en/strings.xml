@@ -98,4 +98,26 @@
         <item quantity="one">%1$d merchant</item>
         <item quantity="other">%1$d merchants</item>
     </plurals>
+    <string name="more_title">More</string>
+    <string name="more_money">Your money</string>
+    <string name="more_catalog">What Eksoda knows</string>
+    <string name="more_app">The app</string>
+    <string name="more_receipts">Receipts</string>
+    <string name="more_receipts_hint">All of them, scanned and typed in</string>
+    <string name="more_budget">Budget</string>
+    <string name="more_budget_hint">How much you want to spend a month</string>
+    <string name="more_bills">Bills</string>
+    <string name="more_bills_hint">Rent, power, water, internet</string>
+    <string name="more_products">Products</string>
+    <string name="more_products_hint">Every product and its prices</string>
+    <string name="more_categories">Categories</string>
+    <string name="more_categories_hint">Yours and the built-in ones</string>
+    <string name="more_merchants">Shops</string>
+    <string name="more_merchants_hint">Where you shop</string>
+    <string name="more_imports">Imports</string>
+    <string name="more_imports_hint">Receipts being read right now</string>
+    <string name="more_sync">Household sync</string>
+    <string name="more_sync_hint">Share spending with your household\'s phones</string>
+    <string name="more_settings">Settings</string>
+    <string name="more_settings_hint">Language, theme, backups</string>
 </resources>

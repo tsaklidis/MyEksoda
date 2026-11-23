@@ -100,4 +100,26 @@
         <item quantity="one">%1$d κατάστημα</item>
         <item quantity="other">%1$d καταστήματα</item>
     </plurals>
+    <string name="more_title">Περισσότερα</string>
+    <string name="more_money">Τα χρήματά σας</string>
+    <string name="more_catalog">Τι ξέρει το Eksoda</string>
+    <string name="more_app">Η εφαρμογή</string>
+    <string name="more_receipts">Αποδείξεις</string>
+    <string name="more_receipts_hint">Όλες, σαρωμένες και με το χέρι</string>
+    <string name="more_budget">Προϋπολογισμός</string>
+    <string name="more_budget_hint">Πόσα θέλετε να ξοδεύετε τον μήνα</string>
+    <string name="more_bills">Λογαριασμοί</string>
+    <string name="more_bills_hint">Ενοίκιο, ρεύμα, νερό, internet</string>
+    <string name="more_products">Προϊόντα</string>
+    <string name="more_products_hint">Κάθε προϊόν και οι τιμές του</string>
+    <string name="more_categories">Κατηγορίες</string>
+    <string name="more_categories_hint">Οι δικές σας και οι έτοιμες</string>
+    <string name="more_merchants">Καταστήματα</string>
+    <string name="more_merchants_hint">Πού ψωνίζετε</string>
+    <string name="more_imports">Εισαγωγές</string>
+    <string name="more_imports_hint">Αποδείξεις που διαβάζονται τώρα</string>
+    <string name="more_sync">Συγχρονισμός νοικοκυριού</string>
+    <string name="more_sync_hint">Μοιραστείτε τα έξοδα με τα κινητά του σπιτιού</string>
+    <string name="more_settings">Ρυθμίσεις</string>
+    <string name="more_settings_hint">Γλώσσα, θέμα, αντίγραφα ασφαλείας</string>
 </resources>

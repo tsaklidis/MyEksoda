@@ -36,8 +36,10 @@ import io.eksoda.feature.products.catalog.CategoriesRoute
 import io.eksoda.feature.products.catalog.MerchantDetailRoute
 import io.eksoda.feature.products.catalog.MerchantsRoute
 import io.eksoda.feature.products.detail.ProductDetailRoute
+import io.eksoda.feature.products.list.ProductListRoute
 import io.eksoda.feature.products.review.ReviewRoute
 import io.eksoda.feature.receipts.detail.ReceiptDetailRoute
+import io.eksoda.feature.receipts.list.ReceiptListRoute
 import io.eksoda.feature.scan.ScanRoute
 import io.eksoda.feature.scan.imports.ImportListRoute
 import io.eksoda.feature.scan.share.ShareImportDialog
@@ -81,26 +83,52 @@ private fun MainNavHost(launch: AppLaunch?, onLaunchHandled: () -> Unit) {
                 composable<MainDestination> {
                     WithNavAnimation {
                         MainTabs(
+                            MainActions(
+                                openReceipt = openReceipt,
+                                openProduct = openProduct,
+                                openReceipts = { navController.navigate(ReceiptsDestination) },
+                                openProducts = { navController.navigate(ProductsDestination) },
+                                scan = { navController.navigate(ScanDestination) },
+                                addByHand = {},
+                                openImports = { navController.navigate(ImportsDestination) },
+                                openReview = { navController.navigate(ReviewDestination) },
+                                openCategories = { navController.navigate(CategoriesDestination) },
+                                openMerchants = { navController.navigate(MerchantsDestination) },
+                                openSettings = { navController.navigate(SettingsDestination) },
+                                openBudget = { navController.navigate(BudgetsDestination) },
+                                openBills = {},
+                                openSync = { navController.navigate(SyncDestination) },
+                                openCategory = { categoryId, period ->
+                                    navController.navigate(
+                                        CategoryDetailDestination(
+                                            categoryId = categoryId,
+                                            from = period.start.toString(),
+                                            to = period.end.toString(),
+                                        ),
+                                    )
+                                },
+                            ),
+                        )
+                    }
+                }
+                composable<ReceiptsDestination> {
+                    WithNavAnimation {
+                        ReceiptListRoute(
                             onReceiptClick = openReceipt,
                             onScanClick = { navController.navigate(ScanDestination) },
                             onImportsClick = { navController.navigate(ImportsDestination) },
-                            onProductClick = openProduct,
-                            onReviewClick = { navController.navigate(ReviewDestination) },
-                            onCategoriesClick = { navController.navigate(CategoriesDestination) },
-                            onMerchantsClick = { navController.navigate(MerchantsDestination) },
-                            onSettingsClick = { navController.navigate(SettingsDestination) },
-                            onBudgetsClick = { navController.navigate(BudgetsDestination) },
-                            onCategoryClick = { categoryId, period ->
-                                navController.navigate(
-                                    CategoryDetailDestination(
-                                        categoryId = categoryId,
-                                        from = period.start.toString(),
-                                        to = period.end.toString(),
-                                    ),
-                                )
-                            },
+                            onBack = back,
                         )
                     }
+                }
+                composable<ProductsDestination> {
+                    ProductListRoute(
+                        onProductClick = openProduct,
+                        onReviewClick = { navController.navigate(ReviewDestination) },
+                        onCategoriesClick = { navController.navigate(CategoriesDestination) },
+                        onMerchantsClick = { navController.navigate(MerchantsDestination) },
+                        onBack = back,
+                    )
                 }
                 composable<SettingsDestination> {
                     SettingsRoute(
