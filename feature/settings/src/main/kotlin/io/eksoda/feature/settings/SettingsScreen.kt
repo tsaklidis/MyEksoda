@@ -71,6 +71,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.eksoda.core.designsystem.component.RowIcon
 import io.eksoda.core.designsystem.component.SectionCard
 import io.eksoda.core.designsystem.component.SwitchRow
 import io.eksoda.core.designsystem.theme.EksodaTheme
@@ -237,6 +238,7 @@ fun SettingsScreen(
                 language = language,
                 notifyImports = state.notifyImports,
                 hideContent = state.hideContent,
+                switchesEnabled = state.preferencesLoaded,
                 onLanguageSelect = onLanguageSelect,
                 onNotifyImportsChange = onNotifyImportsChange,
                 onHideContentChange = { onEvent(SettingsEvent.HideContentChanged(it)) },
@@ -267,12 +269,17 @@ fun SettingsScreen(
     }
 }
 
-/** Language (one row, a picker on tap), import notifications and hiding the app's content. */
+/**
+ * Language (one row, a picker on tap), import notifications and hiding the app's content. The
+ * switches take taps only once [switchesEnabled] (their stored values have loaded), so a switch
+ * is never flipped from a placeholder "off".
+ */
 @Composable
 private fun PreferencesCard(
     language: String,
     notifyImports: Boolean,
     hideContent: Boolean,
+    switchesEnabled: Boolean,
     onLanguageSelect: (String) -> Unit,
     onNotifyImportsChange: (Boolean) -> Unit,
     onHideContentChange: (Boolean) -> Unit,
@@ -294,6 +301,7 @@ private fun PreferencesCard(
             icon = Icons.Outlined.Notifications,
             checked = notifyImports,
             onCheckedChange = onNotifyImportsChange,
+            enabled = switchesEnabled,
         )
         HorizontalDivider(color = EksodaTheme.colors.line)
         SwitchRow(
@@ -302,6 +310,7 @@ private fun PreferencesCard(
             icon = Icons.Outlined.VisibilityOff,
             checked = hideContent,
             onCheckedChange = onHideContentChange,
+            enabled = switchesEnabled,
         )
     }
     if (picking) {
@@ -346,12 +355,6 @@ private fun Hint(text: String) {
         color = EksodaTheme.colors.ink2,
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
     )
-}
-
-/** The leading icon of a row: decorative, the row's text says what it is. */
-@Composable
-private fun RowIcon(icon: ImageVector) {
-    Icon(icon, contentDescription = null, tint = EksodaTheme.colors.ink2)
 }
 
 /**

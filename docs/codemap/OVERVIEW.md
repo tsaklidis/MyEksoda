@@ -20,7 +20,8 @@ Settings → "Hide app content" (off by default, this phone only) makes `MainAct
 secure (`FLAG_SECURE`: no screenshots, blank in recent apps), from
 `SettingsRepository.hideContent` through `AppViewModel.hideContent`. That value is null until the
 preference is read; the splash screen waits for it, and `MainActivity` sets the flag in
-`onCreate` (not from the composition), so no frame is drawn before the window is secure.
+`onCreate` (not from the composition), so no frame is drawn before the window is secure. A read
+that fails counts as on (fail closed).
 
 Not built yet: backup reminder, restore from onboarding, app lock, delete all data, light
 theme, R8 and a baseline profile for the release build (it is signed and published, but not
@@ -174,7 +175,8 @@ Text helpers (stored keys depend on their exact behavior; reuse them, don't rein
 - Repositories return `core:model` types, `Result<T>` for suspend calls, `Flow` for reads.
   Mapping entity/row → model is private in the `*Impl` (`toModel()`), using
   `HouseholdZone.current()` for dates.
-- DI: `di/AppModule.kt` (Engine, WorkManager, DataStore, `@ApplicationScope`,
+- DI: `di/AppModule.kt` (Engine, WorkManager, DataStore from `settingsDataStore`, which replaces
+  a corrupt preferences file with the defaults for every reader and writer, `@ApplicationScope`,
   `RepositoryModule` @Binds; `di/SyncModule.kt` for sync), `di/DatabaseModule.kt` (DB + one
   `@Provides` per DAO),
   `di/CoreModule.kt` (`Clock`, `@IoDispatcher`, `@DefaultDispatcher`). Parsing and analytics

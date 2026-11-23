@@ -50,19 +50,30 @@ class SettingsViewModelTest {
         Dispatchers.resetMain()
     }
 
+    private fun newViewModel() = SettingsViewModel(
+        households = FakeHouseholds,
+        settings = settings,
+        backups = UnusedBackups,
+        sync = FakeSync,
+        clock = Clock.systemUTC(),
+    )
+
     /** The view model, with its state collected (it is shared only while observed). */
-    private fun TestScope.viewModel(): SettingsViewModel {
-        val viewModel = SettingsViewModel(
-            households = FakeHouseholds,
-            settings = settings,
-            backups = UnusedBackups,
-            sync = FakeSync,
-            clock = Clock.systemUTC(),
-        )
+    private fun TestScope.viewModel(): SettingsViewModel = newViewModel().also { observe(it) }
+
+    private fun TestScope.observe(viewModel: SettingsViewModel) {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiState.collect {}
         }
-        return viewModel
+    }
+
+    @Test
+    fun `the switches take taps only once the stored settings are read`() = runTest {
+        val viewModel = newViewModel()
+        // Before the settings are read the switches show placeholders, so they stay disabled.
+        assertThat(viewModel.uiState.value.preferencesLoaded).isFalse()
+        observe(viewModel)
+        assertThat(viewModel.uiState.value.preferencesLoaded).isTrue()
     }
 
     @Test

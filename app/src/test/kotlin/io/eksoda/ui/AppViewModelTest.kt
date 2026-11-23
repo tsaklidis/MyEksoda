@@ -63,9 +63,11 @@ class AppViewModelTest {
     }
 
     @Test
-    fun `a preference that cannot be read counts as off, and the app still opens`() = runTest {
+    fun `a preference that cannot be read counts as on, and the app still opens`() = runTest {
+        // Known (not null), so the splash screen clears; on, so nothing the user may have asked
+        // to hide is shown.
         val viewModel = viewModel(flow { throw IOException("unreadable") })
-        assertThat(viewModel.hideContent.value).isEqualTo(false)
+        assertThat(viewModel.hideContent.value).isEqualTo(true)
     }
 }
 

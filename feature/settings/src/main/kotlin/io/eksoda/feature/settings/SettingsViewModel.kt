@@ -34,6 +34,8 @@ data class SettingsUiState(
     val hideContent: Boolean = false,
     val sync: SyncSummary = SyncSummary(),
     val backup: BackupDialog = BackupDialog.None,
+    /** False until the stored settings are read: the switches above are placeholders until then. */
+    val preferencesLoaded: Boolean = false,
 )
 
 /** What the "Household sync" row shows; the switch itself is on the Sync screen. */
@@ -131,6 +133,7 @@ class SettingsViewModel @Inject constructor(
             hideContent = hide,
             sync = syncRow,
             backup = dialog,
+            preferencesLoaded = true,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT), SettingsUiState())
 

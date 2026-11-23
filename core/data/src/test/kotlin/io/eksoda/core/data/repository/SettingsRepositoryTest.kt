@@ -1,6 +1,5 @@
 package io.eksoda.core.data.repository
 
-import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
@@ -26,10 +25,9 @@ class SettingsRepositoryTest {
     private val scope = CoroutineScope(SupervisorJob() + dispatcher)
 
     private val settings by lazy {
+        // The app's own DataStore setup (AppModule), so its corruption handling is tested too.
         SettingsRepositoryImpl(
-            PreferenceDataStoreFactory.create(scope = scope) {
-                folder.root.resolve("settings.preferences_pb")
-            },
+            settingsDataStore(scope) { folder.root.resolve("settings.preferences_pb") },
         )
     }
 
@@ -60,12 +58,24 @@ class SettingsRepositoryTest {
     }
 
     @Test
-    fun `an unreadable settings file reads as the defaults instead of failing`() = runTest {
-        // Not a preferences protobuf: DataStore fails the read with a CorruptionException.
+    fun `a corrupt settings file is replaced with the defaults, and settings save again`() =
+        runTest {
+            // Not a preferences protobuf: DataStore fails the read with a CorruptionException.
+            folder.root.resolve("settings.preferences_pb").writeBytes(byteArrayOf(-1, -1, -1, -1))
+            assertThat(settings.hideContent.first()).isFalse()
+            assertThat(settings.notifyImports.first()).isFalse()
+            assertThat(settings.foldedInsightsCards.first()).isEqualTo(emptySet())
+            // Writing reads the file first: it must not fail on the corrupt one either.
+            settings.setHideContent(true)
+            assertThat(settings.hideContent.first()).isTrue()
+        }
+
+    @Test
+    fun `a corrupt settings file does not fail a write that comes first`() = runTest {
         folder.root.resolve("settings.preferences_pb").writeBytes(byteArrayOf(-1, -1, -1, -1))
+        settings.setNotifyImports(true)
+        assertThat(settings.notifyImports.first()).isTrue()
         assertThat(settings.hideContent.first()).isFalse()
-        assertThat(settings.notifyImports.first()).isFalse()
-        assertThat(settings.foldedInsightsCards.first()).isEqualTo(emptySet())
     }
 
     @Test
