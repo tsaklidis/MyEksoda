@@ -14,7 +14,7 @@ import javax.inject.Singleton
 @Singleton
 class SettingsRepositoryImpl @Inject constructor(private val preferences: DataStore<Preferences>) :
     SettingsRepository {
-    // A file that cannot be read gives safePreferences (settingsDataStore), never an error.
+    // A file that cannot be read gives safePreferences (settingsDataStore), not an I/O error.
     override val notifyImports: Flow<Boolean> =
         preferences.data.map { it[ImportNotifier.NOTIFY_IMPORTS_KEY] == true }
 

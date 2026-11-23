@@ -71,25 +71,28 @@ fun SegmentedToggle(
             .border(1.dp, colors.line, ButtonShape)
             .padding(WellPadding)
             .selectableGroup()
-        val segment: @Composable (Int, String, Modifier) -> Unit = { index, option, segmentModifier ->
-            Segment(
-                label = option,
-                selected = index == selectedIndex,
-                onClick = { onSelect(index) },
-                style = style,
-                modifier = segmentModifier,
-            )
-        }
         if (stacked) {
             Column(modifier = well) {
                 options.forEachIndexed { index, option ->
-                    segment(index, option, Modifier.fillMaxWidth())
+                    Segment(
+                        label = option,
+                        selected = index == selectedIndex,
+                        onClick = { onSelect(index) },
+                        style = style,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
                 }
             }
         } else {
             Row(modifier = well.height(IntrinsicSize.Min)) {
                 options.forEachIndexed { index, option ->
-                    segment(index, option, Modifier.weight(1f).fillMaxHeight())
+                    Segment(
+                        label = option,
+                        selected = index == selectedIndex,
+                        onClick = { onSelect(index) },
+                        style = style,
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
+                    )
                 }
             }
         }

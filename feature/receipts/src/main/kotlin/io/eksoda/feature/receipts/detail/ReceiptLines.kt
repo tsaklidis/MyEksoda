@@ -3,6 +3,7 @@ package io.eksoda.feature.receipts.detail
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -11,7 +12,6 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import io.eksoda.core.designsystem.component.SwitchRow
 import io.eksoda.core.designsystem.text.monoNumbers
 import io.eksoda.core.model.LineType
 import io.eksoda.core.model.MatchStatus
@@ -171,7 +172,7 @@ internal fun EditSection(
             },
         )
     }
-    // The rows above are ListItems: the same side padding keeps the switch in line with their icons.
+    // ListItem's side padding, so the switch lines up with the edit icons above.
     SwitchRow(
         label = stringResource(R.string.detail_include_in_stats),
         checked = included,
