@@ -9,4 +9,19 @@
     <string name="onboarding_defaults">Currency: %1$s</string>
     <string name="onboarding_create">Create household</string>
     <string name="onboarding_failed">The household could not be created. Try again.</string>
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_page_of">Page %1$d of %2$d</string>
+    <string name="onboarding_welcome_title">Every receipt, every euro</string>
+    <string name="onboarding_welcome_body">Scan the QR code on a receipt and Eksoda reads every line: what you bought, where, and for how much. So you see where the money goes each month.</string>
+    <string name="onboarding_ways_title">Three ways to add an expense</string>
+    <string name="onboarding_way_scan">Scan</string>
+    <string name="onboarding_way_scan_body">Scan the QR code at the bottom of the receipt.</string>
+    <string name="onboarding_way_share">Share</string>
+    <string name="onboarding_way_share_body">Share a receipt link from any app.</string>
+    <string name="onboarding_way_manual">By hand</string>
+    <string name="onboarding_way_manual_body">Type in rent, the doctor or a handwritten receipt: amount, date and category.</string>
+    <string name="onboarding_budget">Monthly budget (optional)</string>
+    <string name="onboarding_budget_hint">You can change it any time in Settings → Budgets.</string>
+    <string name="onboarding_budget_invalid">Type an amount, like 600.</string>
 </resources>

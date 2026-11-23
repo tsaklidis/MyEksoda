@@ -141,7 +141,8 @@ fun ColumnScope.EksodaNavigationRailItem(
 }
 
 /**
- * The Scan action: a raised 54 dp round terracotta button, and its label in terracotta. Scan is an action, not a tab, so it is never shown as selected.
+ * The Scan action: a raised 54 dp round terracotta button, and its label in terracotta. Scan is
+ * an action, not a tab, so it is never shown as selected.
  */
 @Composable
 fun ScanButton(label: String, onClick: () -> Unit, modifier: Modifier = Modifier) {

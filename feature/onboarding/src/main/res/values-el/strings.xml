@@ -9,4 +9,19 @@
     <string name="onboarding_defaults">Νόμισμα: %1$s</string>
     <string name="onboarding_create">Δημιουργία νοικοκυριού</string>
     <string name="onboarding_failed">Το νοικοκυριό δεν δημιουργήθηκε. Δοκιμάστε ξανά.</string>
+    <string name="onboarding_skip">Παράλειψη</string>
+    <string name="onboarding_next">Επόμενο</string>
+    <string name="onboarding_page_of">Σελίδα %1$d από %2$d</string>
+    <string name="onboarding_welcome_title">Κάθε απόδειξη, κάθε ευρώ</string>
+    <string name="onboarding_welcome_body">Σαρώστε τον κωδικό QR μιας απόδειξης και το Eksoda διαβάζει κάθε γραμμή: τι αγοράσατε, πού και πόσο κόστισε. Έτσι βλέπετε πού πάνε τα χρήματα κάθε μήνα.</string>
+    <string name="onboarding_ways_title">Τρεις τρόποι να προσθέσετε ένα έξοδο</string>
+    <string name="onboarding_way_scan">Σάρωση</string>
+    <string name="onboarding_way_scan_body">Σαρώστε τον κωδικό QR στο κάτω μέρος της απόδειξης.</string>
+    <string name="onboarding_way_share">Κοινοποίηση</string>
+    <string name="onboarding_way_share_body">Μοιραστείτε τον σύνδεσμο μιας απόδειξης από οποιαδήποτε εφαρμογή.</string>
+    <string name="onboarding_way_manual">Με το χέρι</string>
+    <string name="onboarding_way_manual_body">Γράψτε ενοίκιο, γιατρό ή μια χειρόγραφη απόδειξη: ποσό, ημερομηνία και κατηγορία.</string>
+    <string name="onboarding_budget">Μηνιαίος προϋπολογισμός (προαιρετικά)</string>
+    <string name="onboarding_budget_hint">Τον αλλάζετε όποτε θέλετε από Ρυθμίσεις → Προϋπολογισμοί.</string>
+    <string name="onboarding_budget_invalid">Γράψτε ένα ποσό, π.χ. 600.</string>
 </resources>
