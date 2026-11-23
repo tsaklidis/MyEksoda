@@ -11,10 +11,8 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import io.eksoda.core.data.imports.ImportNotifier
 import io.eksoda.core.designsystem.theme.EksodaTheme
@@ -23,6 +21,8 @@ import io.eksoda.ui.AppLaunch
 import io.eksoda.ui.AppState
 import io.eksoda.ui.AppViewModel
 import io.eksoda.ui.EksodaApp
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -41,14 +41,22 @@ class MainActivity : ComponentActivity() {
             navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
         )
         super.onCreate(savedInstanceState)
-        // The splash stays until the encrypted database has opened, instead of an empty screen.
-        splash.setKeepOnScreenCondition { appViewModel.state.value == AppState.LOADING }
+        // The splash stays until the encrypted database has opened, instead of an empty screen,
+        // and until "Hide app content" is known, so no content is drawn before the window is
+        // secure.
+        splash.setKeepOnScreenCondition {
+            appViewModel.state.value == AppState.LOADING || appViewModel.hideContent.value == null
+        }
+        // Settings → "Hide app content": no screenshots, and a blank card in recent apps. A
+        // window flag, not UI state, so it is set here rather than from the composition. The
+        // main dispatcher is immediate: when the value is already known (after a configuration
+        // change) the flag is set before setContent, ahead of the first frame.
+        lifecycleScope.launch {
+            appViewModel.hideContent.filterNotNull().collect { window.setSecure(it) }
+        }
         // After a configuration change the launch was already handled (it lives in the ViewModel).
         if (savedInstanceState == null) handle(intent)
         setContent {
-            // Settings → "Hide app content": no screenshots, and a blank card in recent apps.
-            val hideContent by appViewModel.hideContent.collectAsStateWithLifecycle()
-            LaunchedEffect(hideContent) { window.setSecure(hideContent) }
             EksodaTheme {
                 EksodaApp(viewModel = appViewModel)
             }

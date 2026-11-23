@@ -58,11 +58,13 @@ class AppViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, AppState.LOADING)
 
     /**
-     * Settings → "Hide app content": the window is secure (MainActivity). Read eagerly, so it
-     * applies as soon as the preference is known.
+     * Settings → "Hide app content": the window is secure (MainActivity). Null until the
+     * preference is read, so "not known yet" never passes for "off": the splash screen stays
+     * until it is known. A read that fails counts as off (the default), so the app still opens.
      */
-    val hideContent: StateFlow<Boolean> = settings.hideContent
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+    val hideContent: StateFlow<Boolean?> = settings.hideContent
+        .catch { emit(false) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val _launch = MutableStateFlow<AppLaunch?>(null)
     val launch: StateFlow<AppLaunch?> = _launch.asStateFlow()

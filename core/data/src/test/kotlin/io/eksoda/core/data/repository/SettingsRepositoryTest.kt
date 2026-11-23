@@ -60,6 +60,15 @@ class SettingsRepositoryTest {
     }
 
     @Test
+    fun `an unreadable settings file reads as the defaults instead of failing`() = runTest {
+        // Not a preferences protobuf: DataStore fails the read with a CorruptionException.
+        folder.root.resolve("settings.preferences_pb").writeBytes(byteArrayOf(-1, -1, -1, -1))
+        assertThat(settings.hideContent.first()).isFalse()
+        assertThat(settings.notifyImports.first()).isFalse()
+        assertThat(settings.foldedInsightsCards.first()).isEqualTo(emptySet())
+    }
+
+    @Test
     fun `an insights card folds and unfolds`() = runTest {
         assertThat(settings.foldedInsightsCards.first()).isEqualTo(emptySet())
         settings.toggleInsightsCardFolded("trend")

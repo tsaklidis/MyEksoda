@@ -22,6 +22,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.eksoda.core.designsystem.theme.ButtonShape
@@ -30,8 +31,10 @@ import io.eksoda.core.designsystem.theme.EksodaTheme
 /**
  * Two or three options in a dark well, the selected one on a line-colored segment
  * (docs/design/ui-redesign.md §3): "Most spent · Most bought", "€ / l · € / piece".
- * A label that does not fit wraps instead of being cut (§2); the segments keep one height, so
- * the selected one stays a whole pill when only its neighbor wraps.
+ * A label that does not fit wraps instead of being cut (§2), to two lines at most, so a narrow
+ * segment (three units, a large font scale) cannot grow into a tall column of word pieces; only
+ * past two lines does it end in "…". The segments keep one height, so the selected one stays a
+ * whole pill when only its neighbor wraps.
  */
 @Composable
 fun SegmentedToggle(
@@ -72,6 +75,8 @@ fun SegmentedToggle(
                     style = MaterialTheme.typography.labelLarge,
                     color = if (selected) colors.ink else colors.ink2,
                     textAlign = TextAlign.Center,
+                    maxLines = MAX_LABEL_LINES,
+                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
                 )
             }
@@ -80,6 +85,8 @@ fun SegmentedToggle(
 }
 
 private val SegmentShape = RoundedCornerShape(8.dp)
+
+private const val MAX_LABEL_LINES = 2
 
 @Preview
 @Composable

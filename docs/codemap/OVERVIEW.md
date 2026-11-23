@@ -18,7 +18,9 @@ Data is in a SQLCipher database; Android cloud backup is off (`allowBackup=false
 
 Settings → "Hide app content" (off by default, this phone only) makes `MainActivity`'s window
 secure (`FLAG_SECURE`: no screenshots, blank in recent apps), from
-`SettingsRepository.hideContent` through `AppViewModel.hideContent`.
+`SettingsRepository.hideContent` through `AppViewModel.hideContent`. That value is null until the
+preference is read; the splash screen waits for it, and `MainActivity` sets the flag in
+`onCreate` (not from the composition), so no frame is drawn before the window is secure.
 
 Not built yet: backup reminder, restore from onboarding, app lock, delete all data, light
 theme, R8 and a baseline profile for the release build (it is signed and published, but not
@@ -38,7 +40,8 @@ core:data              Repositories (interface + Impl), imports/ pipeline, backu
                        WriteCoordinator, Fixed, DI modules (di/)
 core:designsystem      Theme (dark scheme + EksodaColors, Inter + IBM Plex Mono, shapes),
                        components (SectionCard, ChangeBadge, HeroAmount, StatRow, OverlineText,
-                       PeriodSelector, SegmentedToggle, navigation bar/rail + ScanButton,
+                       PeriodSelector, SegmentedToggle, SwitchRow, navigation bar/rail +
+                       ScanButton,
                        CategoryTile/Icon, MerchantAvatar, groupedItem, Button), chart/
                        (MinMaxBar, RangeDotPlot, BarChart, LineChart, DonutChart, ShareBar),
                        text/monoNumbers
@@ -290,7 +293,8 @@ Text helpers (stored keys depend on their exact behavior; reuse them, don't rein
   in the screen
   (`rememberSaveable`) and send changes to the ViewModel; never feed a `TextField` from a
   Flow. Lazy rows use `Modifier.animateItem()`.
-- The splash screen stays up while `AppState` is `LOADING` (`MainActivity`).
+- The splash screen stays up while `AppState` is `LOADING` and while "Hide app content" is
+  not known yet (`MainActivity`).
 
 ## Hard rules that are easy to break (beyond the ground rules)
 

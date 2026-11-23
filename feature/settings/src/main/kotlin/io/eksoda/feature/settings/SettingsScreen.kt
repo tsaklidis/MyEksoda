@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -49,7 +48,6 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -74,6 +72,7 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.eksoda.core.designsystem.component.SectionCard
+import io.eksoda.core.designsystem.component.SwitchRow
 import io.eksoda.core.designsystem.theme.EksodaTheme
 import io.eksoda.core.designsystem.theme.tabular
 import io.eksoda.core.model.Household
@@ -314,37 +313,6 @@ private fun PreferencesCard(
             },
             onDismiss = { picking = false },
         )
-    }
-}
-
-/** A preference with a switch; the whole row toggles it. */
-@Composable
-private fun SwitchRow(
-    label: String,
-    supporting: String,
-    icon: ImageVector,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 56.dp)
-            .toggleable(value = checked, role = Role.Switch, onValueChange = onCheckedChange)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        RowIcon(icon)
-        Column(modifier = Modifier.weight(1f)) {
-            Text(label, style = MaterialTheme.typography.bodyLarge)
-            Text(
-                supporting,
-                style = MaterialTheme.typography.bodySmall,
-                color = EksodaTheme.colors.ink2,
-            )
-        }
-        Switch(checked = checked, onCheckedChange = null)
     }
 }
 
