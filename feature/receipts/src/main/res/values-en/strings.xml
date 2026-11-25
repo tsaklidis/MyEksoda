@@ -19,7 +19,7 @@
     <string name="payment_other">Other payment</string>
     <string name="payment_unknown">Payment</string>
     <string name="badge_review">Review</string>
-    <string name="badge_warnings">⚠ Check</string>
+    <string name="badge_warnings">Has warnings</string>
     <string name="badge_cancelled">Cancelled</string>
     <string name="badge_refund">Refund</string>
     <string name="badge_not_in_stats">Not in stats</string>
@@ -82,11 +82,19 @@
     <string name="detail_show_more">Show all differences</string>
     <string name="detail_show_less">Show fewer</string>
     <string name="detail_warnings_intro">Some amounts on this receipt don\'t quite agree with each other. They\'re shown as the shop printed them, without corrections.</string>
-    <plurals name="detail_warning_items">
-        <item quantity="one">Item: %1$s</item>
-        <item quantity="other">Items: %1$s</item>
+    <plurals name="detail_warning_marked">
+        <item quantity="one">Concerns %d item, marked in the list below.</item>
+        <item quantity="other">Concerns %d items, marked in the list below.</item>
     </plurals>
-    <string name="detail_warning_line">line %1$d</string>
+    <string name="detail_warning_show">Show</string>
+    <plurals name="detail_warning_lines">
+        <item quantity="one">Receipt line: %1$s</item>
+        <item quantity="other">Receipt lines: %1$s</item>
+    </plurals>
+    <string name="line_warning_tag">Amount differs</string>
+    <string name="line_warning_tag_notice">Notice</string>
+    <string name="line_warning_as_printed">The amounts are shown as the shop printed them, without corrections.</string>
+    <string name="line_warning_ok">Got it</string>
     <string name="warning_line_amount">The net amount and VAT don\'t add up to the item\'s price.</string>
     <string name="warning_unit_price">Quantity × unit price doesn\'t come exactly to the item\'s price.</string>
     <string name="warning_discount">The price after the discount doesn\'t add up.</string>

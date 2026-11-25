@@ -3,6 +3,20 @@
 What changed in each release of Eksoda. Earlier releases are described on the
 [Releases](https://github.com/tsaklidis/MyEksoda/releases) page.
 
+## 0.3.7 - Warnings where the items are
+
+A small update: a receipt's warnings now point at the items they are about. Install it over
+0.3.6 as usual: your data stays, and household sync keeps working between 0.3.6 and 0.3.7.
+
+### Improved
+
+- **Items with a warning are marked in the list.** An item whose amounts don't agree shows a
+  small "Διαφορά ποσού" tag in its row; tap it to read what doesn't add up. The card at the
+  top of the receipt now says how many items are marked, and "Εμφάνιση" takes you to the first
+  one, instead of listing the items' names there.
+- **A calmer sign in the receipt list.** A receipt with warnings shows a small ⓘ next to the
+  shop's name instead of the "⚠ Προσοχή" tag.
+
 ## 0.3.6 - Clearer receipt warnings
 
 A small update: fewer false warnings on receipts, and the ones that remain say what they mean.

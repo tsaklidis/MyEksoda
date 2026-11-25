@@ -18,7 +18,7 @@
     <string name="payment_other">Άλλη πληρωμή</string>
     <string name="payment_unknown">Πληρωμή</string>
     <string name="badge_review">Έλεγχος</string>
-    <string name="badge_warnings">⚠ Προσοχή</string>
+    <string name="badge_warnings">Έχει προειδοποιήσεις</string>
     <string name="badge_cancelled">Ακυρώθηκε</string>
     <string name="badge_refund">Επιστροφή</string>
     <string name="badge_not_in_stats">Εκτός στατιστικών</string>
@@ -79,11 +79,19 @@
     <string name="detail_show_more">Εμφάνιση όλων των διαφορών</string>
     <string name="detail_show_less">Εμφάνιση λιγότερων</string>
     <string name="detail_warnings_intro">Κάποια ποσά της απόδειξης δεν συμφωνούν ακριβώς μεταξύ τους. Εμφανίζονται όπως τα τύπωσε το κατάστημα, χωρίς διορθώσεις.</string>
-    <plurals name="detail_warning_items">
-        <item quantity="one">Είδος: %1$s</item>
-        <item quantity="other">Είδη: %1$s</item>
+    <plurals name="detail_warning_marked">
+        <item quantity="one">Αφορά %d είδος, σημειωμένο στη λίστα παρακάτω.</item>
+        <item quantity="other">Αφορά %d είδη, σημειωμένα στη λίστα παρακάτω.</item>
     </plurals>
-    <string name="detail_warning_line">γραμμή %1$d</string>
+    <string name="detail_warning_show">Εμφάνιση</string>
+    <plurals name="detail_warning_lines">
+        <item quantity="one">Γραμμή απόδειξης: %1$s</item>
+        <item quantity="other">Γραμμές απόδειξης: %1$s</item>
+    </plurals>
+    <string name="line_warning_tag">Διαφορά ποσού</string>
+    <string name="line_warning_tag_notice">Επισήμανση</string>
+    <string name="line_warning_as_printed">Τα ποσά εμφανίζονται όπως τα τύπωσε το κατάστημα, χωρίς διορθώσεις.</string>
+    <string name="line_warning_ok">Εντάξει</string>
     <string name="warning_line_amount">Η καθαρή αξία και ο ΦΠΑ δεν βγάζουν την τιμή του είδους.</string>
     <string name="warning_unit_price">Η ποσότητα επί την τιμή μονάδας δεν βγάζει ακριβώς την τιμή του είδους.</string>
     <string name="warning_discount">Η τιμή μετά την έκπτωση δεν βγαίνει σωστά.</string>

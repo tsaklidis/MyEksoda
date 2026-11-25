@@ -18,6 +18,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,7 +43,6 @@ import io.eksoda.core.designsystem.theme.HeroNumberStyle
 import io.eksoda.core.model.DocumentKind
 import io.eksoda.core.model.IssueTime
 import io.eksoda.core.model.ReceiptDetail
-import io.eksoda.core.model.ReceiptItem
 import io.eksoda.core.model.ReceiptWarning
 import io.eksoda.core.ui.component.MoneyText
 import io.eksoda.core.ui.motion.SharedKeys
@@ -131,31 +131,40 @@ internal fun Notice(text: String, attention: Boolean = false) {
  * differs from AADE's record, no MARK, another currency, an unknown document type) are
  * terracotta, each with its own message. The arithmetic checks are worded as what they are: the
  * receipt's amounts do not agree with each other and are left as printed; they are neutral,
- * since nothing is wrong with the user's data. One entry per kind of issue, naming the items it
- * concerns; each card collapsed to its first entry.
+ * since nothing is wrong with the user's data. One entry per kind of issue; the items it
+ * concerns are marked in the item list ([LineRow]) and only counted here; [marked] are the line
+ * numbers whose row carries a mark (none when the receipt shows no item list), the others are
+ * named by number; "Show" scrolls to the marked items ([onShowLines]). Each card is collapsed to
+ * its first entry.
  */
 @Composable
-internal fun WarningsCard(warnings: List<ReceiptWarning>, items: List<ReceiptItem>) {
+internal fun WarningsCard(
+    warnings: List<ReceiptWarning>,
+    marked: Set<Int>,
+    onShowLines: (List<Int>) -> Unit,
+) {
     if (warnings.isEmpty()) return
     val groups = remember(warnings) { groupWarnings(warnings) }
-    val names = remember(items) { lineNames(items) }
     Column {
-        WarningGroupsCard(groups.filterNot { it.amountCheck }, names, attention = true)
-        WarningGroupsCard(groups.filter { it.amountCheck }, names, attention = false)
+        val notices = groups.filterNot { it.amountCheck }
+        WarningGroupsCard(notices, marked, attention = true, onShowLines = onShowLines)
+        val checks = groups.filter { it.amountCheck }
+        WarningGroupsCard(checks, marked, attention = false, onShowLines = onShowLines)
     }
 }
 
 @Composable
 private fun WarningGroupsCard(
     groups: List<WarningGroup>,
-    names: Map<Int, String>,
+    marked: Set<Int>,
     attention: Boolean,
+    onShowLines: (List<Int>) -> Unit,
 ) {
     if (groups.isEmpty()) return
     var expanded by rememberSaveable { mutableStateOf(false) }
     val colors = EksodaTheme.colors
     val content = if (attention) colors.spendText else colors.ink
-    // Secondary text: the item names and the expand arrow.
+    // Secondary text: which items, and the expand arrow.
     val detail = if (attention) colors.spendText else MaterialTheme.colorScheme.onSurfaceVariant
     Card(
         modifier = Modifier
@@ -186,7 +195,7 @@ private fun WarningGroupsCard(
                     )
                 }
                 val shown = if (expanded) groups else groups.take(1)
-                shown.forEach { WarningEntry(it, names, detail) }
+                shown.forEach { WarningEntry(it, marked, detail, onShowLines) }
                 if (groups.size > 1) {
                     Icon(
                         imageVector = expandIcon(expanded),
@@ -202,24 +211,44 @@ private fun WarningGroupsCard(
     }
 }
 
-/** The message, and the items it concerns by their receipt description. */
+/**
+ * The message, and which items it concerns: how many are marked in the list (with "Show", which
+ * scrolls to the first), and the line numbers of any that cannot be marked (a number two items
+ * share, or no item list).
+ */
 @Composable
-private fun WarningEntry(group: WarningGroup, names: Map<Int, String>, detail: Color) {
+private fun WarningEntry(
+    group: WarningGroup,
+    marked: Set<Int>,
+    detail: Color,
+    onShowLines: (List<Int>) -> Unit,
+) {
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(
             stringResource(group.message),
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Medium,
         )
-        if (group.lines.isNotEmpty()) {
-            val labels = group.lines.map {
-                names[it] ?: stringResource(R.string.detail_warning_line, it)
+        val (inList, unmarked) = lineMarks(group.lines, marked)
+        if (inList > 0) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    pluralStringResource(R.plurals.detail_warning_marked, inList, inList),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = detail,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+                TextButton(onClick = { onShowLines(group.lines) }) {
+                    Text(stringResource(R.string.detail_warning_show))
+                }
             }
+        }
+        if (unmarked.isNotEmpty()) {
             Text(
                 pluralStringResource(
-                    R.plurals.detail_warning_items,
-                    labels.size,
-                    labels.joinToString(", "),
+                    R.plurals.detail_warning_lines,
+                    unmarked.size,
+                    unmarked.joinToString(", "),
                 ),
                 style = MaterialTheme.typography.bodySmall,
                 color = detail,
