@@ -18,7 +18,7 @@ internal data class WarningGroup(
 
 /**
  * One group per message, in the order the warnings first give it: three items whose unit price
- * does not fit read as one message naming the three items, not as three identical lines.
+ * does not fit read as one message for the three items, not as three identical lines.
  */
 internal fun groupWarnings(warnings: List<ReceiptWarning>): List<WarningGroup> =
     warnings.groupBy { warningRes(it.code) }.map { (message, group) ->
@@ -30,13 +30,48 @@ internal fun groupWarnings(warnings: List<ReceiptWarning>): List<WarningGroup> =
     }
 
 /**
- * The description of each receipt line, by line number, to name the items a warning concerns.
- * A number more than one item claims is left out: its warning says "line N" rather than name
- * an item it may not be about.
+ * The item of each receipt line, by line number: the items whose rows can carry a mark. A number
+ * more than one item claims is left out: its warning is not put on an item it may not be about,
+ * and reads "line N" instead.
  */
-internal fun lineNames(items: List<ReceiptItem>): Map<Int, String> {
+internal fun lineItems(items: List<ReceiptItem>): Map<Int, ReceiptItem> {
     val byLine = items.groupBy { it.lineNumber }
-    return byLine.filterValues { it.size == 1 }.mapValues { (_, same) -> same.single().description }
+    return byLine.filterValues { it.size == 1 }.mapValues { (_, same) -> same.single() }
+}
+
+/** One of an item's warnings, as its mark opens it. */
+internal data class LineWarning(@param:StringRes val message: Int, val amountCheck: Boolean)
+
+/**
+ * The warnings of each item, by item id, one per message: the item's row is marked, and its mark
+ * opens these. [byLine] is [lineItems]: items without warnings, and warnings on a line number no
+ * single item has, are left out.
+ */
+internal fun itemWarnings(
+    warnings: List<ReceiptWarning>,
+    byLine: Map<Int, ReceiptItem>,
+): Map<String, List<LineWarning>> = warnings
+    .mapNotNull { warning -> warning.lineNumber?.let(byLine::get)?.let { it.id to warning } }
+    .groupBy({ it.first }, { it.second })
+    .mapValues { (_, own) -> groupWarnings(own).map { LineWarning(it.message, it.amountCheck) } }
+
+/**
+ * The position in [items] of the first item on one of [lines] that carries a mark ([marked]):
+ * where "Show" in the warnings card scrolls to. Null when none is marked.
+ */
+internal fun firstMarkedItem(items: List<ReceiptItem>, lines: List<Int>, marked: Set<Int>): Int? =
+    items.indexOfFirst { it.lineNumber in lines && it.lineNumber in marked }.takeIf { it >= 0 }
+
+/** A warning's lines: how many carry a mark in the item list, and the others' numbers. */
+internal data class LineMarks(val marked: Int, val unmarked: List<Int>)
+
+/**
+ * [lines] split by whether their row is marked ([marked]: the keys of [lineItems], or none when
+ * the receipt shows no item list).
+ */
+internal fun lineMarks(lines: List<Int>, marked: Set<Int>): LineMarks {
+    val (inList, others) = lines.partition { it in marked }
+    return LineMarks(inList.size, others)
 }
 
 /** The engine's arithmetic checks (`validation`): amounts that do not agree with each other. */

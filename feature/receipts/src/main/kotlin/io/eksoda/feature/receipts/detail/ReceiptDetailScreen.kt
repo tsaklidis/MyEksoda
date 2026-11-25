@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -41,6 +42,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -57,6 +59,7 @@ import io.eksoda.core.ui.component.DelayedProgressIndicator
 import io.eksoda.core.ui.motion.SharedKeys
 import io.eksoda.core.ui.motion.sharedBoundsIfAvailable
 import io.eksoda.feature.receipts.R
+import kotlinx.coroutines.launch
 
 /** Dialogs of the detail screen; one at a time. */
 private enum class DetailDialog { OPEN_ORIGINAL, DELETE, NOTE, STORE }
@@ -228,7 +231,25 @@ private fun DetailContent(
     onProductClick: (String) -> Unit,
 ) {
     val receipt = detail.receipt
-    LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 32.dp)) {
+    // The rows that can carry a mark (none without an item list), and each item's warnings.
+    val byLine = remember(detail.items, detail.hasLineItems) {
+        if (detail.hasLineItems) lineItems(detail.items) else emptyMap()
+    }
+    val marks = remember(detail.warnings, byLine) { itemWarnings(detail.warnings, byLine) }
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+    // The list entries above the item rows: header, the two notices when shown, warnings, heading.
+    val itemsStart = 3 + (if (receipt.cancelled) 1 else 0) + (if (!detail.hasLink) 1 else 0)
+    val showLines: (List<Int>) -> Unit = { lines ->
+        firstMarkedItem(detail.items, lines, byLine.keys)?.let { index ->
+            scope.launch { listState.animateScrollToItem(itemsStart + index) }
+        }
+    }
+    LazyColumn(
+        state = listState,
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(bottom = 32.dp),
+    ) {
         item { DetailHeader(detail) }
         if (receipt.cancelled) {
             item { Notice(stringResource(R.string.detail_cancelled), attention = true) }
@@ -236,11 +257,15 @@ private fun DetailContent(
         if (!detail.hasLink) {
             item { Notice(stringResource(R.string.detail_synced)) }
         }
-        item { WarningsCard(detail.warnings, detail.items) }
+        item { WarningsCard(detail.warnings, marked = byLine.keys, onShowLines = showLines) }
         item { SectionHeading(stringResource(R.string.detail_items)) }
         if (detail.hasLineItems) {
             items(detail.items, key = { it.id }) { item ->
-                LineRow(item, onClick = item.productId?.let { id -> { onProductClick(id) } })
+                LineRow(
+                    item = item,
+                    warnings = marks[item.id].orEmpty(),
+                    onClick = item.productId?.let { id -> { onProductClick(id) } },
+                )
             }
         } else {
             item { Notice(stringResource(R.string.detail_totals_only)) }

@@ -8,12 +8,21 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.WarningAmber
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -37,10 +46,24 @@ import java.math.BigDecimal
 /**
  * A receipt line: description as printed, quantity × unit price, the
  * amount, and a second line with the normalized price and the product. Discounts are muted.
+ * A line with [warnings] is marked; the mark opens them.
  */
 @Composable
-internal fun LineRow(item: ReceiptItem, onClick: (() -> Unit)? = null) {
+internal fun LineRow(
+    item: ReceiptItem,
+    warnings: List<LineWarning> = emptyList(),
+    onClick: (() -> Unit)? = null,
+) {
     val muted = item.lineType == LineType.DISCOUNT
+    var showWarnings by rememberSaveable { mutableStateOf(false) }
+    // The warnings may be gone when the receipt is read again with the dialog open: close it for
+    // good, so that it does not open by itself if they come back.
+    LaunchedEffect(warnings.isEmpty()) {
+        if (warnings.isEmpty()) showWarnings = false
+    }
+    if (showWarnings && warnings.isNotEmpty()) {
+        LineWarningsDialog(item.description, warnings, onDismiss = { showWarnings = false })
+    }
     // A line with a product opens it (price history and comparison).
     Column(
         modifier = Modifier
@@ -73,8 +96,55 @@ internal fun LineRow(item: ReceiptItem, onClick: (() -> Unit)? = null) {
                 fontWeight = if (muted) FontWeight.Normal else null,
             )
         }
-        LineDetails(item)
+        LineDetails(item, warnings, onOpenWarnings = { showWarnings = true })
     }
+}
+
+/**
+ * The item's warnings, as the receipt's warnings card words them, and, when any is about
+ * amounts, that they are shown as printed.
+ */
+@Composable
+private fun LineWarningsDialog(
+    description: String,
+    warnings: List<LineWarning>,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(description, style = MaterialTheme.typography.titleMedium) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                warnings.forEach { Text(stringResource(it.message)) }
+                if (warnings.any { it.amountCheck }) {
+                    Text(
+                        stringResource(R.string.line_warning_as_printed),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.line_warning_ok)) }
+        },
+    )
+}
+
+/**
+ * The mark of a line with warnings: neutral "Amount differs" for amounts that don't agree, a
+ * terracotta "Notice" for one that needs attention. A button: it opens the warnings.
+ */
+@Composable
+private fun WarningTag(attention: Boolean, onClick: () -> Unit) {
+    StatusTag(
+        text = stringResource(
+            if (attention) R.string.line_warning_tag_notice else R.string.line_warning_tag,
+        ),
+        tone = if (attention) BadgeTone.ATTENTION else BadgeTone.NEUTRAL,
+        icon = if (attention) Icons.Outlined.WarningAmber else Icons.Outlined.Info,
+        onClick = onClick,
+    )
 }
 
 /** "2 × 1,29" or "0,812 kg × 1,99"; nothing for a single piece. */
@@ -98,7 +168,11 @@ private fun quantityText(item: ReceiptItem): String? {
 }
 
 @Composable
-private fun LineDetails(item: ReceiptItem) {
+private fun LineDetails(
+    item: ReceiptItem,
+    warnings: List<LineWarning>,
+    onOpenWarnings: () -> Unit,
+) {
     val locale = appLocale()
     val parts = buildList {
         val price = item.normalizedUnitPrice
@@ -111,7 +185,7 @@ private fun LineDetails(item: ReceiptItem) {
         item.categorySlug?.let { add(categoryName(it)) }
     }
     val review = item.matchStatus == MatchStatus.NEEDS_REVIEW
-    if (parts.isEmpty() && !review) return
+    if (parts.isEmpty() && !review && warnings.isEmpty()) return
     Row(
         modifier = Modifier.padding(top = 2.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -126,6 +200,9 @@ private fun LineDetails(item: ReceiptItem) {
             )
         }
         if (review) StatusTag(stringResource(R.string.badge_review), BadgeTone.ATTENTION)
+        if (warnings.isNotEmpty()) {
+            WarningTag(attention = warnings.any { !it.amountCheck }, onClick = onOpenWarnings)
+        }
     }
 }
 

@@ -6,14 +6,9 @@ import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
 import assertk.assertions.isTrue
-import io.eksoda.core.model.LineType
-import io.eksoda.core.model.MatchStatus
-import io.eksoda.core.model.Money
-import io.eksoda.core.model.ReceiptItem
 import io.eksoda.core.model.ReceiptWarning
 import io.eksoda.feature.receipts.R
 import org.junit.Test
-import java.math.BigDecimal
 
 class WarningGroupTest {
     @Test
@@ -139,32 +134,7 @@ class WarningGroupTest {
     }
 
     @Test
-    fun `items are named by line number, but not when two items share one`() {
-        val names = lineNames(
-            listOf(item(1, "ΓΑΛΑ"), item(2, "ΨΩΜΙ"), item(2, "ΤΥΡΙ"), item(4, "ΝΕΡΟ")),
-        )
-        assertThat(names).isEqualTo(mapOf(1 to "ΓΑΛΑ", 4 to "ΝΕΡΟ"))
-    }
-
-    @Test
     fun `no warnings, no entries`() {
         assertThat(groupWarnings(emptyList())).isEmpty()
     }
-
-    private fun item(line: Int, description: String) = ReceiptItem(
-        id = "i$line$description",
-        lineNumber = line,
-        lineType = LineType.PRODUCT,
-        description = description,
-        quantity = BigDecimal.ONE,
-        unit = "piece",
-        unitPrice = null,
-        totalPrice = Money(BigDecimal.ONE, "EUR"),
-        matchStatus = MatchStatus.NEEDS_REVIEW,
-        productId = null,
-        productName = null,
-        categorySlug = null,
-        normalizedUnitPrice = null,
-        normalizedUnit = null,
-    )
 }

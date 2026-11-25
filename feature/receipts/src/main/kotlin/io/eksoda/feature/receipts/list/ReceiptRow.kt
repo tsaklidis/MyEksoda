@@ -9,6 +9,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -16,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -79,6 +84,7 @@ internal fun ReceiptRow(receipt: Receipt, onClick: () -> Unit) {
                         .weight(1f, fill = false)
                         .sharedBoundsIfAvailable(SharedKeys.receiptMerchant(receipt.id)),
                 )
+                if (receipt.hasWarnings) WarningMark()
                 if (receipt.fromOtherPhone) FromOtherPhoneMark()
             }
             Text(
@@ -128,9 +134,24 @@ internal fun paymentLabel(method: PaymentMethod): Int? = when (method) {
     PaymentMethod.UNKNOWN -> null
 }
 
+/**
+ * A receipt with warnings: a small terracotta ⓘ after the merchant, no text, so that a receipt
+ * whose amounts merely don't agree does not shout. A sign, not only a color (ui-redesign.md §1).
+ * The detail screen explains the warnings; screen readers hear [R.string.badge_warnings].
+ */
+@Composable
+private fun WarningMark() {
+    Icon(
+        imageVector = Icons.Outlined.Info,
+        contentDescription = stringResource(R.string.badge_warnings),
+        tint = EksodaTheme.colors.spend,
+        modifier = Modifier.size(16.dp),
+    )
+}
+
 @Composable
 private fun ReceiptBadges(receipt: Receipt) {
-    val hasAttention = receipt.needsReview || receipt.hasWarnings
+    val hasAttention = receipt.needsReview
     val hasStatus = receipt.cancelled ||
         receipt.documentKind == DocumentKind.CREDIT_NOTE ||
         receipt.excludedFromAnalytics
@@ -144,12 +165,6 @@ private fun ReceiptBadges(receipt: Receipt) {
         if (receipt.needsReview) {
             StatusTag(
                 stringResource(R.string.badge_review),
-                BadgeTone.ATTENTION,
-            )
-        }
-        if (receipt.hasWarnings) {
-            StatusTag(
-                stringResource(R.string.badge_warnings),
                 BadgeTone.ATTENTION,
             )
         }
@@ -178,24 +193,51 @@ private fun ReceiptBadges(receipt: Receipt) {
  */
 internal enum class BadgeTone { ATTENTION, NEUTRAL, MUTED }
 
+/**
+ * A status tag in [tone], with an optional leading [icon]. With [onClick] it is a button (with
+ * Material's 48dp touch target), e.g. an item's warnings mark, which opens them.
+ */
 @Composable
-internal fun StatusTag(text: String, tone: BadgeTone) {
+internal fun StatusTag(
+    text: String,
+    tone: BadgeTone,
+    icon: ImageVector? = null,
+    onClick: (() -> Unit)? = null,
+) {
     val colors = EksodaTheme.colors
     val (background, content, border) = when (tone) {
         BadgeTone.ATTENTION -> Triple(colors.spendTint, colors.spendText, colors.spendBorder)
         BadgeTone.NEUTRAL -> Triple(colors.inset, colors.ink2, colors.line)
         BadgeTone.MUTED -> Triple(Color.Transparent, colors.ink2, colors.line)
     }
-    Surface(
-        shape = BadgeShape,
-        color = background,
-        contentColor = content,
-        border = BorderStroke(1.dp, border),
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelSmall,
+    val label: @Composable () -> Unit = {
+        Row(
             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (icon != null) {
+                Icon(icon, contentDescription = null, modifier = Modifier.size(14.dp))
+            }
+            Text(text = text, style = MaterialTheme.typography.labelSmall)
+        }
+    }
+    if (onClick != null) {
+        Surface(
+            onClick = onClick,
+            shape = BadgeShape,
+            color = background,
+            contentColor = content,
+            border = BorderStroke(1.dp, border),
+            content = label,
+        )
+    } else {
+        Surface(
+            shape = BadgeShape,
+            color = background,
+            contentColor = content,
+            border = BorderStroke(1.dp, border),
+            content = label,
         )
     }
 }
