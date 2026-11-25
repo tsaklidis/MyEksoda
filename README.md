@@ -149,6 +149,20 @@ Every merge to master is a release:
    `v<version>` and creates the GitHub release with the changelog section and the checksums as
    its notes. It needs `gh` logged in with an account that can push to the repository.
 
+## 🤝 Contributing
+
+Contributions are welcome: bug reports, receipts that fail to import, translations, fixes and
+features. [CONTRIBUTING.md](CONTRIBUTING.md) explains how to set up the project, the rules every
+change follows, and how a pull request passes CI and becomes a release. In short:
+
+1. Fork the repository and branch from the latest `master`.
+2. Make the change with its tests, and run `make check` until it passes.
+3. Open a pull request against `master` and fill in its template.
+
+**Never post a real receipt link** in an issue or a pull request: it opens the receipt like a
+password. For a receipt that does not import, give the provider's host and the shop instead.
+Report security issues privately to stefanos@tsaklidis.gr.
+
 ## 📦 Backup Recovery (`tools/decrypt_backup.py`)
 
 If you have an Eksoda backup file (`.eksoda`) and cannot access the Android app, you can decrypt and inspect your backup data independently using the Python recovery script:
@@ -165,6 +179,7 @@ python3 tools/decrypt_backup.py your_backup.eksoda [output_archive.zip]
 | [`docs/codemap/OVERVIEW.md`](docs/codemap/OVERVIEW.md) | Architecture, modules, import pipeline, data layer, backup, and rules |
 | [`docs/design/household-sync.md`](docs/design/household-sync.md) | Household sync: pairing, protocol, merge rules |
 | [`docs/design/ui-redesign.md`](docs/design/ui-redesign.md) | UI rules: colors, type, components, charts |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | Setting up, the rules, pull requests, CI and releases |
 | [`CHANGELOG.md`](CHANGELOG.md) | What changed in each release |
 
 ## License
