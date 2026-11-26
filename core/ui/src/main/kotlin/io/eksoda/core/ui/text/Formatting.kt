@@ -36,6 +36,12 @@ private val quantityFormats: ThreadLocal<HashMap<Locale, NumberFormat>> =
 private val amountFormats: ThreadLocal<HashMap<Locale, NumberFormat>> =
     ThreadLocal.withInitial { HashMap() }
 
+/**
+ * This thread's map. `ThreadLocal.get()` is declared nullable, but `withInitial` always gives a
+ * value.
+ */
+private fun <T : Any> ThreadLocal<T>.current(): T = checkNotNull(get())
+
 /** Date formatters are immutable and thread-safe: one per pattern and locale. */
 private val dateFormatters = ConcurrentHashMap<Pair<String, Locale>, DateTimeFormatter>()
 
@@ -49,7 +55,7 @@ fun dateFormatter(pattern: String, locale: Locale): DateTimeFormatter =
  * half up, as the price statistics do (9,945 → 9,95), so every screen shows the same cents.
  */
 fun formatMoney(money: Money, locale: Locale, negative: Boolean = false): String {
-    val format = currencyFormats.get().getOrPut(locale to money.currency) {
+    val format = currencyFormats.current().getOrPut(locale to money.currency) {
         NumberFormat.getCurrencyInstance(locale).also { created ->
             runCatching { Currency.getInstance(money.currency) }.getOrNull()
                 ?.let { created.currency = it }
@@ -65,7 +71,7 @@ fun formatMoney(money: Money, locale: Locale, negative: Boolean = false): String
  * number with the currency beside it (docs/design/ui-redesign.md §2). A true minus sign.
  */
 fun formatAmount(amount: BigDecimal, locale: Locale): String {
-    val format = amountFormats.get().getOrPut(locale) {
+    val format = amountFormats.current().getOrPut(locale) {
         NumberFormat.getNumberInstance(locale).apply {
             minimumFractionDigits = 2
             maximumFractionDigits = 2
@@ -94,7 +100,7 @@ fun currencySymbol(currency: String, locale: Locale): String =
 
 /** Up to 3 decimals for kg and l, none for whole pieces. */
 fun formatQuantity(quantity: BigDecimal, locale: Locale): String {
-    val format = quantityFormats.get().getOrPut(locale) {
+    val format = quantityFormats.current().getOrPut(locale) {
         NumberFormat.getNumberInstance(locale).apply {
             maximumFractionDigits = MAX_QUANTITY_DECIMALS
             minimumFractionDigits = 0
