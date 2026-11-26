@@ -14,6 +14,7 @@ import io.eksoda.engine.fetch.Fetcher
 import io.eksoda.engine.providers.impact.IMPACT
 import io.eksoda.engine.text.fingerprint
 import io.eksoda.engine.url.ParsedUrl
+import io.eksoda.engine.url.parseSubmittedUrl
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 
@@ -22,14 +23,33 @@ class BaseTest {
     private val receiptUrl =
         "https://einvoice.impact.gr/p/EL000000000/${"A".repeat(40)}/${"B".repeat(32)}"
 
-    private fun provider(code: String, vararg hosts: String) = Provider(
+    private val shops = Regex("""^shop-[a-z]+\.example\.gr$""")
+
+    /** Fetches the link from its own host only, as a provider with a host pattern does. */
+    private val ownHostFetch: suspend (UrlIdentity, Fetcher) -> FetchedDocument = { link, f ->
+        val url = parseSubmittedUrl(link.canonicalUrl)
+        f.get(url, allowedHosts = setOf(url.host))
+    }
+
+    private fun provider(
+        code: String,
+        vararg hosts: String,
+        pattern: Regex? = null,
+        recognize: (ParsedUrl) -> UrlIdentity? = { null },
+    ) = Provider(
         code = code,
         hosts = hosts.toSet(),
         layouts = emptyList(),
-        recognize = { null },
+        recognize = recognize,
         parseHtml = { _, _ -> error("not parsed") },
         sanitize = { error("not sanitized") },
+        fetchDocument = ownHostFetch.takeIf { pattern != null },
+        hostPattern = pattern,
     )
+
+    private fun linkOf(code: String): (ParsedUrl) -> UrlIdentity = { url ->
+        UrlIdentity(providerCode = code, identity = url.host, canonicalUrl = url.geturl())
+    }
 
     @Test
     fun `masking hides the query, else a long last path segment`() {
@@ -90,6 +110,56 @@ class BaseTest {
             .isInstanceOf<UnsupportedProvider>()
         assertFailure { REGISTRY.resolveUrl("https://einvoice.impact.gr/about") }
             .isInstanceOf<UnsupportedUrlFormat>()
+    }
+
+    @Test
+    fun `a host matching a provider's pattern resolves to it`() {
+        val listed = provider("listed", "receipts.example.gr", recognize = linkOf("listed"))
+        val patterned = provider(
+            "patterned",
+            "shop-b.example.gr",
+            pattern = shops,
+            recognize = linkOf("patterned"),
+        )
+        val registry = ProviderRegistry(listOf(patterned, listed))
+        assertThat(registry.resolveUrl("https://receipts.example.gr/r").first)
+            .isSameInstanceAs(listed)
+        assertThat(registry.resolveUrl("https://shop-b.example.gr/r").first)
+            .isSameInstanceAs(patterned)
+        assertThat(registry.resolveUrl("https://shop-new.example.gr/r").first)
+            .isSameInstanceAs(patterned)
+        assertFailure { registry.resolveUrl("https://shop-1.example.gr/r") }
+            .isInstanceOf<UnsupportedProvider>()
+    }
+
+    @Test
+    fun `one host belongs to one provider, patterns included`() {
+        // A listed host that another provider's pattern matches is refused at startup.
+        val listed = provider("l", "shop-x.example.gr")
+        assertFailure { ProviderRegistry(listOf(provider("p", pattern = shops), listed)) }
+            .isInstanceOf<IllegalArgumentException>()
+            .hasMessage("host 'shop-x.example.gr' of 'l' matches the pattern of 'p'")
+        // A host two patterns match goes to neither.
+        val wide = provider("wide", pattern = Regex("""^shop-.+\.example\.gr$"""))
+        val registry = ProviderRegistry(listOf(provider("p", pattern = shops), wide))
+        assertFailure { registry.resolveUrl("https://shop-x.example.gr/r") }
+            .isInstanceOf<UnsupportedProvider>()
+            .hasMessage("unsupported_provider: host shop-x.example.gr matches several patterns")
+    }
+
+    @Test
+    fun `a provider with a host pattern fetches its documents itself`() {
+        assertFailure {
+            Provider(
+                code = "p",
+                hosts = emptySet(),
+                layouts = emptyList(),
+                recognize = { null },
+                parseHtml = { _, _ -> error("not parsed") },
+                sanitize = { error("not sanitized") },
+                hostPattern = shops,
+            )
+        }.isInstanceOf<IllegalArgumentException>()
     }
 
     @Test

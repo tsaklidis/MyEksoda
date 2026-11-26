@@ -100,8 +100,16 @@ Providers: `engine/providers/{impact,s1ecos,entersoft,aadefhm,epsilon}/` each wi
 (recognize), `Parser.kt` (layouts → `CanonicalReceipt`), `Sanitize.kt`; Impact also
 `Labels.kt`, `Views.kt`. Shared: `Base.kt` (`Provider`, `Layout`, `UrlIdentity`,
 `maskUrl`), `Registry.kt` (`REGISTRY`), `Html.kt` (`textOf`, Jsoup), `Sanitizing.kt`.
-Epsilon Digital (merchant hosts `epsilondigital-<merchant>.epsilonnet.gr`, `MERCHANT_HOSTS`,
-and the shared `epsilondigital-3rd` and `epsilondigital-3rdpartb` hosts, `SHARED_HOSTS`) is not
+The registry finds a provider by exact host (`Provider.hosts`), then by `Provider.hostPattern`
+(only Epsilon has one). One host, one provider: a listed host matching another provider's
+pattern fails at startup, and a host two patterns match is refused. A provider with a pattern
+must bring its own `fetchDocument` (it allows the link's own host only). A pattern host that
+serves no receipts fails at the fetch like any unreadable link; one that does not resolve is
+retried like any network failure (DNS cannot tell a host that does not exist from a resolver
+outage, so a DNS failure never refuses a link).
+Epsilon Digital (any `epsilondigital-<name>.epsilonnet.gr` host, `HOST_PATTERN`; the hosts
+known to serve receipts, one merchant's such as `-sklavenitis`, `-abmarket`, `-marketin` or
+shared ones such as `-3rd` and `-3rdpartb`, are `HOSTS`) is not
 read from its viewer page (behind a Cloudflare Turnstile check) but from the receipt's detailed
 myDATA XML (`/filedocument/GetInvoiceDocDetailed/<uuid>`, Jsoup XML parser). The XML has no
 time of day (the time is the date only) and often no merchant name (merchant hosts never send
@@ -109,8 +117,9 @@ one, shared hosts usually do; Masoutis on `3rdpartb` does not). A name in the XM
 otherwise it comes from `ISSUER_NAMES` in `epsilon/Urls.kt`, keyed by issuer VAT and valid on
 every Epsilon host. Without either the receipt is still read with an empty legal name, and the
 merchant is called by its VAT number until a receipt names it (`merchants/Merchants.kt`
-`defaultDisplayName`; an empty name never overwrites a known one). A new merchant host is a
-`MERCHANT_HOSTS` entry, best with its issuer's name.
+`defaultDisplayName`; an empty name never overwrites a known one). A new Epsilon host needs no
+code to be read; add it to `HOSTS` once it is seen serving receipts (the record), and its
+issuer's legal name to `ISSUER_NAMES` when the name is verified.
 Impact: the link's 40-hex id is usually the myDATA UID but not always; when it differs, the
 page's tax view must print the link itself.
 s1ecos (`einvoice.s1ecos.gr`) serves Impact's pages under its own host: its own provider code and

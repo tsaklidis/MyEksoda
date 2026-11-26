@@ -1,0 +1,102 @@
+<InvoicesDoc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.aade.gr/myDATA/invoice/v1.0">
+  <invoice>
+    <uid>35ADBE1CBD4A45503774AB433CC7BD7F5A3DB43A</uid>
+    <mark>400012247166316</mark>
+    <authenticationCode>0X00X00X00X00000X000000X0000000X0000X000</authenticationCode>
+    <issuer>
+      <vatNumber>094025817</vatNumber>
+      <country>GR</country>
+      <branch>74</branch>
+    </issuer>
+    <invoiceHeader>
+      <series>39304</series>
+      <aa>450</aa>
+      <issueDate>2026-01-13</issueDate>
+      <invoiceType>11.1</invoiceType>
+      <currency>EUR</currency>
+    </invoiceHeader>
+    <paymentMethods>
+      <paymentMethodDetails>
+        <type>7</type>
+        <amount>22.92</amount>
+        <transactionId>000;000000000000;000000</transactionId>
+        <tid>00000000</tid>
+        <ProvidersSignature>
+          <SigningAuthor>004</SigningAuthor>
+          <Signature>XXXXXX0XX0X0XX0XXXXX0XXXX00XX0X+XX0XXXXXXXXX0XXXXXXXX0X0XXXX0X00XXXXXXXXXXXXX/0XXX0XXXXXXXXX0X==</Signature>
+        </ProvidersSignature>
+      </paymentMethodDetails>
+    </paymentMethods>
+    <invoiceDetails>
+      <lineNumber>1</lineNumber>
+      <itemDescr>ΡΟΛΟ ΚΟΤ/ΛΟ ΓΕΜ.ΕΛ</itemDescr>
+      <quantity>1.355</quantity>
+      <measurementUnit>2</measurementUnit>
+      <netValue>9.53</netValue>
+      <vatCategory>2</vatCategory>
+      <vatAmount>1.24</vatAmount>
+      <lineComments />
+    </invoiceDetails>
+    <invoiceDetails>
+      <lineNumber>2</lineNumber>
+      <itemDescr>ΜΠΑΝΑΝΕΣ DOLE</itemDescr>
+      <quantity>1.125</quantity>
+      <measurementUnit>2</measurementUnit>
+      <netValue>1.84</netValue>
+      <vatCategory>2</vatCategory>
+      <vatAmount>0.24</vatAmount>
+      <lineComments />
+    </invoiceDetails>
+    <invoiceDetails>
+      <lineNumber>3</lineNumber>
+      <itemDescr>L.V.Q.R. CHEDDAR</itemDescr>
+      <quantity>1</quantity>
+      <measurementUnit>1</measurementUnit>
+      <netValue>2.97</netValue>
+      <vatCategory>2</vatCategory>
+      <vatAmount>0.39</vatAmount>
+      <lineComments />
+    </invoiceDetails>
+    <invoiceDetails>
+      <lineNumber>4</lineNumber>
+      <itemDescr>PRESIDENT CHEDDAR</itemDescr>
+      <quantity>2</quantity>
+      <measurementUnit>1</measurementUnit>
+      <netValue>4.6</netValue>
+      <vatCategory>2</vatCategory>
+      <vatAmount>0.6</vatAmount>
+      <lineComments />
+    </invoiceDetails>
+    <invoiceDetails>
+      <lineNumber>5</lineNumber>
+      <itemDescr>ΑΒ ΜΑΡ. ΑΙΣΜΠΕΡΓΚ</itemDescr>
+      <quantity>0.34</quantity>
+      <measurementUnit>2</measurementUnit>
+      <netValue>0.71</netValue>
+      <vatCategory>2</vatCategory>
+      <vatAmount>0.09</vatAmount>
+      <lineComments />
+    </invoiceDetails>
+    <invoiceDetails>
+      <lineNumber>6</lineNumber>
+      <itemDescr>ΑΒ ΜΑΡ. ΑΙΣΜΠΕΡΓΚ</itemDescr>
+      <quantity>0.3</quantity>
+      <measurementUnit>2</measurementUnit>
+      <netValue>0.63</netValue>
+      <vatCategory>2</vatCategory>
+      <vatAmount>0.08</vatAmount>
+      <lineComments />
+    </invoiceDetails>
+    <invoiceSummary>
+      <totalNetValue>20.28</totalNetValue>
+      <totalVatAmount>2.64</totalVatAmount>
+      <totalWithheldAmount>0</totalWithheldAmount>
+      <totalFeesAmount>0</totalFeesAmount>
+      <totalStampDutyAmount>0</totalStampDutyAmount>
+      <totalOtherTaxesAmount>0</totalOtherTaxesAmount>
+      <totalDeductionsAmount>0</totalDeductionsAmount>
+      <totalGrossValue>22.92</totalGrossValue>
+    </invoiceSummary>
+    <downloadingInvoiceUrl>https://epsilondigital-abmarket.epsilonnet.gr/fd/00000000000000000000000000000000:146</downloadingInvoiceUrl>
+  </invoice>
+</InvoicesDoc>

@@ -86,7 +86,22 @@ public class Provider(
     public val sanitize: (String) -> SanitizeResult,
     /** Only for sources that need more than one GET of the canonical URL (Entersoft). */
     public val fetchDocument: (suspend (UrlIdentity, Fetcher) -> FetchedDocument)? = null,
+    /**
+     * The provider's other hosts, by pattern, for a platform that gives each merchant a host of
+     * its own (Epsilon Digital). A link on such a host is fetched instead of refused; a host
+     * that serves no receipts fails like any unreadable link (one that does not resolve is
+     * retried: DNS cannot tell a host that does not exist from a resolver outage). A provider
+     * with a pattern fetches through its own [fetchDocument], which allows the link's own host
+     * only.
+     */
+    public val hostPattern: Regex? = null,
 ) {
+    init {
+        require(hostPattern == null || fetchDocument != null) {
+            "provider '$code' has a host pattern but no fetchDocument"
+        }
+    }
+
     public suspend fun fetch(identity: UrlIdentity, fetcher: Fetcher): FetchedDocument =
         fetchDocument?.invoke(identity, fetcher)
             ?: fetcher.get(parseSubmittedUrl(identity.canonicalUrl), allowedHosts = hosts)
@@ -99,6 +114,7 @@ public class Provider(
 public class ProviderRegistry(providers: Iterable<Provider> = emptyList()) {
     private val byCode = LinkedHashMap<String, Provider>()
     private val byHost = LinkedHashMap<String, Provider>()
+    private val byPattern = ArrayList<Pair<Regex, Provider>>()
 
     init {
         for (provider in providers) {
@@ -110,7 +126,28 @@ public class ProviderRegistry(providers: Iterable<Provider> = emptyList()) {
                 require(host !in byHost) { "host '$host' is already registered" }
                 byHost[host] = provider
             }
+            provider.hostPattern?.let { byPattern += it to provider }
         }
+        checkPatterns()
+    }
+
+    /** One host, one provider: no listed host may match another provider's pattern. */
+    private fun checkPatterns() {
+        for ((pattern, patterned) in byPattern) {
+            for ((host, owner) in byHost) {
+                require(owner === patterned || !pattern.matches(host)) {
+                    "host '$host' of '${owner.code}' matches the pattern of '${patterned.code}'"
+                }
+            }
+        }
+    }
+
+    /** The one provider whose pattern matches [host]; a host two patterns match is refused. */
+    private fun patternProvider(host: String): Provider {
+        val matching = byPattern.filter { (pattern, _) -> pattern.matches(host) }
+        if (matching.isEmpty()) throw UnsupportedProvider("host $host")
+        if (matching.size > 1) throw UnsupportedProvider("host $host matches several patterns")
+        return matching.single().second
     }
 
     public val codes: List<String> get() = byCode.keys.sorted()
@@ -124,7 +161,7 @@ public class ProviderRegistry(providers: Iterable<Provider> = emptyList()) {
      */
     public fun resolveUrl(raw: Any?): Pair<Provider, UrlIdentity> {
         val url = parseSubmittedUrl(raw)
-        val provider = byHost[url.host] ?: throw UnsupportedProvider("host ${url.host}")
+        val provider = byHost[url.host] ?: patternProvider(url.host)
         val identity =
             provider.recognize(url)
                 ?: throw UnsupportedUrlFormat("unrecognized ${provider.code} URL")

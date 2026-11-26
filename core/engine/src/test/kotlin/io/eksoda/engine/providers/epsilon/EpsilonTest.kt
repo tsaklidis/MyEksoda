@@ -2,9 +2,11 @@ package io.eksoda.engine.providers.epsilon
 
 import assertk.assertFailure
 import assertk.assertThat
+import assertk.assertions.contains
 import assertk.assertions.containsExactly
 import assertk.assertions.doesNotContain
 import assertk.assertions.isEqualTo
+import assertk.assertions.isFalse
 import assertk.assertions.isInstanceOf
 import assertk.assertions.isNotNull
 import assertk.assertions.isNull
@@ -12,6 +14,7 @@ import assertk.assertions.isTrue
 import io.eksoda.engine.Engine
 import io.eksoda.engine.FormatChanged
 import io.eksoda.engine.InconsistentSource
+import io.eksoda.engine.ProviderUnreachable
 import io.eksoda.engine.TestData
 import io.eksoda.engine.UnsupportedProvider
 import io.eksoda.engine.fetch.FetchedDocument
@@ -71,8 +74,59 @@ class EpsilonTest {
         assertThat(recognized("https://$host/fd/2347fb740c1b47b5bde208df39f03c44:155?x=1")).isNull()
         assertThat(recognized("https://$host/fd/2347fb740c1b47b5:155")).isNull()
         assertThat(recognized("https://$host/filedocument/GetInvoiceDocDetailed/$id")).isNull()
-        assertFailure { identity("https://epsilondigital-other.epsilonnet.gr/DocViewer/$id") }
-            .isInstanceOf<UnsupportedProvider>()
+    }
+
+    @Test
+    fun `any epsilondigital host is an Epsilon host`() {
+        for (name in listOf("other", "my-shop2", "a", "x".repeat(48))) {
+            val link = identity("https://epsilondigital-$name.epsilonnet.gr/DocViewer/$id")
+            assertThat(link.providerCode).isEqualTo(PROVIDER_CODE)
+            assertThat(link.canonicalUrl)
+                .isEqualTo("https://epsilondigital-$name.epsilonnet.gr/DocViewer/$id")
+        }
+        // Only one epsilondigital-<name> label right under epsilonnet.gr.
+        val lookalikes = listOf(
+            "epsilondigital.epsilonnet.gr",
+            "epsilondigital-.epsilonnet.gr",
+            "epsilondigital--x.epsilonnet.gr",
+            "epsilondigital-x-.epsilonnet.gr",
+            "epsilondigital-${"x".repeat(49)}.epsilonnet.gr",
+            "a.epsilondigital-x.epsilonnet.gr",
+            "epsilondigital-x.epsilonnet.gr.example.com",
+            "epsilondigital-x.epsilonnet.com",
+            "epsilondigital-x.example.gr",
+            "xepsilondigital-x.epsilonnet.gr",
+        )
+        for (lookalike in lookalikes) {
+            assertThat(HOST_PATTERN.matches(lookalike), name = lookalike).isFalse()
+        }
+        for (lookalike in lookalikes.takeLast(5)) {
+            assertFailure { identity("https://$lookalike/DocViewer/$id") }
+                .isInstanceOf<UnsupportedProvider>()
+        }
+    }
+
+    @Test
+    fun `a receipt on a new host is fetched from that host only`(): Unit = runBlocking {
+        val newHost = "epsilondigital-newshop.epsilonnet.gr"
+        val requests = mutableListOf<Pair<String, Set<String>>>()
+        val fetcher = object : Fetcher {
+            override suspend fun get(
+                url: ParsedUrl,
+                allowedHosts: Set<String>,
+                acceptStatuses: Set<Int>,
+                contentTypes: Set<String>,
+            ): FetchedDocument {
+                requests += url.geturl() to allowedHosts
+                return FetchedDocument(fixture.replace(host, newHost).toByteArray())
+            }
+        }
+        val engine = Engine(fetcher)
+        val parsed = engine.read(engine.resolve("https://$newHost/fd/$FAKE_HEX_ID:155"))
+        assertThat(requests).containsExactly(
+            "https://$newHost/filedocument/GetInvoiceDocDetailed/$FAKE_UUID" to setOf(newHost),
+        )
+        assertThat(parsed.receipt.totals.gross.toPlainString()).isEqualTo("51.07")
     }
 
     @Test
@@ -131,6 +185,9 @@ class EpsilonTest {
     fun `an XML for another document is refused`() {
         val other = fixture.replace("/fd/" + FAKE_HEX_ID, "/fd/" + "1".repeat(32))
         assertFailure { parse(other) }.isInstanceOf<InconsistentSource>()
+        // A printed link outside Epsilon Digital is not this receipt's either.
+        val elsewhere = fixture.replace("https://$host/fd/", "https://shop.example.gr/fd/")
+        assertFailure { parse(elsewhere) }.isInstanceOf<InconsistentSource>()
     }
 
     @Test
@@ -159,6 +216,54 @@ class EpsilonTest {
         val masoutisHere = unnamed.replace("<vatNumber>999644611<", "<vatNumber>094247924<")
         assertThat(parseDocument(masoutisHere, shared).issuer.legalName)
             .isEqualTo(ISSUER_NAMES.getValue("094247924"))
+    }
+
+    @Test
+    fun `AB Vasilopoulos and Market In are read from their own known hosts`() {
+        for (merchant in listOf("abmarket", "marketin")) {
+            assertThat(HOSTS).contains("epsilondigital-$merchant.epsilonnet.gr")
+            val link =
+                identity("https://EpsilonDigital-$merchant.epsilonnet.gr:443/fd/$FAKE_HEX_ID:146/")
+            assertThat(link.providerCode).isEqualTo(PROVIDER_CODE)
+            assertThat(link.identity).isEqualTo("epsilon:$FAKE_UUID")
+            assertThat(link.canonicalUrl)
+                .isEqualTo("https://epsilondigital-$merchant.epsilonnet.gr/fd/$FAKE_HEX_ID:146")
+        }
+        // AB's XML has no name: its VAT number's entry names it.
+        val ab = fixtureDir.resolve("ab_6_lines.xml").readText()
+        val abLink = identity("https://epsilondigital-abmarket.epsilonnet.gr/fd/$FAKE_HEX_ID:146")
+        val receipt = parseDocument(ab, abLink)
+        assertThat(receipt.issuer.vatNumber).isEqualTo("094025817")
+        assertThat(receipt.issuer.legalName)
+            .isEqualTo("ΑΛΦΑ ΒΗΤΑ ΒΑΣΙΛΟΠΟΥΛΟΣ ΜΟΝΟΠΡΟΣΩΠΗ Α.Ε.")
+        assertThat(receipt.totals.gross.toPlainString()).isEqualTo("22.92")
+        // The XML of one merchant host is refused when read through another one's link.
+        val elsewhere =
+            identity("https://epsilondigital-marketin.epsilonnet.gr/fd/$FAKE_HEX_ID:146")
+        assertFailure { parseDocument(ab, elsewhere) }.isInstanceOf<InconsistentSource>()
+        // Market In's XML has no name and its VAT number has no verified one: left empty.
+        val marketIn = fixtureDir.resolve("marketin_9_lines.xml").readText()
+        val marketInLink =
+            identity("https://epsilondigital-marketin.epsilonnet.gr/fd/$FAKE_HEX_ID:119")
+        assertThat(parseDocument(marketIn, marketInLink).issuer.legalName).isEqualTo("")
+    }
+
+    @Test
+    fun `a host that does not resolve is a network failure, known or not`(): Unit = runBlocking {
+        // DNS cannot tell a host that does not exist from a resolver outage: both are retried.
+        val fetcher = object : Fetcher {
+            override suspend fun get(
+                url: ParsedUrl,
+                allowedHosts: Set<String>,
+                acceptStatuses: Set<Int>,
+                contentTypes: Set<String>,
+            ): FetchedDocument = throw ProviderUnreachable("DNS resolution failed")
+        }
+        val engine = Engine(fetcher)
+        val typo = "https://epsilondigital-sklavenitls.epsilonnet.gr/fd/$FAKE_HEX_ID:1"
+        assertFailure { engine.read(engine.resolve(typo)) }.isInstanceOf<ProviderUnreachable>()
+        val known = engine.resolve(meta.getValue("url").jsonPrimitive.content)
+        assertFailure { engine.read(known) }.isInstanceOf<ProviderUnreachable>()
     }
 
     @Test
