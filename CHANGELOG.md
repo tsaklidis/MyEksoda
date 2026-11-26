@@ -3,6 +3,25 @@
 What changed in each release of Eksoda. Earlier releases are described on the
 [Releases](https://github.com/tsaklidis/MyEksoda/releases) page.
 
+## 0.3.9 - AB Vasilopoulos and Market In receipts
+
+A small update that reads receipts from more supermarkets. Install it over 0.3.8 as usual: your
+data stays, and household sync keeps working between 0.3.8 and 0.3.9.
+
+### New
+
+- **AB Vasilopoulos and Market In receipts.** Their e-receipts come from Epsilon Digital, on
+  hosts of their own (`epsilondigital-abmarket.epsilonnet.gr`,
+  `epsilondigital-marketin.epsilonnet.gr`), and were refused as an unsupported provider. They
+  are now read like Sklavenitis' and Masoutis' receipts. AB Vasilopoulos is named from its
+  first receipt; a Market In shop shows its VAT number until you rename it. Scan receipts that
+  were refused before again: nothing was saved for them.
+- **New Epsilon Digital shops work without an update.** Any
+  `epsilondigital-<name>.epsilonnet.gr` link is now read, and the receipt is fetched only from
+  that link's own site. If the site does not exist (a mistyped or made-up link), the import
+  fails at once with "Το Eksoda δεν διαβάζει ακόμη αποδείξεις από αυτή την εταιρεία." instead
+  of waiting for a day of retries.
+
 ## 0.3.8 - Clearer product prices
 
 A small update to a product's price page. Install it over 0.3.7 as usual: your data stays, and
