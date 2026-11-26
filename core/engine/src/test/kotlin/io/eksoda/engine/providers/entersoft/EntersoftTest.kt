@@ -9,6 +9,7 @@ import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.isInstanceOf
 import assertk.assertions.isNotEqualTo
+import assertk.assertions.isNull
 import io.eksoda.engine.FormatChanged
 import io.eksoda.engine.InconsistentSource
 import io.eksoda.engine.ReceiptNotFound
@@ -20,6 +21,7 @@ import io.eksoda.engine.fetch.FetchedDocument
 import io.eksoda.engine.fetch.Fetcher
 import io.eksoda.engine.providers.REGISTRY
 import io.eksoda.engine.url.ParsedUrl
+import io.eksoda.engine.url.parseSubmittedUrl
 import io.eksoda.engine.validation.validate
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
@@ -83,14 +85,35 @@ class EntersoftTest {
             .isEqualTo(receipt)
         assertThat(requests.last().first).contains("id=$FAKE_LEGACY_ID&source=A")
 
-        // The shell frames another token, source or content type: not this receipt.
-        for (other in listOf("h=0x0xxx01", "s=B", "ct=UBL")) {
+        // The content type and source in another case are the same receipt.
+        val lower = REGISTRY.resolveUrl(
+            legacy.canonicalUrl.replace("ct=PEPPOL", "ct=peppol").replace("s=A", "s=a"),
+        ).second
+        assertThat(fetchDocument(lower, fetcher(document, legacyShell)).text()).isEqualTo(receipt)
+
+        // The shell frames another id, token, source or content type: not this receipt.
+        for (other in listOf("id=${"1".repeat(40)}", "h=0x0xxx01", "s=B", "ct=UBL")) {
             val (key, _) = other.split('=')
             val otherLink = legacy.canonicalUrl.replace(Regex("""(?<=[?&])$key=[^&]+"""), other)
             val otherIdentity = REGISTRY.resolveUrl(otherLink).second
             assertFailure { fetchDocument(otherIdentity, fetcher(document, legacyShell)) }
                 .isInstanceOf<InconsistentSource>()
         }
+
+        // Current links: another id or token, or the older frame, which names neither.
+        val base = "https://e-invoicing.gr/edocuments/ViewInvoice/-1"
+        val cases = listOf(
+            "$base/1b4e28ba-2fa1-41d2-883f-0016d3cca427_0xxx0000" to shell,
+            "$base/${FAKE_UUID}_0xxx0001" to shell,
+            identity.canonicalUrl to legacyShell,
+        )
+        for ((link, page) in cases) {
+            val other = REGISTRY.resolveUrl(link).second
+            assertFailure { fetchDocument(other, fetcher(document, page)) }
+                .isInstanceOf<InconsistentSource>()
+        }
+        val elsewhere = "https://example.com/edocuments/ViewInvoice/-1/${FAKE_UUID}_0xxx0000"
+        assertThat(split(parseSubmittedUrl(elsewhere))).isNull()
     }
 
     @Test
@@ -99,6 +122,8 @@ class EntersoftTest {
         val id = FAKE_LEGACY_ID
         val refused = listOf(
             "$base?ct=PEPPOL&id=$id&s=A",
+            "$base?ct=PEPPOL&id=$id&s=A&x=1",
+            "$base/-1/not-a-document",
             "$base?ct=PEPPOL&id=$id&s=A&h=0x0xxx00&x=1",
             "$base?ct=PEPPOL&id=$id&s=A&h=0x0xxx00&h=0x0xxx00",
             "$base?ct=PEPPOL&id=$id&s=A&&h=0x0xxx00",
@@ -119,8 +144,17 @@ class EntersoftTest {
             identity,
         )
         assertThat(sklavenitis.issuer.vatNumber).isEqualTo("800764388")
-        val grouped = receipt.replace("Α.Φ.Μ: 093683423", "Α.Φ.Μ: EL 093 683.423")
-        assertThat(parseHtml(grouped, identity).issuer.vatNumber).isEqualTo("093683423")
+        // Prefixed, grouped, or followed by more digits after a space.
+        for (printed in listOf("EL 093 683.423", "ΕΛ - 093683423", "093683423 2141009999")) {
+            val line = receipt.replace("Α.Φ.Μ: 093683423", "Α.Φ.Μ: $printed")
+            assertThat(parseHtml(line, identity).issuer.vatNumber, name = printed)
+                .isEqualTo("093683423")
+        }
+        // Ten digits, grouped or not, are not a VAT followed by something else.
+        for (printed in listOf("0936834231", "093 683 423 1")) {
+            val line = receipt.replace("Α.Φ.Μ: 093683423", "Α.Φ.Μ: $printed")
+            assertFailure { parseHtml(line, identity) }.isInstanceOf<FormatChanged>()
+        }
         val notAVat = receipt.replace("Α.Φ.Μ: 093683423", "Α.Φ.Μ: 0936834")
         assertThat(notAVat).isNotEqualTo(receipt)
         assertFailure { parseHtml(notAVat, identity) }.isInstanceOf<FormatChanged>()

@@ -63,7 +63,14 @@ import org.jsoup.nodes.Document as HtmlDocument
 // are located by labels and data-title attributes, not positions, so reordered columns keep
 // working.
 
-public const val PARSER_VERSION: String = "entersoft/1"
+/**
+ * 2: the issuer VAT is the nine digits that start the "Α.Φ.Μ" line (0.3.10). Version 1 read
+ * every digit of the line, see [FIRST_VERSION].
+ */
+public const val PARSER_VERSION: String = "entersoft/2"
+
+/** Read every digit of the "Α.Φ.Μ" line as the VAT (core:engine `sync/VatRepair`). */
+public const val FIRST_VERSION: String = "entersoft/1"
 private val CULTURE = Culture.EL
 private val SOURCE_TZ: ZoneId = ZoneId.of("Europe/Athens")
 private val TOLERANCE = BigDecimal("0.02")
@@ -130,11 +137,14 @@ private val ADDRESS = pyRegex(
 )
 
 /**
- * The issuer VAT at the start of the "Α.Φ.Μ" value, its nine digits possibly grouped by spaces
- * or dots ("094 063 140"). Some issuers print more on the same line ("800764388, Τηλ: 214 …,
- * Αρ. ΓΕΜΗ: …"), so only those nine digits are the VAT.
+ * The issuer VAT at the start of the "Α.Φ.Μ" value, after a prefix such as "EL" or "ΕΛ - ".
+ * Some issuers print more on the same line ("800764388, Τηλ: 214 …" or "800764388 214 …"),
+ * so only the nine digits are the VAT: nine in a row first ([ISSUER_VAT]), else nine grouped by
+ * spaces or dots ("094 063 140", [GROUPED_VAT]) and not followed by another group, which would
+ * make them part of a longer number.
  */
-private val ISSUER_VAT = Regex("""^\D{0,4}((?:\d[ .]?){8}\d)(?![ .]?\d)""")
+private val ISSUER_VAT = Regex("""^\D{0,12}(\d{9})(?!\d)""")
+private val GROUPED_VAT = Regex("""^\D{0,12}((?:\d[ .]?){8}\d)(?![ .]?\d)""")
 private val VAT_SEPARATORS = Regex("""[ .]""")
 private val NOT_CURRENCY = pyRegex("""[\d.,\s-]""")
 private val HEADER_FIELD_KEYS = HEADER_FIELDS.keys.map(::keyOf).toSet()
@@ -295,8 +305,8 @@ private class Builder(private val document: HtmlDocument, private val url: UrlId
         val remarks = remarks(freeRows)
         val totalsRaw = labelMap(freeRows, TOTAL_LABELS).first
         val vatText = required(header, "vat", "issuer VAT")
-        val vatNumber = ISSUER_VAT.find(vatText)?.groupValues?.get(1)
-            ?.replace(VAT_SEPARATORS, "")
+        val vatNumber = (ISSUER_VAT.find(vatText) ?: GROUPED_VAT.find(vatText))
+            ?.groupValues?.get(1)?.replace(VAT_SEPARATORS, "")
             ?: throw FormatChanged("the issuer VAT is not a nine-digit number")
         val lines = lines(vatNumber)
         val totals = totals(totalsRaw)

@@ -217,11 +217,14 @@ Text helpers (stored keys depend on their exact behavior; reuse them, don't rein
   top products, monthly trend, Home pace, over `AnalyticsDao`; `changes()` re-emits on table
   changes), Settings (preferences shown in Settings), Backup (export, open, restore; errors are
   `BackupException(BackupError)`). Each has an `*Impl`. `sync/MerchantVatRepair` (every
-  start, one query when there is nothing to do) moves receipts saved under a Greek VAT followed
-  by more digits (Entersoft before 0.3.10; only Entersoft receipts and merchants without
-  another provider's receipts) to the right merchant: core:engine
-  `sync/VatRepair.patch` gives the corrected rows, merged in with `SyncMerge` like another
-  phone's copy, so merchants, stores, mappings and products join and the household converges.
+  start, and after every sync merge in `SyncMerger`; one query, `needsVatRepair`, when there
+  is nothing to do) moves receipts the first Entersoft parser (`entersoft/1`, before 0.3.10)
+  saved under a Greek VAT followed by more digits to the right merchant. Only with that
+  parser's receipts as evidence, never from a VAT's shape alone, and never for a merchant with
+  another provider's receipts (rules in core:engine `sync/VatRepair`; the query is the same
+  rule, a test compares them). `VatRepair.patch` gives the corrected rows, merged in with
+  `SyncMerge` like another phone's copy, so merchants, stores, mappings and products join and
+  the household converges.
   `products/AutoCategoryBackfill`
   categorizes old products and merchants once (versioned in preferences). Goals (budgets and
   the e-payment target: `GoalsRepository`; the rules are core:engine `analytics/Budgets.kt`

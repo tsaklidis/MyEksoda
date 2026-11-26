@@ -70,10 +70,10 @@ public data class LegacyLink(
     override val identity: String get() = "entersoft:$documentId"
 
     override fun framedBy(params: Map<String, List<String>>): Boolean =
-        param(params, "id").uppercase(Locale.ROOT) == documentId &&
+        param(params, "id").equals(documentId, ignoreCase = true) &&
             param(params, "hashToken") == token &&
-            param(params, "source") == source &&
-            param(params, "contentType") == contentType
+            param(params, "source").equals(source, ignoreCase = true) &&
+            param(params, "contentType").equals(contentType, ignoreCase = true)
 }
 
 private fun param(params: Map<String, List<String>>, name: String): String =

@@ -38,6 +38,9 @@ class SyncMerger @Inject constructor(
             val db = database.openHelper.writableDatabase
             val result = SyncMerge.merge(SnapshotStore.read(db), remote)
             SnapshotStore.apply(db, result, clock.millis())
+            // A phone that has not updated sends merchants saved under a wrong VAT number
+            // back: they are repaired here, not left split until the next start (VatRepair).
+            repairVat(db, clock.millis())
             SyncCounts(result.inserted, result.updated, result.deleted)
         }
     } catch (e: SQLException) {

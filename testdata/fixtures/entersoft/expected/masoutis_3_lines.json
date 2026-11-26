@@ -165,7 +165,7 @@
     }
   ],
   "notices": [],
-  "parser_version": "entersoft/1",
+  "parser_version": "entersoft/2",
   "payments": [
     {
       "amount": "6.93",

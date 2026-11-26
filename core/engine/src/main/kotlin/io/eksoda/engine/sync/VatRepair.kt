@@ -1,13 +1,21 @@
 package io.eksoda.engine.sync
 
+import io.eksoda.engine.providers.entersoft.FIRST_VERSION
 import io.eksoda.engine.providers.entersoft.PROVIDER_CODE as ENTERSOFT
 
 /**
- * Merchants saved under a wrong VAT number, and their receipts. Until 0.3.10 the Entersoft
- * parser read every digit of the "Α.Φ.Μ" line, so an issuer that prints its phone and ΓΕΜΗ
- * there (Sklavenitis) was saved as a new merchant under the VAT followed by those numbers.
- * Only that data is repaired: Entersoft receipts, and merchants with no receipt from another
- * provider (one a household phone that has not updated yet sent back is empty).
+ * Merchants saved under a wrong VAT number, and their receipts. The first Entersoft parser
+ * ([FIRST_VERSION], until 0.3.10) read every digit of the "Α.Φ.Μ" line, so an issuer that
+ * prints its phone and ΓΕΜΗ there (Sklavenitis) was saved as a new merchant under the VAT
+ * followed by those numbers.
+ *
+ * Only that parser's data is repaired, never from the shape of a VAT alone:
+ * - a merchant with a Greek VAT of more than nine digits, all digits, and no receipt from
+ *   another provider, that has a receipt the first Entersoft parser read; or that has no
+ *   receipts while the merchant with its first nine digits has such receipts (the copy a
+ *   household phone that has not updated yet sends back, after its receipts moved);
+ * - a receipt the first Entersoft parser read with such a VAT, when its nine digits are its
+ *   merchant's VAT once repaired.
  *
  * The repair is a merge ([SyncMerge]) of this phone's data with [patch]: the corrected rows,
  * newer than the stored ones. The merge then does what it does for two phones' copies of a
@@ -16,17 +24,19 @@ import io.eksoda.engine.providers.entersoft.PROVIDER_CODE as ENTERSOFT
  */
 public object VatRepair {
     private const val GREEK_VAT_LENGTH = 9
+
+    /** More digits than a Greek VAT, and only digits (ASCII: `\d` without UNICODE flags). */
+    private val LONG_VAT = Regex("""\d{10,}""")
     private const val GREECE = "GR"
     private const val VAT = "vat_number"
     private const val ISSUER_VAT = "issuer_vat"
     private const val SOURCE_DATA = "source_data"
-    private const val PROVIDER = "provider_code"
+    private const val MERCHANT_ID = "merchant_id"
 
     /** The VAT number [vat] stands for when it is a Greek VAT followed by more digits; else null. */
     public fun repairedVat(country: Any?, vat: Any?): String? {
-        if (country != GREECE || vat !is String) return null
-        val longer = vat.length > GREEK_VAT_LENGTH && vat.all { it in '0'..'9' }
-        return if (longer) vat.take(GREEK_VAT_LENGTH) else null
+        if (country != GREECE || vat !is String || !LONG_VAT.matches(vat)) return null
+        return vat.take(GREEK_VAT_LENGTH)
     }
 
     /**
@@ -36,23 +46,22 @@ public object VatRepair {
      * category) are the ones kept.
      */
     public fun patch(local: Snapshot, now: Long): Snapshot? {
-        val receipts = local.rows(SyncSchema.RECEIPT)
-        val elsewhere = receipts.filter { it[PROVIDER] != ENTERSOFT }.map { it["merchant_id"] }
-            .toSet()
         val merchants = local.rows(SyncSchema.MERCHANT)
-        val wrong = merchants.mapNotNull { merchant ->
-            val vat = repairedVat(merchant["country_code"], merchant[VAT])
-            if (vat == null || merchant[SyncSchema.ID] in elsewhere) null else merchant to vat
-        }
-        val vats = wrong.map { (_, vat) -> vat }.toSet()
+        val wrong = wrongMerchants(merchants, local.rows(SyncSchema.RECEIPT))
+        val vats = wrong.values.toSet()
         val existing = merchants.filter { it["country_code"] == GREECE && it[VAT] in vats }
-        val base = (wrong.map { (merchant, _) -> merchant } + existing)
-            .maxOfOrNull { version(it) + 1 }
-            ?.coerceAtLeast(now) ?: now
-        val corrected = wrong.map { (merchant, vat) ->
-            merchant + (VAT to vat) + (SyncSchema.VERSION to base)
+        val wrongRows = merchants.filter { it[SyncSchema.ID] in wrong }
+        val base = (wrongRows + existing).maxOfOrNull { version(it) + 1 }?.coerceAtLeast(now)
+            ?: now
+        val corrected = wrongRows.map { merchant ->
+            merchant + (VAT to wrong[merchant[SyncSchema.ID]]) + (SyncSchema.VERSION to base)
         } + existing.map { it + (SyncSchema.VERSION to base + 1) }
-        val movedReceipts = receipts.mapNotNull { receipt -> repairedReceipt(receipt, now) }
+
+        // Each merchant's VAT once repaired: a receipt is repaired only to match it.
+        val finalVat = merchants.associate { it[SyncSchema.ID] to it[VAT] } + wrong
+        val movedReceipts = local.rows(SyncSchema.RECEIPT).mapNotNull { receipt ->
+            repairedReceipt(receipt, now)?.takeIf { it[ISSUER_VAT] == finalVat[it[MERCHANT_ID]] }
+        }
         if (corrected.isEmpty() && movedReceipts.isEmpty()) return null
         return Snapshot(
             local.schema,
@@ -60,10 +69,31 @@ public object VatRepair {
         )
     }
 
+    /** Merchant id → its VAT once repaired, for the merchants to repair. */
+    private fun wrongMerchants(merchants: List<Row>, receipts: List<Row>): Map<Any?, String> {
+        val firstEntersoft = receipts.filter(::isFirstEntersoft).map { it[MERCHANT_ID] }.toSet()
+        val withReceipts = receipts.map { it[MERCHANT_ID] }.toSet()
+        val elsewhere = receipts.filter { it["provider_code"] != ENTERSOFT }
+            .map { it[MERCHANT_ID] }
+            .toSet()
+        val entersoftVats = merchants.filter { it[SyncSchema.ID] in firstEntersoft }
+            .map { it[VAT] }
+            .toSet()
+        return merchants.mapNotNull { merchant ->
+            val id = merchant[SyncSchema.ID]
+            val vat = repairedVat(merchant["country_code"], merchant[VAT])
+            val evidence = id in firstEntersoft || (id !in withReceipts && vat in entersoftVats)
+            if (vat == null || id in elsewhere || !evidence) null else id to vat
+        }.toMap()
+    }
+
+    private fun isFirstEntersoft(receipt: Row): Boolean =
+        receipt["provider_code"] == ENTERSOFT && receipt["parser_version"] == FIRST_VERSION
+
     private fun repairedReceipt(receipt: Row, now: Long): Row? {
-        if (receipt[PROVIDER] != ENTERSOFT) return null
-        val wrong = receipt[ISSUER_VAT] as? String
-        val vat = repairedVat(receipt["issuer_country"], wrong) ?: return null
+        if (!isFirstEntersoft(receipt)) return null
+        val vat = repairedVat(receipt["issuer_country"], receipt[ISSUER_VAT]) ?: return null
+        val wrong = receipt.getValue(ISSUER_VAT) as String
         val data = receipt[SOURCE_DATA]
         val repairedData = if (data is String) {
             mapOf(SOURCE_DATA to data.replace("\"$wrong\"", "\"$vat\""))

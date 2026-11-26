@@ -516,7 +516,7 @@
     }
   ],
   "notices": [],
-  "parser_version": "entersoft/1",
+  "parser_version": "entersoft/2",
   "payments": [
     {
       "amount": "45.91",
