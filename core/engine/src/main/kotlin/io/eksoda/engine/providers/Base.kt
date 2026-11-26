@@ -1,6 +1,7 @@
 package io.eksoda.engine.providers
 
 import io.eksoda.engine.FormatChanged
+import io.eksoda.engine.ProviderUnreachable
 import io.eksoda.engine.UnsupportedProvider
 import io.eksoda.engine.UnsupportedUrlFormat
 import io.eksoda.engine.canonical.CanonicalReceipt
@@ -86,10 +87,35 @@ public class Provider(
     public val sanitize: (String) -> SanitizeResult,
     /** Only for sources that need more than one GET of the canonical URL (Entersoft). */
     public val fetchDocument: (suspend (UrlIdentity, Fetcher) -> FetchedDocument)? = null,
+    /**
+     * The provider's other hosts, by pattern, for a platform that gives each merchant a host of
+     * its own (Epsilon Digital). A link on such a host is fetched instead of refused. If the
+     * host does not exist, the import fails at once as [UnsupportedProvider]; a host in [hosts]
+     * that does not resolve is retried like any network failure. A provider with a pattern
+     * fetches through its own [fetchDocument], which allows the link's own host only.
+     */
+    public val hostPattern: Regex? = null,
 ) {
-    public suspend fun fetch(identity: UrlIdentity, fetcher: Fetcher): FetchedDocument =
+    init {
+        require(hostPattern == null || fetchDocument != null) {
+            "provider '$code' has a host pattern but no fetchDocument"
+        }
+    }
+
+    /** Whether [host] is one of the provider's: listed in [hosts] or matching [hostPattern]. */
+    public fun servesHost(host: String): Boolean =
+        host in hosts || hostPattern?.matches(host) == true
+
+    public suspend fun fetch(identity: UrlIdentity, fetcher: Fetcher): FetchedDocument = try {
         fetchDocument?.invoke(identity, fetcher)
             ?: fetcher.get(parseSubmittedUrl(identity.canonicalUrl), allowedHosts = hosts)
+    } catch (exception: ProviderUnreachable) {
+        // A pattern host nobody has seen that does not exist (a mistyped or made-up link)
+        // will not start existing: refused at once instead of retried for a day.
+        val host = parseSubmittedUrl(identity.canonicalUrl).host
+        if (!exception.unknownHost || host in hosts) throw exception
+        throw UnsupportedProvider("no such $code host").apply { initCause(exception) }
+    }
 
     public fun parse(document: FetchedDocument, identity: UrlIdentity): CanonicalReceipt =
         parseHtml(document.text(), identity)
@@ -99,6 +125,7 @@ public class Provider(
 public class ProviderRegistry(providers: Iterable<Provider> = emptyList()) {
     private val byCode = LinkedHashMap<String, Provider>()
     private val byHost = LinkedHashMap<String, Provider>()
+    private val byPattern = ArrayList<Provider>()
 
     init {
         for (provider in providers) {
@@ -110,7 +137,28 @@ public class ProviderRegistry(providers: Iterable<Provider> = emptyList()) {
                 require(host !in byHost) { "host '$host' is already registered" }
                 byHost[host] = provider
             }
+            if (provider.hostPattern != null) byPattern += provider
         }
+        checkPatterns()
+    }
+
+    /** One host, one provider: no listed host may match another provider's pattern. */
+    private fun checkPatterns() {
+        for (patterned in byPattern) {
+            val pattern = checkNotNull(patterned.hostPattern)
+            for ((host, owner) in byHost) {
+                require(owner === patterned || !pattern.matches(host)) {
+                    "host '$host' of '${owner.code}' matches the pattern of '${patterned.code}'"
+                }
+            }
+        }
+    }
+
+    /** The one provider whose pattern matches [host]; a host two patterns match is refused. */
+    private fun patternProvider(host: String): Provider {
+        val matching = byPattern.filter { it.hostPattern?.matches(host) == true }
+        if (matching.size > 1) throw UnsupportedProvider("host $host matches several patterns")
+        return matching.singleOrNull() ?: throw UnsupportedProvider("host $host")
     }
 
     public val codes: List<String> get() = byCode.keys.sorted()
@@ -124,7 +172,7 @@ public class ProviderRegistry(providers: Iterable<Provider> = emptyList()) {
      */
     public fun resolveUrl(raw: Any?): Pair<Provider, UrlIdentity> {
         val url = parseSubmittedUrl(raw)
-        val provider = byHost[url.host] ?: throw UnsupportedProvider("host ${url.host}")
+        val provider = byHost[url.host] ?: patternProvider(url.host)
         val identity =
             provider.recognize(url)
                 ?: throw UnsupportedUrlFormat("unrecognized ${provider.code} URL")

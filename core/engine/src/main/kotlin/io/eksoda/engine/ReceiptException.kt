@@ -74,13 +74,16 @@ public class UnsupportedUrlFormat(detail: String = "") :
 
 // --- Fetch and parse errors -------------------------------------------------------------------
 
-public class ProviderUnreachable(detail: String = "") :
-    ReceiptException(
-        ErrorCode.PROVIDER_UNREACHABLE,
-        RetryPolicy.TRANSIENT,
-        "The receipt provider could not be reached.",
-        detail,
-    )
+public class ProviderUnreachable(
+    detail: String = "",
+    /** DNS has no such host (as opposed to a broken connection to one that exists). */
+    public val unknownHost: Boolean = false,
+) : ReceiptException(
+    ErrorCode.PROVIDER_UNREACHABLE,
+    RetryPolicy.TRANSIENT,
+    "The receipt provider could not be reached.",
+    detail,
+)
 
 public class ProviderTimeout(detail: String = "") :
     ReceiptException(

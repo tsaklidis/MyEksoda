@@ -76,4 +76,5 @@ public val EPSILON: Provider = Provider(
     parseHtml = ::parseDocument,
     sanitize = ::sanitizeXml,
     fetchDocument = ::fetchDocument,
+    hostPattern = HOST_PATTERN,
 )

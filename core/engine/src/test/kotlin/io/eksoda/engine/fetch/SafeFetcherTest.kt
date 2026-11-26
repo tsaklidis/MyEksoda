@@ -4,8 +4,10 @@ import assertk.assertFailure
 import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.isEqualTo
+import assertk.assertions.isFalse
 import assertk.assertions.isInstanceOf
 import assertk.assertions.isNull
+import assertk.assertions.isTrue
 import io.eksoda.engine.BlockedDestination
 import io.eksoda.engine.FormatChanged
 import io.eksoda.engine.ProviderHttpError
@@ -167,6 +169,7 @@ class SafeFetcherTest {
         fun failing(exception: IOException) = fetcher { throw exception }
         assertFailure { failing(SSLException("handshake")).fetch() }
             .isInstanceOf<ProviderUnreachable>()
+            .transform { it.unknownHost }.isFalse()
         assertFailure { failing(InterruptedIOException("timeout")).fetch() }
             .isInstanceOf<ProviderTimeout>()
         assertFailure { failing(IOException("reset")).fetch() }
@@ -180,6 +183,15 @@ class SafeFetcherTest {
         fetcher.fetch()
         fetcher.fetch()
         assertThat(requests.size).isEqualTo(2)
+        // Politeness state is kept only for hosts in recent use: at 2 s per clock reading,
+        // every earlier host is past its interval and dropped.
+        val spaced = fetcher { response(it) }
+        for (name in listOf("a", "b", "c")) {
+            val other = "$name.example.gr"
+            runBlocking { spaced.get(parseSubmittedUrl("https://$other/r"), setOf(other)) }
+        }
+        assertThat(requests.size).isEqualTo(5)
+        assertThat(spaced.trackedHosts).isEqualTo(1)
     }
 
     // --- DNS ----------------------------------------------------------------------------------
@@ -194,8 +206,16 @@ class SafeFetcherTest {
         assertFailure { dns("1.1.1.1", "10.0.0.1").lookup(host) }
             .isInstanceOf<BlockedDestination>()
         assertFailure { dns().lookup(host) }.isInstanceOf<ProviderUnreachable>()
+            .transform { it.unknownHost }.isTrue()
         assertFailure { PublicDns { throw UnknownHostException(it) }.lookup(host) }
             .isInstanceOf<ProviderUnreachable>()
+            .transform { it.unknownHost }.isTrue()
+        // Through a whole fetch too. No interceptor: OkHttp asks the DNS, which fails before
+        // any connection is made.
+        val fetcher = SafeFetcher(dns = { throw UnknownHostException(it) }, ioDispatcher = io)
+        assertFailure { runBlocking { fetcher.get(url, setOf(host)) } }
+            .isInstanceOf<ProviderUnreachable>()
+            .transform { it.unknownHost }.isTrue()
     }
 
     // --- Decoding -----------------------------------------------------------------------------

@@ -29,7 +29,6 @@ import java.net.InetAddress
 import java.net.Proxy
 import java.net.UnknownHostException
 import java.util.Locale
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLException
 
@@ -62,11 +61,12 @@ internal class PublicDns(private val system: Dns = Dns.SYSTEM) : Dns {
         val addresses = try {
             system.lookup(hostname).distinct()
         } catch (exception: UnknownHostException) {
-            throw ProviderUnreachable("DNS resolution failed for $hostname").apply {
-                initCause(exception)
-            }
+            throw ProviderUnreachable("DNS resolution failed for $hostname", unknownHost = true)
+                .apply { initCause(exception) }
         }
-        if (addresses.isEmpty()) throw ProviderUnreachable("no addresses for $hostname")
+        if (addresses.isEmpty()) {
+            throw ProviderUnreachable("no addresses for $hostname", unknownHost = true)
+        }
         // Every answer must be public, not just the one used: a mixed answer is suspicious.
         if (!addresses.all(
                 ::isPublicAddress,
@@ -107,8 +107,21 @@ public class SafeFetcher internal constructor(
         .callTimeout(limits.totalTimeoutMillis, TimeUnit.MILLISECONDS)
         .build()
 
-    private val hostLocks = ConcurrentHashMap<String, Mutex>()
-    private val lastRequest = ConcurrentHashMap<String, Long>()
+    /** A host's politeness state: its lock, who is using it, when its last request ended. */
+    private class HostSlot {
+        val lock = Mutex()
+        var users = 0
+
+        @Volatile var lastRequest: Long? = null
+    }
+
+    // Guarded by synchronized(slots). A slot nobody uses is dropped once its last request is
+    // MIN_INTERVAL old, so the map holds only hosts in recent use, however many there are
+    // (any epsilondigital-<name> host is a provider host).
+    private val slots = HashMap<String, HostSlot>()
+
+    /** Hosts with politeness state (tests). */
+    internal val trackedHosts: Int get() = synchronized(slots) { slots.size }
 
     override suspend fun get(
         url: ParsedUrl,
@@ -117,19 +130,33 @@ public class SafeFetcher internal constructor(
         contentTypes: Set<String>,
     ): FetchedDocument {
         checkTarget(url, allowedHosts)
-        val lock = hostLocks.getOrPut(url.host) { Mutex() }
-        return lock.withLock {
-            lastRequest[url.host]?.let { previous ->
-                val waitMillis =
-                    MIN_INTERVAL_MILLIS - TimeUnit.NANOSECONDS.toMillis(clock() - previous)
-                if (waitMillis > 0) delay(waitMillis)
+        val slot = acquire(url.host)
+        return try {
+            slot.lock.withLock {
+                slot.lastRequest?.let { previous ->
+                    val waitMillis =
+                        MIN_INTERVAL_MILLIS - TimeUnit.NANOSECONDS.toMillis(clock() - previous)
+                    if (waitMillis > 0) delay(waitMillis)
+                }
+                try {
+                    withContext(ioDispatcher) { execute(url, acceptStatuses, contentTypes) }
+                } finally {
+                    slot.lastRequest = clock()
+                }
             }
-            try {
-                withContext(ioDispatcher) { execute(url, acceptStatuses, contentTypes) }
-            } finally {
-                lastRequest[url.host] = clock()
-            }
+        } finally {
+            synchronized(slots) { slot.users-- }
         }
+    }
+
+    private fun acquire(host: String): HostSlot = synchronized(slots) {
+        val now = clock()
+        slots.values.removeAll { slot ->
+            val last = slot.lastRequest
+            slot.users == 0 &&
+                (last == null || TimeUnit.NANOSECONDS.toMillis(now - last) >= MIN_INTERVAL_MILLIS)
+        }
+        slots.getOrPut(host) { HostSlot() }.also { it.users++ }
     }
 
     private fun checkTarget(url: ParsedUrl, allowedHosts: Set<String>) {
