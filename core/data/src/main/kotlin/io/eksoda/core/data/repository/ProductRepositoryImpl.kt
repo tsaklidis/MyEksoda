@@ -33,6 +33,7 @@ import io.eksoda.engine.products.NO_PRICES
 import io.eksoda.engine.products.PriceObservation
 import io.eksoda.engine.products.UNKNOWN_UNIT
 import io.eksoda.engine.products.compare
+import io.eksoda.engine.products.priceInCents
 import io.eksoda.engine.products.priceStats
 import io.eksoda.engine.text.normalizeText
 import kotlinx.coroutines.CoroutineDispatcher
@@ -40,6 +41,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import java.math.BigDecimal
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.ZoneId
@@ -130,7 +132,7 @@ internal fun ProductRow.toModel(): Product = Product(
     lineCount = lineCount,
 )
 
-private fun PriceRow.toEntry(zone: ZoneId): PriceEntry = PriceEntry(
+internal fun PriceRow.toEntry(zone: ZoneId): PriceEntry = PriceEntry(
     itemId = id,
     receiptId = receiptId,
     issuedAt = OffsetDateTime.ofInstant(Instant.ofEpochMilli(issuedAt), zone),
@@ -149,19 +151,29 @@ private fun PriceRow.toEntry(zone: ZoneId): PriceEntry = PriceEntry(
     grossAmount = Money(Fixed.toDecimal(grossAmountMinor, Fixed.MINOR), currency),
     normalizedQuantity = Fixed.toDecimalOrNull(normalizedQuantityE6, Fixed.E6),
     normalizedUnit = normalizedUnit,
-    normalizedUnitPrice = Fixed.toDecimalOrNull(normalizedUnitPriceE4, Fixed.E4),
+    normalizedUnitPrice = unitPriceInCents(),
 )
 
-/** The engine's view of a `PRICE_HISTORY` row (the query guarantees the price and unit). */
-private fun PriceRow.toObservation(): PriceObservation? {
+/**
+ * The row's unit price in cents ([priceInCents]), for the history and the statistics alike, so
+ * the chart and the purchase rows show the prices the statistics compare.
+ */
+private fun PriceRow.unitPriceInCents(): BigDecimal? =
+    Fixed.toDecimalOrNull(normalizedUnitPriceE4, Fixed.E4)?.let(::priceInCents)
+
+/**
+ * The engine's view of a `PRICE_HISTORY` row; null without a unit or a unit price (the query
+ * returns only rows with both).
+ */
+internal fun PriceRow.toObservation(): PriceObservation? {
     val unit = normalizedUnit ?: return null
-    val price = normalizedUnitPriceE4 ?: return null
+    val price = unitPriceInCents() ?: return null
     return PriceObservation(
         merchantId = merchantId,
         merchantName = merchantName,
         normalizedUnit = unit,
         currency = currency,
-        normalizedUnitPrice = Fixed.toDecimal(price, Fixed.E4),
+        normalizedUnitPrice = price,
         grossAmount = Fixed.toDecimal(grossAmountMinor, Fixed.MINOR),
         normalizedQuantity = Fixed.toDecimal(normalizedQuantityE6 ?: 0, Fixed.E6),
     )

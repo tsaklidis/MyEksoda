@@ -2,6 +2,7 @@ package io.eksoda.feature.products.detail
 
 import io.eksoda.core.model.MerchantPrices
 import io.eksoda.core.model.PriceEntry
+import io.eksoda.core.model.PriceStats
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -17,6 +18,33 @@ internal fun pricedEntries(
 ): List<PriceEntry> = entries.filter {
     it.normalizedUnit == unit && it.grossAmount.currency == currency &&
         it.normalizedUnitPrice != null
+}
+
+/** How the latest price compares with the purchase before. */
+internal sealed interface PriceChange {
+    /** No purchase before to compare with. */
+    data object First : PriceChange
+
+    /** Dearer than last time by [amount]. */
+    data class Up(val amount: BigDecimal) : PriceChange
+
+    /** Cheaper than last time by [amount]. */
+    data class Down(val amount: BigDecimal) : PriceChange
+}
+
+/**
+ * The change since the purchase before, in cents; null when both show the same price, so
+ * nothing shows. The engine's statistics are already in cents; rounding here too means the badge
+ * can never say "0,00 € dearer", whatever [stats] it is given.
+ */
+internal fun priceChange(stats: PriceStats): PriceChange? {
+    val previous = stats.previous ?: return PriceChange.First
+    val difference = inCents(stats.latest) - inCents(previous)
+    return when (difference.signum()) {
+        1 -> PriceChange.Up(difference)
+        -1 -> PriceChange.Down(difference.abs())
+        else -> null
+    }
 }
 
 /** The cheapest and the dearest purchase; on a tie, the most recent one. */
@@ -95,13 +123,20 @@ internal data class CheapestGap(
     val difference: BigDecimal,
 )
 
+/**
+ * Null with fewer than two ranked merchants, or when the first two show the same average. The
+ * averages are already in cents (the engine rounds them), so their difference is too.
+ */
 internal fun cheapestGap(merchants: List<MerchantPrices>): CheapestGap? {
     val ranked = merchants.filter { it.rank != null }.sortedBy { it.rank }
     if (ranked.size < 2) return null
     val (cheapest, next) = ranked
     val difference = next.stats.average - cheapest.stats.average
-    return CheapestGap(cheapest, next, difference.setScale(2, RoundingMode.HALF_UP))
+    if (difference.signum() == 0) return null
+    return CheapestGap(cheapest, next, difference)
 }
+
+private fun inCents(price: BigDecimal): BigDecimal = price.setScale(2, RoundingMode.HALF_UP)
 
 /** The most points the price chart draws before close prices are merged. */
 internal const val MAX_POINTS = 24

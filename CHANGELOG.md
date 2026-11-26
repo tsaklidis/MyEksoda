@@ -3,6 +3,32 @@
 What changed in each release of Eksoda. Earlier releases are described on the
 [Releases](https://github.com/tsaklidis/MyEksoda/releases) page.
 
+## 0.3.8 - Clearer product prices
+
+A small update to a product's price page. Install it over 0.3.7 as usual: your data stays, and
+household sync keeps working between 0.3.7 and 0.3.8.
+
+### Fixed
+
+- **The same price is the same price.** A product bought twice at 9,95 €/kg could show a
+  rising chart, "2 διαφορετικές τιμές" and "▲ 0,00 € ακριβότερο από την προηγούμενη αγορά",
+  because prices per kilo differed after the second decimal. Prices are now compared in
+  cents, so the chart is flat and the page counts one price.
+- **No more "0,00 €" changes.** The badge under the price appears only when the price went
+  up or down since the last purchase, and "Πού είναι φθηνότερο" no longer says a shop is
+  0,00 € cheaper.
+- **The cheapest shop is the cheapest.** Two shops that both show the same average are now
+  ranked by which is really cheaper, not by their names.
+- **The same cents everywhere.** A price is rounded the same way on the receipt and on the
+  product page.
+
+### Improved
+
+- **A tidier price chart.** A change of a cent is a gentle slope instead of a line from the
+  bottom to the top, the lowest price's label no longer covers the values on the left, and
+  the legend moves to a new line instead of breaking "Υψηλότερη" in two. When every purchase
+  had the same price, the chart's legend no longer lists the lowest and highest.
+
 ## 0.3.7 - Warnings where the items are
 
 A small update: a receipt's warnings now point at the items they are about. Install it over

@@ -114,9 +114,26 @@ class PricesTest {
         assertThat(kg.previous?.toPlainString()).isEqualTo("1.50")
         assertThat(kg.minimum.toPlainString()).isEqualTo("1.50")
         assertThat(kg.maximum.toPlainString()).isEqualTo("2.50")
-        assertThat(kg.average.toPlainString()).isEqualTo("1.8750")
+        assertThat(kg.average.toPlainString()).isEqualTo("1.88")
         assertThat(piece.count).isEqualTo(1)
         assertThat(piece.previous).isNull()
+    }
+
+    @Test
+    fun `prices are compared in cents, so a difference in the third place is no change`() {
+        val (kg) = priceStats(
+            listOf(
+                observation("m1", "kg", "9.9520", gross = "4.976", quantity = "0.5"),
+                observation("m1", "kg", "9.9480", gross = "4.974", quantity = "0.5"),
+            ),
+        )
+        assertThat(kg.latest.toPlainString()).isEqualTo("9.95")
+        assertThat(kg.previous?.toPlainString()).isEqualTo("9.95")
+        assertThat(kg.latest.compareTo(checkNotNull(kg.previous))).isEqualTo(0)
+        assertThat(kg.minimum.toPlainString()).isEqualTo("9.95")
+        assertThat(kg.maximum.toPlainString()).isEqualTo("9.95")
+        assertThat(kg.average.toPlainString()).isEqualTo("9.95")
+        assertThat(priceInCents(BigDecimal("1.005")).toPlainString()).isEqualTo("1.01")
     }
 
     @Test
@@ -129,11 +146,25 @@ class PricesTest {
         val ranked = comparison.merchants.map {
             Triple(it.merchantId, it.rank, it.stats.average.toPlainString())
         }
-        assertThat(ranked).containsExactly(Triple("m2", 1, "1.5000"), Triple("m1", 2, "2.2500"))
+        assertThat(ranked).containsExactly(Triple("m2", 1, "1.50"), Triple("m1", 2, "2.25"))
         assertThat(comparison.availableUnits).containsExactly(
             AvailableUnit("kg", "EUR", 3),
             AvailableUnit("piece", "EUR", 1),
         )
+    }
+
+    @Test
+    fun `merchants that show the same average are ranked by the unrounded one`() {
+        // Both show 1,23; Beta is cheaper by less than a cent and ranks first despite its name.
+        val close = listOf(
+            observation("alpha", "kg", "1.2344"),
+            observation("beta", "kg", "1.2304"),
+        )
+        val ranked = compare(close).merchants
+        assertThat(ranked.map { it.merchantId to it.rank })
+            .containsExactly("beta" to 1, "alpha" to 2)
+        assertThat(ranked.map { it.stats.average.toPlainString() })
+            .containsExactly("1.23", "1.23")
     }
 
     @Test

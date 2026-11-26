@@ -26,7 +26,7 @@ public data class PriceStats(
     val previous: BigDecimal?,
     val minimum: BigDecimal,
     val maximum: BigDecimal,
-    /** Quantity-weighted: Σ gross ÷ Σ normalized quantity, 4 places, half up. */
+    /** Quantity-weighted: Σ gross ÷ Σ normalized quantity, in cents, half up. */
     val average: BigDecimal,
 )
 
@@ -54,7 +54,16 @@ public const val NO_PRICES: String = "no_prices"
 public const val UNKNOWN_UNIT: String = "unknown_unit"
 public const val ONE_MERCHANT: String = "one_merchant"
 
-private const val PRICE_PLACES = 4
+/** Unit prices are compared and shown in cents: household goods, not stocks. */
+private const val PRICE_PLACES = 2
+
+/**
+ * A unit price as statistics, charts and comparisons see it: rounded to cents, half up. Unit
+ * prices are stored with 4 places (a weighed line's price per kg), so two purchases that both
+ * read 9,95 €/kg can differ in the third place; rounded they are the same price.
+ */
+public fun priceInCents(price: BigDecimal): BigDecimal =
+    price.setScale(PRICE_PLACES, RoundingMode.HALF_UP)
 
 /** `price_stats`: statistics per (normalized unit, currency), for entries newest first. */
 public fun priceStats(entries: List<PriceObservation>): List<PriceStats> =
@@ -79,11 +88,22 @@ public fun compare(entries: List<PriceObservation>, normalizedUnit: String? = nu
     ) ?: return Comparison(false, NO_PRICES, normalizedUnit, null, availableUnits = available)
 
     val (unit, currency) = chosen.key
+    // Ranked on the unrounded average (the one PriceStats.average is rounded from): two shops
+    // that both show 1,23 still have a cheaper one.
     val merchants = chosen.value.groupBy { it.merchantId }
         .map { (merchantId, items) ->
-            MerchantPrices(merchantId, items.first().merchantName, stats(unit, currency, items))
+            val prices = MerchantPrices(
+                merchantId,
+                items.first().merchantName,
+                stats(unit, currency, items),
+            )
+            prices to weightedAverage(items)
         }
-        .sortedWith(compareBy<MerchantPrices> { it.stats.average }.thenBy { it.merchantName })
+        .sortedWith(
+            compareBy<Pair<MerchantPrices, BigDecimal>> { it.second }
+                .thenBy { it.first.merchantName },
+        )
+        .map { it.first }
 
     val reason = when {
         unit == NormalizedUnit.OTHER.code -> UNKNOWN_UNIT
@@ -105,10 +125,19 @@ private fun groups(entries: List<PriceObservation>): Map<UnitKey, List<PriceObse
 /** (normalized unit, currency). */
 private typealias UnitKey = Pair<String, String>
 
-private fun stats(unit: String, currency: String, entries: List<PriceObservation>): PriceStats {
-    val prices = entries.map { it.normalizedUnitPrice } // newest first
+/**
+ * Σ gross ÷ Σ normalized quantity, unrounded. Each line's unit price is its gross ÷ its
+ * normalized quantity ([normalize]), so this is the quantity-weighted average of the unit
+ * prices, without their 4-place rounding: what was paid per kg, l or piece over all purchases.
+ */
+private fun weightedAverage(entries: List<PriceObservation>): BigDecimal {
     val gross = entries.fold(BigDecimal.ZERO) { sum, entry -> sum + entry.grossAmount }
     val quantity = entries.fold(BigDecimal.ZERO) { sum, entry -> sum + entry.normalizedQuantity }
+    return gross.pyDivide(quantity)
+}
+
+private fun stats(unit: String, currency: String, entries: List<PriceObservation>): PriceStats {
+    val prices = entries.map { priceInCents(it.normalizedUnitPrice) } // newest first
     return PriceStats(
         normalizedUnit = unit,
         currency = currency,
@@ -118,6 +147,6 @@ private fun stats(unit: String, currency: String, entries: List<PriceObservation
         // min and max keep the first of equal values (1.20 before 1.2).
         minimum = prices.minWith(Comparator { a, b -> a.compareTo(b) }),
         maximum = prices.maxWith(Comparator { a, b -> a.compareTo(b) }),
-        average = gross.pyDivide(quantity).setScale(PRICE_PLACES, RoundingMode.HALF_UP),
+        average = priceInCents(weightedAverage(entries)),
     )
 }
