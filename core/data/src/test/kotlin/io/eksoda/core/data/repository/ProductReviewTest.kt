@@ -192,7 +192,12 @@ class ProductReviewTest {
         val entry = prices.history.entries.single()
         assertThat(entry.grossAmount.amount.toPlainString()).isEqualTo("7.37")
         assertThat(entry.normalizedUnit).isEqualTo("kg")
-        assertThat(prices.history.stats.single().count).isEqualTo(1)
+        // Stored as 3.8425 per kg; the history and the statistics both see it in cents.
+        assertThat(checkNotNull(lines()[7]).item.normalizedUnitPriceE4).isEqualTo(38_425L)
+        assertThat(entry.normalizedUnitPrice?.toPlainString()).isEqualTo("3.84")
+        val stats = prices.history.stats.single()
+        assertThat(stats.latest.toPlainString()).isEqualTo("3.84")
+        assertThat(stats.count).isEqualTo(1)
         // One shop: nothing to compare.
         assertThat(prices.comparison.comparable).isEqualTo(false)
         assertThat(prices.comparison.reason).isNotNull()

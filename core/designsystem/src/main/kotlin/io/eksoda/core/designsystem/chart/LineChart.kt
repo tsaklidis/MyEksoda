@@ -278,8 +278,10 @@ private fun DrawScope.drawExtremes(
         val layout = measurer.measure(formatValue(value), ChartLabelStyle)
         val gap = radius + LABEL_GAP.toPx()
         val y = if (above) center.y - gap - layout.size.height else center.y + gap
+        // Inside the plot, never over the grid values in the gutter on the left.
         val x = (center.x - layout.size.width / 2f)
-            .coerceIn(0f, (size.width - layout.size.width).coerceAtLeast(0f))
+            .coerceAtMost(size.width - layout.size.width)
+            .coerceAtLeast(plot.left)
         drawText(
             textLayoutResult = layout,
             color = if (above) colors.spendText else colors.compareText,
@@ -297,8 +299,13 @@ private fun lineThrough(points: List<Offset>): Path = Path().apply {
 private fun DrawScope.dashes(): PathEffect =
     PathEffect.dashPathEffect(floatArrayOf(DASH.toPx(), DASH.toPx()))
 
-/** The lowest and highest value to draw, with room around the line. Starts at 0 for totals. */
-private fun domainOf(
+/**
+ * The lowest and highest value to draw, with room around the line. Starts at 0 for totals. The
+ * room is at least [MIN_PADDING] of the highest value, so a change of a cent is a gentle slope,
+ * not a line from the bottom to the top, and at least [MIN_PAD] (two cents), so four grid values
+ * shown in cents are never the same, even for prices of a few cents.
+ */
+internal fun domainOf(
     values: List<BigDecimal?>,
     comparison: List<BigDecimal?>,
     average: BigDecimal?,
@@ -308,8 +315,11 @@ private fun domainOf(
     val high = all.maxOrNull() ?: BigDecimal.ONE
     val range = high - low
     val pad = when {
-        range.signum() > 0 -> range.multiply(PADDING)
-        high.signum() != 0 -> high.abs().multiply(PADDING)
+        range.signum() > 0 ->
+            maxOf(range.multiply(PADDING), high.abs().multiply(MIN_PADDING), MIN_PAD)
+
+        high.signum() != 0 -> maxOf(high.abs().multiply(PADDING), MIN_PAD)
+
         else -> BigDecimal.ONE
     }
     val bottom = if (low.signum() >= 0 && low <= pad) BigDecimal.ZERO else low - pad
@@ -317,7 +327,7 @@ private fun domainOf(
 }
 
 /** [count] evenly spaced values from the bottom to the top of [domain]. */
-private fun gridValues(domain: Pair<BigDecimal, BigDecimal>, count: Int): List<BigDecimal> {
+internal fun gridValues(domain: Pair<BigDecimal, BigDecimal>, count: Int): List<BigDecimal> {
     if (count < 2) return emptyList()
     val (low, high) = domain
     val step = (high - low).divide(BigDecimal(count - 1), MathContext.DECIMAL64)
@@ -335,6 +345,8 @@ private val DASH = 4.dp
 private val EDGE = 6.dp
 private val LABEL_ROOM = 12.dp
 private val PADDING = BigDecimal("0.12")
+private val MIN_PADDING = BigDecimal("0.05")
+private val MIN_PAD = BigDecimal("0.02")
 private const val FILL_ALPHA = 0.28f
 private const val TODAY_LINE_ALPHA = 0.35f
 private val END_DOT = 3.dp

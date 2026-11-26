@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -30,6 +31,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -178,20 +180,27 @@ internal fun PriceCard(stats: PriceStats, priced: List<PriceEntry>) {
     }
 }
 
-/** "▲ 0,10 € more than last time"; "— First purchase" when there is no purchase before. */
+/**
+ * "▲ 0,10 € more than last time"; "— First purchase" when there is no purchase before; nothing
+ * when the price is the same as last time.
+ */
 @Composable
 private fun PriceChangeBadge(stats: PriceStats) {
-    val previous = stats.previous
-    if (previous == null) {
-        ChangeBadge(ChangeDirection.NONE, stringResource(R.string.price_change_first))
-        return
-    }
-    val difference = stats.latest - previous
-    val amount = formatMoney(Money(difference.abs(), stats.currency), appLocale())
-    when (difference.signum()) {
-        1 -> ChangeBadge(ChangeDirection.UP, stringResource(R.string.price_change_more, amount))
-        -1 -> ChangeBadge(ChangeDirection.DOWN, stringResource(R.string.price_change_less, amount))
-        else -> ChangeBadge(ChangeDirection.NONE, stringResource(R.string.price_change_same))
+    val locale = appLocale()
+    val money = { amount: BigDecimal -> formatMoney(Money(amount, stats.currency), locale) }
+    when (val change = priceChange(stats) ?: return) {
+        is PriceChange.Up -> ChangeBadge(
+            ChangeDirection.UP,
+            stringResource(R.string.price_change_more, money(change.amount)),
+        )
+
+        is PriceChange.Down -> ChangeBadge(
+            ChangeDirection.DOWN,
+            stringResource(R.string.price_change_less, money(change.amount)),
+        )
+
+        PriceChange.First ->
+            ChangeBadge(ChangeDirection.NONE, stringResource(R.string.price_change_first))
     }
 }
 
@@ -208,11 +217,13 @@ internal fun PriceTrendCard(stats: PriceStats, priced: List<PriceEntry>) {
     val locale = appLocale()
     val colors = EksodaTheme.colors
     val dateFormat = dateFormatter("MMM yy", locale)
-    val present = points.map { it.price }
+    val present = remember(points) { points.map { it.price } }
+    val low = remember(present) { present.min() }
+    val high = remember(present) { present.max() }
     val description = stringResource(
         R.string.chart_description,
-        formatMoney(Money(present.min(), stats.currency), locale),
-        formatMoney(Money(present.max(), stats.currency), locale),
+        formatMoney(Money(low, stats.currency), locale),
+        formatMoney(Money(high, stats.currency), locale),
     )
     SectionCard(
         title = stringResource(chartTitle(stats.normalizedUnit)),
@@ -240,33 +251,29 @@ internal fun PriceTrendCard(stats: PriceStats, priced: List<PriceEntry>) {
                         .replaceFirstChar { it.titlecase(locale) }
                 },
             )
-            Row(
+            // Each marker stays with its label; an item that does not fit moves to the next line,
+            // and its text wraps only when it is wider than the whole line.
+            FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(14.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                LegendDash(colors.guide)
-                Text(
+                LegendItem(
                     text = monoNumbers(
                         stringResource(
                             R.string.chart_legend_average,
                             formatMoney(Money(stats.average, stats.currency), locale),
                         ),
                     ),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = colors.ink2,
-                )
-                LegendRing(colors.compareText)
-                Text(
-                    text = stringResource(R.string.stats_minimum),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = colors.ink2,
-                )
-                LegendRing(colors.spend)
-                Text(
-                    text = stringResource(R.string.stats_maximum),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = colors.ink2,
-                )
+                ) { LegendDash(colors.guide) }
+                // The chart rings the lowest and highest only when they differ.
+                if (low.compareTo(high) != 0) {
+                    LegendItem(stringResource(R.string.stats_minimum)) {
+                        LegendRing(colors.compareText)
+                    }
+                    LegendItem(stringResource(R.string.stats_maximum)) {
+                        LegendRing(colors.spend)
+                    }
+                }
             }
         }
     }
@@ -278,6 +285,26 @@ private fun chartTitle(unit: String): Int = when (unit) {
     "piece" -> R.string.chart_title_piece
     else -> R.string.chart_title
 }
+
+/** A legend marker and its label beside it. */
+@Composable
+private fun LegendItem(text: AnnotatedString, marker: @Composable () -> Unit) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        marker()
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodySmall,
+            color = EksodaTheme.colors.ink2,
+        )
+    }
+}
+
+@Composable
+private fun LegendItem(text: String, marker: @Composable () -> Unit) =
+    LegendItem(AnnotatedString(text), marker)
 
 @Composable
 private fun LegendDash(color: Color) {

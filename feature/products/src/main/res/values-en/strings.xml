@@ -70,7 +70,6 @@
     <string name="last_paid">Last paid · %1$s at %2$s</string>
     <string name="price_change_more">%1$s more than last time</string>
     <string name="price_change_less">%1$s less than last time</string>
-    <string name="price_change_same">Same as last time</string>
     <string name="price_change_first">First purchase</string>
     <string name="stats_min_short">Min</string>
     <string name="stats_max_short">Max</string>

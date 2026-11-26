@@ -70,7 +70,6 @@
     <string name="last_paid">Τελευταία αγορά · %1$s στο %2$s</string>
     <string name="price_change_more">%1$s ακριβότερο από την προηγούμενη αγορά</string>
     <string name="price_change_less">%1$s φθηνότερο από την προηγούμενη αγορά</string>
-    <string name="price_change_same">Ίδια τιμή με την προηγούμενη αγορά</string>
     <string name="price_change_first">Πρώτη αγορά</string>
     <string name="stats_min_short">Ελάχ.</string>
     <string name="stats_max_short">Μέγ.</string>

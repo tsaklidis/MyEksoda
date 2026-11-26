@@ -7,6 +7,7 @@ import androidx.compose.ui.res.stringResource
 import io.eksoda.core.model.Money
 import io.eksoda.core.ui.R
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.text.NumberFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -44,13 +45,15 @@ fun dateFormatter(pattern: String, locale: Locale): DateTimeFormatter =
 
 /**
  * `12,40 €` in Greek, `€12.40` in English. [negative] shows credit notes and discounts with a
- * true minus sign. BigDecimal throughout, never Double.
+ * true minus sign. BigDecimal throughout, never Double. A unit price with more places rounds
+ * half up, as the price statistics do (9,945 → 9,95), so every screen shows the same cents.
  */
 fun formatMoney(money: Money, locale: Locale, negative: Boolean = false): String {
     val format = currencyFormats.get().getOrPut(locale to money.currency) {
         NumberFormat.getCurrencyInstance(locale).also { created ->
             runCatching { Currency.getInstance(money.currency) }.getOrNull()
                 ?.let { created.currency = it }
+            created.roundingMode = RoundingMode.HALF_UP
         }
     }
     val amount = if (negative) money.amount.abs().negate() else money.amount
@@ -66,6 +69,7 @@ fun formatAmount(amount: BigDecimal, locale: Locale): String {
         NumberFormat.getNumberInstance(locale).apply {
             minimumFractionDigits = 2
             maximumFractionDigits = 2
+            roundingMode = RoundingMode.HALF_UP
         }
     }
     return format.format(amount).replace('-', MINUS_SIGN)
@@ -79,7 +83,7 @@ fun formatPercent(percent: BigDecimal, locale: Locale, decimals: Int = 1): Strin
     val format = NumberFormat.getNumberInstance(locale).apply {
         minimumFractionDigits = decimals
         maximumFractionDigits = decimals
-        roundingMode = java.math.RoundingMode.HALF_UP
+        roundingMode = RoundingMode.HALF_UP
     }
     return format.format(percent.abs()) + "%"
 }
