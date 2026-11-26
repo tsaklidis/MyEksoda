@@ -128,7 +128,14 @@ private val NUMBER = pyRegex("""^(?<series>.+)-(?<number>\d+)$""")
 private val ADDRESS = pyRegex(
     """^(?<street>[^,]+),\s*(?<number>[^,]*),\s*(?<postal>\d{5}),\s*(?<city>.+)$""",
 )
-private val NON_DIGIT = pyRegex("""\D""")
+
+/**
+ * The issuer VAT at the start of the "Α.Φ.Μ" value, its nine digits possibly grouped by spaces
+ * or dots ("094 063 140"). Some issuers print more on the same line ("800764388, Τηλ: 214 …,
+ * Αρ. ΓΕΜΗ: …"), so only those nine digits are the VAT.
+ */
+private val ISSUER_VAT = Regex("""^\D{0,4}((?:\d[ .]?){8}\d)(?![ .]?\d)""")
+private val VAT_SEPARATORS = Regex("""[ .]""")
 private val NOT_CURRENCY = pyRegex("""[\d.,\s-]""")
 private val HEADER_FIELD_KEYS = HEADER_FIELDS.keys.map(::keyOf).toSet()
 private const val VAT_COLUMNS = 3
@@ -151,10 +158,7 @@ public fun documentUrlFromShell(html: String, link: EntersoftLink): ParsedUrl {
     if (!sameSite || parts.path != DOCUMENT_PATH) {
         throw FormatChanged("the document frame points to an unexpected address")
     }
-    val params = parseQs(parts.query)
-    val documentId = params["intRefDocID"]?.firstOrNull().orEmpty().lowercase(Locale.ROOT)
-    val token = params["hashToken"]?.firstOrNull().orEmpty()
-    if (documentId != link.documentId || token != link.token) {
+    if (!link.framedBy(parseQs(parts.query))) {
         throw InconsistentSource("the document frame points to another document")
     }
     return ParsedUrl("https", HOST, null, parts.path, parts.query)
@@ -290,7 +294,10 @@ private class Builder(private val document: HtmlDocument, private val url: UrlId
         val freeRows = freeRows()
         val remarks = remarks(freeRows)
         val totalsRaw = labelMap(freeRows, TOTAL_LABELS).first
-        val vatNumber = NON_DIGIT.replace(required(header, "vat", "issuer VAT"), "")
+        val vatText = required(header, "vat", "issuer VAT")
+        val vatNumber = ISSUER_VAT.find(vatText)?.groupValues?.get(1)
+            ?.replace(VAT_SEPARATORS, "")
+            ?: throw FormatChanged("the issuer VAT is not a nine-digit number")
         val lines = lines(vatNumber)
         val totals = totals(totalsRaw)
         val breakdown = vatBreakdown()

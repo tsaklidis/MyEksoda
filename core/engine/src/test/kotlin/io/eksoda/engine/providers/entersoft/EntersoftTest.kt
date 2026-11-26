@@ -8,9 +8,12 @@ import assertk.assertions.doesNotContain
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.isInstanceOf
+import assertk.assertions.isNotEqualTo
 import io.eksoda.engine.FormatChanged
+import io.eksoda.engine.InconsistentSource
 import io.eksoda.engine.ReceiptNotFound
 import io.eksoda.engine.TestData
+import io.eksoda.engine.UnsupportedUrlFormat
 import io.eksoda.engine.canonical.Line
 import io.eksoda.engine.canonical.PriceBasis
 import io.eksoda.engine.fetch.FetchedDocument
@@ -41,7 +44,7 @@ class EntersoftTest {
     /** (URL, accepted statuses) of each request: the shell page, then the framed document. */
     private val requests = mutableListOf<Pair<String, Set<Int>>>()
 
-    private fun fetcher(document: FetchedDocument) = object : Fetcher {
+    private fun fetcher(document: FetchedDocument, shell: String = this.shell) = object : Fetcher {
         override suspend fun get(
             url: ParsedUrl,
             allowedHosts: Set<String>,
@@ -50,7 +53,8 @@ class EntersoftTest {
         ): FetchedDocument {
             assertThat(allowedHosts).isEqualTo(HOSTS)
             requests += url.geturl() to acceptStatuses
-            return if (requests.size == 1) FetchedDocument(shell.toByteArray()) else document
+            val page = url.path.startsWith("/edocuments/")
+            return if (page) FetchedDocument(shell.toByteArray()) else document
         }
     }
 
@@ -61,6 +65,65 @@ class EntersoftTest {
         assertThat(requests.map { it.second }).isEqualTo(listOf(emptySet(), setOf(418)))
         assertThat(requests.first().first).isEqualTo(identity.canonicalUrl)
         assertThat(requests.last().first).contains("https://e-invoicing.gr/api/GetInvoice?")
+    }
+
+    @Test
+    fun `older links are read from the document their shell page frames`(): Unit = runBlocking {
+        val legacyShell = directory.resolve("shell_legacy.html").readText()
+        val link = "https://E-Invoicing.gr:443/edocuments/ViewInvoice/?ct=PEPPOL" +
+            "&id=${FAKE_LEGACY_ID.lowercase()}&s=A&h=0x0xxx00"
+        val (provider, legacy) = REGISTRY.resolveUrl(link)
+        assertThat(provider).isEqualTo(ENTERSOFT)
+        assertThat(legacy.identity).isEqualTo("entersoft:$FAKE_LEGACY_ID")
+        assertThat(legacy.canonicalUrl).isEqualTo(
+            "https://e-invoicing.gr/edocuments/ViewInvoice?ct=PEPPOL&id=$FAKE_LEGACY_ID&s=A&h=0x0xxx00",
+        )
+        val document = FetchedDocument(receipt.toByteArray())
+        assertThat(ENTERSOFT.fetch(legacy, fetcher(document, legacyShell)).text())
+            .isEqualTo(receipt)
+        assertThat(requests.last().first).contains("id=$FAKE_LEGACY_ID&source=A")
+
+        // The shell frames another token, source or content type: not this receipt.
+        for (other in listOf("h=0x0xxx01", "s=B", "ct=UBL")) {
+            val (key, _) = other.split('=')
+            val otherLink = legacy.canonicalUrl.replace(Regex("""(?<=[?&])$key=[^&]+"""), other)
+            val otherIdentity = REGISTRY.resolveUrl(otherLink).second
+            assertFailure { fetchDocument(otherIdentity, fetcher(document, legacyShell)) }
+                .isInstanceOf<InconsistentSource>()
+        }
+    }
+
+    @Test
+    fun `only well-formed older links are receipts`() {
+        val base = "https://e-invoicing.gr/edocuments/ViewInvoice"
+        val id = FAKE_LEGACY_ID
+        val refused = listOf(
+            "$base?ct=PEPPOL&id=$id&s=A",
+            "$base?ct=PEPPOL&id=$id&s=A&h=0x0xxx00&x=1",
+            "$base?ct=PEPPOL&id=$id&s=A&h=0x0xxx00&h=0x0xxx00",
+            "$base?ct=PEPPOL&id=$id&s=A&&h=0x0xxx00",
+            "$base?ct=PEPPOL&id=${id.drop(1)}&s=A&h=0x0xxx00",
+            "$base?ct=PEPPOL&id=$id&s=A&h=0x0",
+            "$base/-1?ct=PEPPOL&id=$id&s=A&h=0x0xxx00",
+            "$base/-1/${FAKE_UUID}_0xxx0000?ct=PEPPOL",
+        )
+        for (link in refused) {
+            assertFailure { REGISTRY.resolveUrl(link) }.isInstanceOf<UnsupportedUrlFormat>()
+        }
+    }
+
+    @Test
+    fun `the issuer VAT is the nine digits that start its line`() {
+        val sklavenitis = parseHtml(
+            directory.resolve("sklavenitis_12_lines.html").readText(),
+            identity,
+        )
+        assertThat(sklavenitis.issuer.vatNumber).isEqualTo("800764388")
+        val grouped = receipt.replace("Α.Φ.Μ: 093683423", "Α.Φ.Μ: EL 093 683.423")
+        assertThat(parseHtml(grouped, identity).issuer.vatNumber).isEqualTo("093683423")
+        val notAVat = receipt.replace("Α.Φ.Μ: 093683423", "Α.Φ.Μ: 0936834")
+        assertThat(notAVat).isNotEqualTo(receipt)
+        assertFailure { parseHtml(notAVat, identity) }.isInstanceOf<FormatChanged>()
     }
 
     @Test
@@ -94,6 +157,30 @@ class EntersoftTest {
         assertThat(result.html).contains("hashToken=xx00xx00xx")
         assertThat(result.replaced)
             .isEqualTo(mapOf("download_token" to 1, "url_access_token" to 2))
+    }
+
+    @Test
+    fun `sanitizing replaces the id and token of older links`() {
+        val id = "A1B2C3D4E5F60718293A4B5C6D7E8F9012345678"
+        val token = "Ab12Cd34"
+        val link = "https://e-invoicing.gr/edocuments/ViewInvoice?ct=PEPPOL&id=$id&s=A&h=$token"
+        val returnUrl = "/login?ReturnUrl=%2Fedocuments%2FViewInvoice%3Fct%3DPEPPOL%26id%3D$id" +
+            "%26s%3DA%26h%3D$token"
+        val extras = "<a href=\"$link\">receipt</a><a href=\"$returnUrl\">sign in</a>" +
+            "<img src=\"/logo.png?w=120&h=40\">"
+        val raw = directory.resolve("shell_legacy.html").readText()
+            .replace("id=$FAKE_LEGACY_ID", "id=$id")
+            .replace("hashToken=0x0xxx00", "hashToken=$token")
+            .replace("<body ", "$extras<body ")
+        val result = sanitizeHtml(raw)
+        assertThat(result.html).doesNotContain(id)
+        assertThat(result.html).doesNotContain(token)
+        assertThat(result.html).contains("id=$FAKE_LEGACY_ID&amp;s=A&amp;h=xx00xx00")
+        assertThat(result.html).contains("id%3D$FAKE_LEGACY_ID%26s%3DA%26h%3Dxx00xx00")
+        assertThat(result.html).contains("id=$FAKE_LEGACY_ID&amp;source=A&amp;hashToken=xx00xx00")
+        // Other addresses' parameters are not tokens.
+        assertThat(result.html).contains("logo.png?w=120&amp;h=40")
+        assertThat(result.replaced).isEqualTo(mapOf("url_access_token" to 2))
     }
 
     @Test
