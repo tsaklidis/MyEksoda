@@ -61,12 +61,13 @@ internal class PublicDns(private val system: Dns = Dns.SYSTEM) : Dns {
         val addresses = try {
             system.lookup(hostname).distinct()
         } catch (exception: UnknownHostException) {
-            throw ProviderUnreachable("DNS resolution failed for $hostname", unknownHost = true)
-                .apply { initCause(exception) }
+            // Not proof that the host does not exist: a resolver outage looks the same, so a
+            // DNS failure is always retried like any network failure.
+            throw ProviderUnreachable("DNS resolution failed for $hostname").apply {
+                initCause(exception)
+            }
         }
-        if (addresses.isEmpty()) {
-            throw ProviderUnreachable("no addresses for $hostname", unknownHost = true)
-        }
+        if (addresses.isEmpty()) throw ProviderUnreachable("no addresses for $hostname")
         // Every answer must be public, not just the one used: a mixed answer is suspicious.
         if (!addresses.all(
                 ::isPublicAddress,
@@ -107,16 +108,20 @@ public class SafeFetcher internal constructor(
         .callTimeout(limits.totalTimeoutMillis, TimeUnit.MILLISECONDS)
         .build()
 
-    /** A host's politeness state: its lock, who is using it, when its last request ended. */
-    private class HostSlot {
+    /**
+     * A host's politeness state: its lock, how many requests hold it (from [acquire] until
+     * their `finally`), and when its last request ended. A new slot's "last request" is one
+     * interval ago, so its first request does not wait.
+     */
+    private class HostSlot(@Volatile var lastRequest: Long) {
         val lock = Mutex()
         var users = 0
-
-        @Volatile var lastRequest: Long? = null
     }
 
-    // Guarded by synchronized(slots). A slot nobody uses is dropped once its last request is
-    // MIN_INTERVAL old, so the map holds only hosts in recent use, however many there are
+    // Guarded by synchronized(slots). Dropping idle slots and taking a slot happen in one
+    // synchronized block (acquire), and a slot with users is never dropped, so a request never
+    // holds a slot that is no longer in the map. An idle slot is dropped once its last request
+    // is an interval old, so the map holds only hosts in recent use, however many there are
     // (any epsilondigital-<name> host is a provider host).
     private val slots = HashMap<String, HostSlot>()
 
@@ -133,11 +138,8 @@ public class SafeFetcher internal constructor(
         val slot = acquire(url.host)
         return try {
             slot.lock.withLock {
-                slot.lastRequest?.let { previous ->
-                    val waitMillis =
-                        MIN_INTERVAL_MILLIS - TimeUnit.NANOSECONDS.toMillis(clock() - previous)
-                    if (waitMillis > 0) delay(waitMillis)
-                }
+                val waitMillis = MIN_INTERVAL_MILLIS - elapsedMillis(slot.lastRequest, clock())
+                if (waitMillis > 0) delay(waitMillis)
                 try {
                     withContext(ioDispatcher) { execute(url, acceptStatuses, contentTypes) }
                 } finally {
@@ -152,12 +154,14 @@ public class SafeFetcher internal constructor(
     private fun acquire(host: String): HostSlot = synchronized(slots) {
         val now = clock()
         slots.values.removeAll { slot ->
-            val last = slot.lastRequest
-            slot.users == 0 &&
-                (last == null || TimeUnit.NANOSECONDS.toMillis(now - last) >= MIN_INTERVAL_MILLIS)
+            slot.users == 0 && elapsedMillis(slot.lastRequest, now) >= MIN_INTERVAL_MILLIS
         }
-        slots.getOrPut(host) { HostSlot() }.also { it.users++ }
+        val oneIntervalAgo = now - TimeUnit.MILLISECONDS.toNanos(MIN_INTERVAL_MILLIS)
+        slots.getOrPut(host) { HostSlot(lastRequest = oneIntervalAgo) }.also { it.users++ }
     }
+
+    private fun elapsedMillis(since: Long, now: Long): Long =
+        TimeUnit.NANOSECONDS.toMillis(now - since)
 
     private fun checkTarget(url: ParsedUrl, allowedHosts: Set<String>) {
         if (url.scheme != "https" || (url.port != null && url.port != HTTPS_PORT)) {

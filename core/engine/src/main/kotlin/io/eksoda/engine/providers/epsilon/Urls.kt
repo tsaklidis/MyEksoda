@@ -8,9 +8,10 @@ import java.util.Locale
 //
 // Some merchants have their own host (see [HOSTS]); others, even a big chain, share one. New
 // hosts keep appearing, so any epsilondigital-<name>.epsilonnet.gr host is accepted
-// ([HOST_PATTERN]) and its receipt fetched. A host that serves no receipts fails at the fetch:
-// one that does not exist at once (Provider.fetch), a 404 or a response that is not XML like
-// any other unreadable link.
+// ([HOST_PATTERN]) and its receipt fetched. A host that serves no receipts fails at the fetch
+// like any other unreadable link: a 404 or a response that is not XML at once, a host that does
+// not resolve after the usual retries (DNS cannot tell a host that does not exist from a
+// resolver outage, so it is never refused for that alone).
 // The receipt's QR code links to /fd/{document id}:{number}, which redirects to the
 // viewer /DocViewer/{document UUID}. The viewer is behind a Cloudflare Turnstile check, so the
 // app reads the receipt's detailed myDATA XML instead (fetchDocument in Sanitize.kt).
@@ -20,19 +21,18 @@ internal const val UUID = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a
 private val UUID_GROUPS = listOf(8, 4, 4, 4, 12)
 
 /**
- * Every Epsilon Digital host: one label `epsilondigital-<name>` (letters, digits and inner
- * hyphens, at most 63 characters, as DNS allows) right under epsilonnet.gr. Hosts arrive
- * lowercased (parseSubmittedUrl).
+ * Every Epsilon Digital host: one label `epsilondigital-<name>` right under epsilonnet.gr. The
+ * name is letters, digits and inner hyphens, 1 to 48 characters: DNS allows 63 for the whole
+ * label, and `epsilondigital-` takes 15. Hosts arrive lowercased (parseSubmittedUrl).
  */
 public val HOST_PATTERN: Regex =
     Regex("""^epsilondigital-[a-z0-9](?:[a-z0-9-]{0,46}[a-z0-9])?\.epsilonnet\.gr$""")
 
 /**
- * Hosts known to serve receipts. A link on any other [HOST_PATTERN] host is read too; the
- * difference is only when the host does not resolve: a known host is retried like any network
- * failure, an unknown one is refused at once (it is most likely mistyped or made up). A host
- * of one merchant never names the issuer in its XML (see [ISSUER_NAMES]); a shared host
- * usually does, though not always (Masoutis on 3rdpartb).
+ * Hosts seen serving receipts: the provider's listed hosts, found by the registry before the
+ * pattern. A link on any other [HOST_PATTERN] host is read the same way; this list is the record
+ * of where receipts were observed. A host of one merchant never names the issuer in its XML
+ * (see [ISSUER_NAMES]); a shared host usually does, though not always (Masoutis on 3rdpartb).
  */
 public val HOSTS: Set<String> = setOf(
     // One merchant each: Sklavenitis (2026-11-17), AB Vasilopoulos and Market In (2026-11-26).

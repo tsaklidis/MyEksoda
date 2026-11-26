@@ -185,6 +185,9 @@ class EpsilonTest {
     fun `an XML for another document is refused`() {
         val other = fixture.replace("/fd/" + FAKE_HEX_ID, "/fd/" + "1".repeat(32))
         assertFailure { parse(other) }.isInstanceOf<InconsistentSource>()
+        // A printed link outside Epsilon Digital is not this receipt's either.
+        val elsewhere = fixture.replace("https://$host/fd/", "https://shop.example.gr/fd/")
+        assertFailure { parse(elsewhere) }.isInstanceOf<InconsistentSource>()
     }
 
     @Test
@@ -218,7 +221,6 @@ class EpsilonTest {
     @Test
     fun `AB Vasilopoulos and Market In are read from their own known hosts`() {
         for (merchant in listOf("abmarket", "marketin")) {
-            // Known: a DNS failure on them is retried, not refused.
             assertThat(HOSTS).contains("epsilondigital-$merchant.epsilonnet.gr")
             val link =
                 identity("https://EpsilonDigital-$merchant.epsilonnet.gr:443/fd/$FAKE_HEX_ID:146/")
@@ -247,19 +249,19 @@ class EpsilonTest {
     }
 
     @Test
-    fun `an unknown host that does not exist is refused`(): Unit = runBlocking {
+    fun `a host that does not resolve is a network failure, known or not`(): Unit = runBlocking {
+        // DNS cannot tell a host that does not exist from a resolver outage: both are retried.
         val fetcher = object : Fetcher {
             override suspend fun get(
                 url: ParsedUrl,
                 allowedHosts: Set<String>,
                 acceptStatuses: Set<Int>,
                 contentTypes: Set<String>,
-            ): FetchedDocument = throw ProviderUnreachable("dns", unknownHost = true)
+            ): FetchedDocument = throw ProviderUnreachable("DNS resolution failed")
         }
         val engine = Engine(fetcher)
         val typo = "https://epsilondigital-sklavenitls.epsilonnet.gr/fd/$FAKE_HEX_ID:1"
-        assertFailure { engine.read(engine.resolve(typo)) }.isInstanceOf<UnsupportedProvider>()
-        // A known host that does not resolve is retried.
+        assertFailure { engine.read(engine.resolve(typo)) }.isInstanceOf<ProviderUnreachable>()
         val known = engine.resolve(meta.getValue("url").jsonPrimitive.content)
         assertFailure { engine.read(known) }.isInstanceOf<ProviderUnreachable>()
     }

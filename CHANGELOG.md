@@ -18,9 +18,8 @@ data stays, and household sync keeps working between 0.3.8 and 0.3.9.
   were refused before again: nothing was saved for them.
 - **New Epsilon Digital shops work without an update.** Any
   `epsilondigital-<name>.epsilonnet.gr` link is now read, and the receipt is fetched only from
-  that link's own site. If the site does not exist (a mistyped or made-up link), the import
-  fails at once with "Το Eksoda δεν διαβάζει ακόμη αποδείξεις από αυτή την εταιρεία." instead
-  of waiting for a day of retries.
+  that link's own site. If the site can't be reached, the import is tried again later like
+  any other receipt, and the imports list shows what went wrong.
 
 ## 0.3.8 - Clearer product prices
 

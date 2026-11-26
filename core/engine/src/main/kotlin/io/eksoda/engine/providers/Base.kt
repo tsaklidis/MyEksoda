@@ -1,7 +1,6 @@
 package io.eksoda.engine.providers
 
 import io.eksoda.engine.FormatChanged
-import io.eksoda.engine.ProviderUnreachable
 import io.eksoda.engine.UnsupportedProvider
 import io.eksoda.engine.UnsupportedUrlFormat
 import io.eksoda.engine.canonical.CanonicalReceipt
@@ -89,10 +88,11 @@ public class Provider(
     public val fetchDocument: (suspend (UrlIdentity, Fetcher) -> FetchedDocument)? = null,
     /**
      * The provider's other hosts, by pattern, for a platform that gives each merchant a host of
-     * its own (Epsilon Digital). A link on such a host is fetched instead of refused. If the
-     * host does not exist, the import fails at once as [UnsupportedProvider]; a host in [hosts]
-     * that does not resolve is retried like any network failure. A provider with a pattern
-     * fetches through its own [fetchDocument], which allows the link's own host only.
+     * its own (Epsilon Digital). A link on such a host is fetched instead of refused; a host
+     * that serves no receipts fails like any unreadable link (one that does not resolve is
+     * retried: DNS cannot tell a host that does not exist from a resolver outage). A provider
+     * with a pattern fetches through its own [fetchDocument], which allows the link's own host
+     * only.
      */
     public val hostPattern: Regex? = null,
 ) {
@@ -102,20 +102,9 @@ public class Provider(
         }
     }
 
-    /** Whether [host] is one of the provider's: listed in [hosts] or matching [hostPattern]. */
-    public fun servesHost(host: String): Boolean =
-        host in hosts || hostPattern?.matches(host) == true
-
-    public suspend fun fetch(identity: UrlIdentity, fetcher: Fetcher): FetchedDocument = try {
+    public suspend fun fetch(identity: UrlIdentity, fetcher: Fetcher): FetchedDocument =
         fetchDocument?.invoke(identity, fetcher)
             ?: fetcher.get(parseSubmittedUrl(identity.canonicalUrl), allowedHosts = hosts)
-    } catch (exception: ProviderUnreachable) {
-        // A pattern host nobody has seen that does not exist (a mistyped or made-up link)
-        // will not start existing: refused at once instead of retried for a day.
-        val host = parseSubmittedUrl(identity.canonicalUrl).host
-        if (!exception.unknownHost || host in hosts) throw exception
-        throw UnsupportedProvider("no such $code host").apply { initCause(exception) }
-    }
 
     public fun parse(document: FetchedDocument, identity: UrlIdentity): CanonicalReceipt =
         parseHtml(document.text(), identity)
@@ -125,7 +114,7 @@ public class Provider(
 public class ProviderRegistry(providers: Iterable<Provider> = emptyList()) {
     private val byCode = LinkedHashMap<String, Provider>()
     private val byHost = LinkedHashMap<String, Provider>()
-    private val byPattern = ArrayList<Provider>()
+    private val byPattern = ArrayList<Pair<Regex, Provider>>()
 
     init {
         for (provider in providers) {
@@ -137,15 +126,14 @@ public class ProviderRegistry(providers: Iterable<Provider> = emptyList()) {
                 require(host !in byHost) { "host '$host' is already registered" }
                 byHost[host] = provider
             }
-            if (provider.hostPattern != null) byPattern += provider
+            provider.hostPattern?.let { byPattern += it to provider }
         }
         checkPatterns()
     }
 
     /** One host, one provider: no listed host may match another provider's pattern. */
     private fun checkPatterns() {
-        for (patterned in byPattern) {
-            val pattern = checkNotNull(patterned.hostPattern)
+        for ((pattern, patterned) in byPattern) {
             for ((host, owner) in byHost) {
                 require(owner === patterned || !pattern.matches(host)) {
                     "host '$host' of '${owner.code}' matches the pattern of '${patterned.code}'"
@@ -156,9 +144,10 @@ public class ProviderRegistry(providers: Iterable<Provider> = emptyList()) {
 
     /** The one provider whose pattern matches [host]; a host two patterns match is refused. */
     private fun patternProvider(host: String): Provider {
-        val matching = byPattern.filter { it.hostPattern?.matches(host) == true }
+        val matching = byPattern.filter { (pattern, _) -> pattern.matches(host) }
+        if (matching.isEmpty()) throw UnsupportedProvider("host $host")
         if (matching.size > 1) throw UnsupportedProvider("host $host matches several patterns")
-        return matching.singleOrNull() ?: throw UnsupportedProvider("host $host")
+        return matching.single().second
     }
 
     public val codes: List<String> get() = byCode.keys.sorted()

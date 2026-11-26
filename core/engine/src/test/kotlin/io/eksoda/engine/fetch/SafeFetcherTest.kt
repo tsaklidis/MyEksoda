@@ -4,10 +4,8 @@ import assertk.assertFailure
 import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.isEqualTo
-import assertk.assertions.isFalse
 import assertk.assertions.isInstanceOf
 import assertk.assertions.isNull
-import assertk.assertions.isTrue
 import io.eksoda.engine.BlockedDestination
 import io.eksoda.engine.FormatChanged
 import io.eksoda.engine.ProviderHttpError
@@ -20,6 +18,7 @@ import io.eksoda.engine.url.ParsedUrl
 import io.eksoda.engine.url.parseSubmittedUrl
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import okhttp3.Dns
 import okhttp3.Protocol
@@ -32,8 +31,10 @@ import java.io.IOException
 import java.io.InterruptedIOException
 import java.net.InetAddress
 import java.net.UnknownHostException
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicLong
 import javax.net.ssl.SSLException
 
 /** The fetcher's rules, with responses made up by an interceptor: no network. */
@@ -169,7 +170,6 @@ class SafeFetcherTest {
         fun failing(exception: IOException) = fetcher { throw exception }
         assertFailure { failing(SSLException("handshake")).fetch() }
             .isInstanceOf<ProviderUnreachable>()
-            .transform { it.unknownHost }.isFalse()
         assertFailure { failing(InterruptedIOException("timeout")).fetch() }
             .isInstanceOf<ProviderTimeout>()
         assertFailure { failing(IOException("reset")).fetch() }
@@ -192,6 +192,39 @@ class SafeFetcherTest {
         }
         assertThat(requests.size).isEqualTo(5)
         assertThat(spaced.trackedHosts).isEqualTo(1)
+        // A slot in use is never dropped: while a request to A is in flight (past its interval
+        // by then), a request to B cleans up but keeps A's slot.
+        val aInFlight = CountDownLatch(1)
+        val bDone = CountDownLatch(1)
+        val pool = Executors.newFixedThreadPool(2).asCoroutineDispatcher()
+        val now = AtomicLong()
+        val concurrent = SafeFetcher(
+            limits = FetchLimits(),
+            dns = Dns.SYSTEM,
+            clock = { now.getAndAdd(TimeUnit.SECONDS.toNanos(2)) },
+            ioDispatcher = pool,
+            interceptor = { chain ->
+                if (chain.request().url.host == "a.example.gr") {
+                    aInFlight.countDown()
+                    check(bDone.await(5, TimeUnit.SECONDS)) { "B never finished" }
+                }
+                response(chain.request())
+            },
+        )
+        pool.use {
+            runBlocking {
+                suspend fun fetch(name: String) = concurrent.get(
+                    parseSubmittedUrl("https://$name.example.gr/r"),
+                    setOf("$name.example.gr"),
+                )
+                val a = async(pool) { fetch("a") }
+                check(aInFlight.await(5, TimeUnit.SECONDS)) { "A never started" }
+                fetch("b")
+                assertThat(concurrent.trackedHosts).isEqualTo(2)
+                bDone.countDown()
+                a.await()
+            }
+        }
     }
 
     // --- DNS ----------------------------------------------------------------------------------
@@ -206,16 +239,14 @@ class SafeFetcherTest {
         assertFailure { dns("1.1.1.1", "10.0.0.1").lookup(host) }
             .isInstanceOf<BlockedDestination>()
         assertFailure { dns().lookup(host) }.isInstanceOf<ProviderUnreachable>()
-            .transform { it.unknownHost }.isTrue()
         assertFailure { PublicDns { throw UnknownHostException(it) }.lookup(host) }
             .isInstanceOf<ProviderUnreachable>()
-            .transform { it.unknownHost }.isTrue()
-        // Through a whole fetch too. No interceptor: OkHttp asks the DNS, which fails before
-        // any connection is made.
+        // Through a whole fetch too (retried, never refused: no answer is not proof that the
+        // host does not exist). No interceptor: OkHttp asks the DNS, which fails before any
+        // connection is made.
         val fetcher = SafeFetcher(dns = { throw UnknownHostException(it) }, ioDispatcher = io)
         assertFailure { runBlocking { fetcher.get(url, setOf(host)) } }
             .isInstanceOf<ProviderUnreachable>()
-            .transform { it.unknownHost }.isTrue()
     }
 
     // --- Decoding -----------------------------------------------------------------------------
