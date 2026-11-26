@@ -8,6 +8,7 @@ import dagger.hilt.android.HiltAndroidApp
 import io.eksoda.core.data.di.ApplicationScope
 import io.eksoda.core.data.imports.ImportStartup
 import io.eksoda.core.data.products.AutoCategoryBackfill
+import io.eksoda.core.data.sync.MerchantVatRepair
 import io.eksoda.core.data.sync.SyncRuntime
 import io.eksoda.core.ui.text.AppLanguage
 import kotlinx.coroutines.CoroutineScope
@@ -24,6 +25,8 @@ class EksodaApplication :
     @Inject lateinit var importStartup: Lazy<ImportStartup>
 
     @Inject lateinit var autoCategoryBackfill: Lazy<AutoCategoryBackfill>
+
+    @Inject lateinit var merchantVatRepair: Lazy<MerchantVatRepair>
 
     /** Household sync while the app is open; off unless the user turned it on. */
     @Inject lateinit var syncRuntime: Lazy<SyncRuntime>
@@ -42,6 +45,8 @@ class EksodaApplication :
         // start: the UI shows "data unavailable" instead (AppViewModel).
         applicationScope.launch {
             runCatching { importStartup.get().run() }
+            // Receipts saved under a wrong VAT number move to the right merchant (VatRepair.kt).
+            runCatching { merchantVatRepair.get().run() }
             // Products imported before automatic categories get one (AutoCategory.kt).
             runCatching { autoCategoryBackfill.get().run() }
         }
