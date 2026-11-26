@@ -32,6 +32,17 @@ class LineChartDomainTest {
     }
 
     @Test
+    fun `negative values keep the bottom below the top, equal ones in the middle`() {
+        val (flatLow, flatHigh) = domainOf(prices("-5", "-5"), emptyList(), null)
+        assertThat(flatLow.compareTo(BigDecimal("-5.6"))).isEqualTo(0)
+        assertThat(flatHigh.compareTo(BigDecimal("-4.4"))).isEqualTo(0)
+        val (low, high) = domainOf(prices("-10", "-2"), emptyList(), null)
+        assertThat(low.compareTo(BigDecimal("-10.96"))).isEqualTo(0)
+        assertThat(high.compareTo(BigDecimal("-1.04"))).isEqualTo(0)
+        assertThat(gridInCents(prices("-0.05", "-0.05")).toSet().size).isEqualTo(4)
+    }
+
+    @Test
     fun `totals start at zero and wide ranges keep their padding`() {
         val (low, high) = domainOf(prices("10", "500"), emptyList(), null)
         assertThat(low).isEqualTo(BigDecimal.ZERO)

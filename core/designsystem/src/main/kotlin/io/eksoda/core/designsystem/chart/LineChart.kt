@@ -303,7 +303,9 @@ private fun DrawScope.dashes(): PathEffect =
  * The lowest and highest value to draw, with room around the line. Starts at 0 for totals. The
  * room is at least [MIN_PADDING] of the highest value, so a change of a cent is a gentle slope,
  * not a line from the bottom to the top, and at least [MIN_PAD] (two cents), so four grid values
- * shown in cents are never the same, even for prices of a few cents.
+ * shown in cents are never the same, even for prices of a few cents. The room is always
+ * positive, so the bottom is always below the top, for negative values too (a line of equal
+ * values sits in the middle).
  */
 internal fun domainOf(
     values: List<BigDecimal?>,

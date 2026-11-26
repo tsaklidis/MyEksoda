@@ -132,7 +132,7 @@ internal fun ProductRow.toModel(): Product = Product(
     lineCount = lineCount,
 )
 
-private fun PriceRow.toEntry(zone: ZoneId): PriceEntry = PriceEntry(
+internal fun PriceRow.toEntry(zone: ZoneId): PriceEntry = PriceEntry(
     itemId = id,
     receiptId = receiptId,
     issuedAt = OffsetDateTime.ofInstant(Instant.ofEpochMilli(issuedAt), zone),
@@ -161,8 +161,11 @@ private fun PriceRow.toEntry(zone: ZoneId): PriceEntry = PriceEntry(
 private fun PriceRow.unitPriceInCents(): BigDecimal? =
     Fixed.toDecimalOrNull(normalizedUnitPriceE4, Fixed.E4)?.let(::priceInCents)
 
-/** The engine's view of a `PRICE_HISTORY` row (the query guarantees the price and unit). */
-private fun PriceRow.toObservation(): PriceObservation? {
+/**
+ * The engine's view of a `PRICE_HISTORY` row; null without a unit or a unit price (the query
+ * returns only rows with both).
+ */
+internal fun PriceRow.toObservation(): PriceObservation? {
     val unit = normalizedUnit ?: return null
     val price = unitPriceInCents() ?: return null
     return PriceObservation(

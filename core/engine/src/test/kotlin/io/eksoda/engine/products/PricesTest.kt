@@ -154,7 +154,7 @@ class PricesTest {
     }
 
     @Test
-    fun `merchants that show the same average are ranked by the exact one`() {
+    fun `merchants that show the same average are ranked by the unrounded one`() {
         // Both show 1,23; Beta is cheaper by less than a cent and ranks first despite its name.
         val close = listOf(
             observation("alpha", "kg", "1.2344"),

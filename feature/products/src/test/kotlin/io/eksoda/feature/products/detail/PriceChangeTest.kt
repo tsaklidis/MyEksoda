@@ -26,6 +26,15 @@ class PriceChangeTest {
     fun `the same price as last time shows no change`() {
         assertThat(priceChange(stats("9.95", "9.95"))).isNull()
         assertThat(priceChange(stats("9.95", "9.950"))).isNull()
+        // Both show 9,94: no 0,00 change, whatever places the statistics carry.
+        assertThat(priceChange(stats("9.9449", "9.9440"))).isNull()
+    }
+
+    @Test
+    fun `a change is measured between the prices as shown, in cents`() {
+        // 9,96 against 9,94.
+        assertThat(priceChange(stats("9.955", "9.9449")))
+            .isEqualTo(PriceChange.Up(BigDecimal("0.02")))
     }
 
     @Test

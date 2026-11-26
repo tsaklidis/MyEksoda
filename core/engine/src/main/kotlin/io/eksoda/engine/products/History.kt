@@ -88,7 +88,8 @@ public fun compare(entries: List<PriceObservation>, normalizedUnit: String? = nu
     ) ?: return Comparison(false, NO_PRICES, normalizedUnit, null, availableUnits = available)
 
     val (unit, currency) = chosen.key
-    // Ranked on the exact average: two shops that both show 1,23 still have a cheaper one.
+    // Ranked on the unrounded average (the one PriceStats.average is rounded from): two shops
+    // that both show 1,23 still have a cheaper one.
     val merchants = chosen.value.groupBy { it.merchantId }
         .map { (merchantId, items) ->
             val prices = MerchantPrices(
@@ -124,7 +125,11 @@ private fun groups(entries: List<PriceObservation>): Map<UnitKey, List<PriceObse
 /** (normalized unit, currency). */
 private typealias UnitKey = Pair<String, String>
 
-/** Σ gross ÷ Σ normalized quantity, unrounded. */
+/**
+ * Σ gross ÷ Σ normalized quantity, unrounded. Each line's unit price is its gross ÷ its
+ * normalized quantity ([normalize]), so this is the quantity-weighted average of the unit
+ * prices, without their 4-place rounding: what was paid per kg, l or piece over all purchases.
+ */
 private fun weightedAverage(entries: List<PriceObservation>): BigDecimal {
     val gross = entries.fold(BigDecimal.ZERO) { sum, entry -> sum + entry.grossAmount }
     val quantity = entries.fold(BigDecimal.ZERO) { sum, entry -> sum + entry.normalizedQuantity }

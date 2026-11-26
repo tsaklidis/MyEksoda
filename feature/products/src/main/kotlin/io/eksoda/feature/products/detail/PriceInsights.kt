@@ -4,6 +4,7 @@ import io.eksoda.core.model.MerchantPrices
 import io.eksoda.core.model.PriceEntry
 import io.eksoda.core.model.PriceStats
 import java.math.BigDecimal
+import java.math.RoundingMode
 
 // What Product detail shows beyond the engine's statistics (docs/design/ui-redesign.md §5, §6):
 // the lowest and highest purchase with their month and merchant, the price changes for the line
@@ -31,10 +32,14 @@ internal sealed interface PriceChange {
     data class Down(val amount: BigDecimal) : PriceChange
 }
 
-/** The change since the purchase before; null when the price is the same, so nothing shows. */
+/**
+ * The change since the purchase before, in cents; null when both show the same price, so
+ * nothing shows. The engine's statistics are already in cents; rounding here too means the badge
+ * can never say "0,00 € dearer", whatever [stats] it is given.
+ */
 internal fun priceChange(stats: PriceStats): PriceChange? {
     val previous = stats.previous ?: return PriceChange.First
-    val difference = stats.latest - previous
+    val difference = inCents(stats.latest) - inCents(previous)
     return when (difference.signum()) {
         1 -> PriceChange.Up(difference)
         -1 -> PriceChange.Down(difference.abs())
@@ -130,6 +135,8 @@ internal fun cheapestGap(merchants: List<MerchantPrices>): CheapestGap? {
     if (difference.signum() == 0) return null
     return CheapestGap(cheapest, next, difference)
 }
+
+private fun inCents(price: BigDecimal): BigDecimal = price.setScale(2, RoundingMode.HALF_UP)
 
 /** The most points the price chart draws before close prices are merged. */
 internal const val MAX_POINTS = 24
