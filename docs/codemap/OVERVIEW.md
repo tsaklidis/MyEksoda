@@ -42,6 +42,9 @@ core:ui                Shared composables (EmptyState, MoneyText, HeroMoney) and
                        (formatMoney, formatAmount, currencySymbol, dayLabel, importErrorRes,
                        categoryNameRes); chain logos (component/MerchantLogos.kt,
                        res/drawable/merchant_logo_*.xml)
+core:testing           Test-only (the feature modules' testImplementation, never production):
+                       MainDispatcherRule (viewModelScope on a test dispatcher) and in-memory
+                       fakes of core:data's repositories (FakeReceiptRepository)
 feature:*              Screens. See only core:data interfaces, core:model, core:ui,
                        core:designsystem (wired by the eksoda.android.feature plugin).
                        feature:household: the Sync screen (`sync/`, opened from Settings).
@@ -366,11 +369,15 @@ Text helpers (stored keys depend on their exact behavior; reuse them, don't rein
 - Tests: JUnit 5 + AssertK in `core:engine` (fixtures in `testdata/fixtures/`); JUnit 4 +
   Robolectric in Android modules (in-memory Room). Every change ships with tests for its new
   paths, warning and error paths included. Coverage (Kover, in `make check`): `core:engine`
-  ≥ 95% lines, `core:data` ≥ 92%; on pull requests Codecov (`codecov.yml`)
+  ≥ 97% lines and ≥ 87% branches, `core:data` ≥ 95% lines and ≥ 79% branches (floors
+  just under the measured coverage: raise them as tests are added, never lower them to let a
+  change through); on pull requests Codecov (`codecov.yml`)
   requires 90% of the changed lines covered and lets each module (flag) drop at most 0.5%
   (status checks need the Codecov GitHub App). Check a file
   with `./gradlew :core:engine:koverXmlReport` (`core/engine/build/reports/kover/report.xml`)
   or `:core:data:koverXmlReportDebug` (`core/data/build/reports/kover/reportDebug.xml`).
+  ViewModels are tested on Robolectric with `core:testing` (`MainDispatcherRule`, a fake per
+  repository, added there as a feature needs it; Turbine for effects), as `ScanViewModelTest`.
   `core:data` tests run the real import pipeline on the fixtures with `ImportHarness`
   (in-memory Room seeded like the app, WorkManager test driver, a fetcher serving
   `testdata/fixtures/`); paged lists are read with `asSnapshot()` (paging-testing).

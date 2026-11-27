@@ -25,6 +25,8 @@ class AndroidFeatureConventionPlugin : Plugin<Project> {
                 "implementation"(libs.library("androidx-hilt-lifecycle-viewmodel-compose"))
                 "implementation"(libs.library("androidx-compose-material-icons-extended"))
                 "testImplementation"(libs.library("turbine"))
+                // MainDispatcherRule and the fake repositories the ViewModel tests use.
+                "testImplementation"(project(":core:testing"))
             }
         }
     }

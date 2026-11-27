@@ -1,4 +1,5 @@
 import io.eksoda.buildlogic.useTestData
+import kotlinx.kover.gradle.plugin.dsl.CoverageUnit
 
 plugins {
     alias(libs.plugins.eksoda.android.library)
@@ -43,11 +44,16 @@ kover {
             }
         }
         verify {
-            // A floor, not a target: the tests are at 97.7% (2026-11-22). The room below is
-            // for code only a device runs (Keystore, NSD, sockets); a drop on a pull request is
-            // Codecov's check (codecov.yml). `make check` verifies the debug variant.
+            // Floors, not targets: the tests are at 97.8% of lines and 79.5% of branches
+            // (2026-11-27). The room below is for code only a device runs (Keystore, NSD,
+            // sockets). Raise them as tests are added, never lower them to let a change
+            // through; a drop on a pull request is also Codecov's check (codecov.yml).
+            // `make check` verifies the debug variant.
             rule("core:data line coverage") {
-                minBound(92)
+                minBound(95)
+            }
+            rule("core:data branch coverage") {
+                minBound(79, CoverageUnit.BRANCH)
             }
         }
     }
