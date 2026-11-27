@@ -28,6 +28,7 @@ import io.eksoda.engine.providers.parseWithLayouts
 import io.eksoda.engine.providers.textOf
 import io.eksoda.engine.text.pyIsDigit
 import io.eksoda.engine.text.pyLocalToOffset
+import io.eksoda.engine.url.ParsedUrl
 import io.eksoda.engine.url.parseSubmittedUrl
 import io.eksoda.engine.vocabulary.currency
 import kotlinx.serialization.json.JsonObject
@@ -121,26 +122,49 @@ private fun root(document: XmlDocument): Element? = document.children().firstOrN
     it.tagName() == ROOT
 }
 
+/**
+ * Hosts serving this platform's receipts: Epsilon Digital's own, or a reseller's under its own
+ * provider code (Parochos).
+ */
+internal class Site(
+    val providerCode: String,
+    val parserVersion: String,
+    /** The site's receipt link, or null for an address that is not one (see [splitLink]). */
+    val split: (ParsedUrl) -> EpsilonLink?,
+    /** Legal names, by VAT number, of issuers whose XML carries none. */
+    val issuerNames: Map<String, String>,
+)
+
+private val EPSILON_SITE = Site(PROVIDER_CODE, PARSER_VERSION, ::split, ISSUER_NAMES)
+
 /** The detailed XML as observed 2026-11-17 (Sklavenitis retail receipts). */
-internal object EpsilonLayoutV1 : Layout {
-    override val name: String = PARSER_VERSION
+internal class EpsilonLayoutV1(private val site: Site) : Layout {
+    override val name: String = site.parserVersion
 
     override fun matches(document: XmlDocument): Boolean = root(document)?.child("invoice") != null
 
     override fun parse(document: XmlDocument, identity: UrlIdentity): CanonicalReceipt {
         val invoices = checkNotNull(root(document)).childrenNamed("invoice")
         if (invoices.size != 1) throw FormatChanged("${invoices.size} invoices in one document")
-        return Builder(invoices.single(), identity).build()
+        return Builder(site, invoices.single(), identity).build()
     }
 }
 
-public val LAYOUTS: List<Layout> = listOf(EpsilonLayoutV1)
+public val LAYOUTS: List<Layout> = listOf(EpsilonLayoutV1(EPSILON_SITE))
 
-public fun parseDocument(text: String, identity: UrlIdentity): CanonicalReceipt {
+public fun parseDocument(text: String, identity: UrlIdentity): CanonicalReceipt =
+    parseXmlDocument(text, identity, LAYOUTS)
+
+/** Parses a detailed XML of any [Site] with that site's [layouts]. */
+internal fun parseXmlDocument(
+    text: String,
+    identity: UrlIdentity,
+    layouts: List<Layout>,
+): CanonicalReceipt {
     if (NOT_FOUND_MARKER in text && ROOT !in text) {
         throw ReceiptNotFound("the provider has no such document")
     }
-    return parseWithLayouts(parseXml(text), identity, LAYOUTS)
+    return parseWithLayouts(parseXml(text), identity, layouts)
 }
 
 private fun decimal(text: String?, where: String): BigDecimal? {
@@ -157,9 +181,13 @@ private fun requiredDecimal(element: Element, name: String, where: String): BigD
 
 private fun z(value: BigDecimal?): BigDecimal = value ?: ZERO
 
-private class Builder(private val invoice: Element, private val url: UrlIdentity) {
-    // The canonical URL was produced by recognize(), so it always splits.
-    private val link = checkNotNull(split(parseSubmittedUrl(url.canonicalUrl)))
+private class Builder(
+    private val site: Site,
+    private val invoice: Element,
+    private val url: UrlIdentity,
+) {
+    // The canonical URL was produced by the site's recognize(), so it always splits.
+    private val link = checkNotNull(site.split(parseSubmittedUrl(url.canonicalUrl)))
     private val unknown = LinkedHashMap<String, String>()
 
     fun build(): CanonicalReceipt {
@@ -178,8 +206,8 @@ private class Builder(private val invoice: Element, private val url: UrlIdentity
         val totals = totals(summary)
         checkConsistency(lines, totals)
         return CanonicalReceipt(
-            providerCode = PROVIDER_CODE,
-            parserVersion = PARSER_VERSION,
+            providerCode = site.providerCode,
+            parserVersion = site.parserVersion,
             culture = "el",
             sourceUrl = url.canonicalUrl,
             issuer = issuer(issuer),
@@ -210,7 +238,7 @@ private class Builder(private val invoice: Element, private val url: UrlIdentity
     fun checkLink() {
         val printed = invoice.value("downloadingInvoiceUrl") ?: return
         val printedLink = try {
-            split(parseSubmittedUrl(printed))
+            site.split(parseSubmittedUrl(printed))
         } catch (_: InvalidUrl) {
             null
         }
@@ -236,10 +264,10 @@ private class Builder(private val invoice: Element, private val url: UrlIdentity
     fun issuer(issuer: Element?): Party {
         val vat = required(issuer, "vatNumber", "issuer VAT")
         // A name in the XML wins (shared hosts usually send one); otherwise the VAT number's
-        // entry in ISSUER_NAMES (Urls.kt) names the issuer. Without either the receipt is still
-        // read: the name stays empty and the app calls the merchant by its VAT number until a
-        // receipt names it (merchants/Merchants.kt defaultDisplayName).
-        val name = issuer?.value("name") ?: ISSUER_NAMES[vat].orEmpty()
+        // entry in the site's issuer names (ISSUER_NAMES in Urls.kt) names the issuer. Without
+        // either the receipt is still read: the name stays empty and the app calls the merchant
+        // by its VAT number until a receipt names it (merchants/Merchants.kt defaultDisplayName).
+        val name = issuer?.value("name") ?: site.issuerNames[vat].orEmpty()
         val address = issuer?.child("address")
         return Party(
             countryCode = issuer?.value("country")?.uppercase(Locale.ROOT) ?: "GR",

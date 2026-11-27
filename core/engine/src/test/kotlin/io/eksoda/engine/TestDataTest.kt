@@ -18,7 +18,14 @@ class TestDataTest {
             providers.map {
                 it.name
             },
-        ).containsExactlyInAnyOrder("impact", "entersoft", "aade_fhm", "epsilon", "s1ecos")
+        ).containsExactlyInAnyOrder(
+            "impact",
+            "entersoft",
+            "aade_fhm",
+            "epsilon",
+            "s1ecos",
+            "parochos",
+        )
         providers.forEach { provider ->
             val metaFiles = provider.listFiles { file ->
                 file.name.endsWith(".meta.json")

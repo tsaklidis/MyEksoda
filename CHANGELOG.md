@@ -3,6 +3,19 @@
 What changed in each release of Eksoda. Earlier releases are described on the
 [Releases](https://github.com/tsaklidis/MyEksoda/releases) page.
 
+## 0.3.11 - Pharmacy receipts from Parochos
+
+A small update that reads receipts from more shops. Install it over 0.3.10 as usual: your data
+stays, and household sync keeps working between 0.3.10 and 0.3.11.
+
+### New
+
+- **Receipts on `srv2.parochos.gr`** now import, for example pharmacies'. They were refused
+  as an unsupported provider. Parochos's other receipt sites (`srv.parochos.gr`,
+  `srv3.parochos.gr`) are read too, and each receipt is fetched only from its link's own
+  site. These receipts do not carry the shop's name, so most pharmacies show their VAT number
+  until you rename them. Scan receipts that were refused before again: nothing was saved for them.
+
 ## 0.3.10 - Older LIDL receipts and Sklavenitis from e-invoicing.gr
 
 A small update for receipts from Entersoft (`e-invoicing.gr`). Install it over 0.3.9 as usual:

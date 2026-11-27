@@ -11,7 +11,7 @@ line range. Keep this file current when a change adds a module, a pipeline step 
 
 Your receipts never leave the phone: no account, no analytics, no crash reporting.
 The only network traffic is HTTPS GETs to the receipt providers (Impact, s1ecos, Entersoft,
-AADE, Epsilon Digital), and, only when the user turns household sync on, encrypted sessions with
+AADE, Epsilon Digital, Parochos), and, only when the user turns household sync on, encrypted sessions with
 the household's phones on the local network (private addresses, never the internet).
 Data is in a SQLCipher database; Android cloud backup is off (`allowBackup=false`,
 `dataExtractionRules`); the user's own encrypted export is the only backup.
@@ -96,8 +96,8 @@ Engine entry point: `core/engine/.../engine/Engine.kt`: `resolve(rawUrl): Resolv
 sealed `ReceiptException` (`ReceiptException.kt`) with `code`, retry policy and
 `publicMessage` (never shown; UI maps `code` with `importErrorRes`).
 
-Providers: `engine/providers/{impact,s1ecos,entersoft,aadefhm,epsilon}/` each with `Urls.kt`
-(recognize), `Parser.kt` (layouts → `CanonicalReceipt`), `Sanitize.kt`; Impact also
+Providers: `engine/providers/{impact,s1ecos,entersoft,aadefhm,epsilon,parochos}/` each with
+`Urls.kt` (recognize), `Parser.kt` (layouts → `CanonicalReceipt`), `Sanitize.kt`; Impact also
 `Labels.kt`, `Views.kt`. Shared: `Base.kt` (`Provider`, `Layout`, `UrlIdentity`,
 `maskUrl`), `Registry.kt` (`REGISTRY`), `Html.kt` (`textOf`, Jsoup), `Sanitizing.kt`.
 The registry finds a provider by exact host (`Provider.hosts`), then by `Provider.hostPattern`
@@ -120,6 +120,16 @@ merchant is called by its VAT number until a receipt names it (`merchants/Mercha
 `defaultDisplayName`; an empty name never overwrites a known one). A new Epsilon host needs no
 code to be read; add it to `HOSTS` once it is seen serving receipts (the record), and its
 issuer's legal name to `ISSUER_NAMES` when the name is verified.
+Parochos (`srv.parochos.gr`, `srv2`, `srv3`; pharmacies) runs Epsilon Digital's platform under
+its own hosts: the same `/fd/` and `/DocViewer/` links (`epsilon/Urls.kt` `splitLink`, with the
+host rule as a parameter) and the same detailed XML, read by Epsilon's layout, sanitizer and
+fetch under its own provider code and parser version (`epsilon/Parser.kt` `Site`: code,
+version, link rule, issuer names; `parseXmlDocument`; `epsilon/Sanitize.kt` `fetchXml`). Its
+viewer is a Blazor app drawn over a websocket, so the XML is the only readable form. Its XML
+never names the issuer either: `parochos/Urls.kt` `ISSUER_NAMES` (the name is in the receipt's
+UBL, `/filedocument/getfile?fileType=4&documentId=<uuid>`, which is not fetched). A link on an
+Epsilon host is Epsilon's and one on a Parochos host is Parochos's: each refuses an XML that
+prints the other's link.
 Impact: the link's 40-hex id is usually the myDATA UID but not always; when it differs, the
 page's tax view must print the link itself.
 s1ecos (`einvoice.s1ecos.gr`) serves Impact's pages under its own host: its own provider code and

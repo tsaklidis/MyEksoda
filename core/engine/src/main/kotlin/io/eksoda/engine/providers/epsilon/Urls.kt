@@ -83,8 +83,14 @@ internal fun hexToUuid(hex: String): String {
     }
 }
 
-public fun split(url: ParsedUrl): EpsilonLink? {
-    if (!HOST_PATTERN.matches(url.host) || url.query.isNotEmpty()) return null
+public fun split(url: ParsedUrl): EpsilonLink? = splitLink(url, HOST_PATTERN::matches)
+
+/**
+ * The receipt link on a host [isHost] accepts: the platform's two link forms, on Epsilon Digital's
+ * own hosts or on a reseller's (Parochos).
+ */
+internal fun splitLink(url: ParsedUrl, isHost: (String) -> Boolean): EpsilonLink? {
+    if (!isHost(url.host) || url.query.isNotEmpty()) return null
     val short = SHORT_PATH.matchEntire(url.path)
     val viewer = VIEWER_PATH.matchEntire(url.path)
     return when {
