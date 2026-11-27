@@ -217,7 +217,8 @@ Text helpers (stored keys depend on their exact behavior; reuse them, don't rein
   top products, monthly trend, Home pace, over `AnalyticsDao`; `changes()` re-emits on table
   changes), Settings (preferences shown in Settings), Backup (export, open, restore; errors are
   `BackupException(BackupError)`). Each has an `*Impl`. `sync/MerchantVatRepair` (every
-  start, and after every sync merge in `SyncMerger`; one query, `needsVatRepair`, when there
+  start, after every sync merge in `SyncMerger` and after a backup restore, each time in the
+  same transaction as what brought the data; one query, `needsVatRepair`, when there
   is nothing to do) moves receipts the first Entersoft parser (`entersoft/1`, before 0.3.10)
   saved under a Greek VAT followed by more digits to the right merchant. Only with that
   parser's receipts as evidence, never from a VAT's shape alone, and never for a merchant with

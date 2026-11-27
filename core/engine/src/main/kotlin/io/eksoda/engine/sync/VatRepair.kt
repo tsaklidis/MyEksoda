@@ -1,6 +1,9 @@
 package io.eksoda.engine.sync
 
 import io.eksoda.engine.providers.entersoft.FIRST_VERSION
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import io.eksoda.engine.providers.entersoft.PROVIDER_CODE as ENTERSOFT
 
 /**
@@ -94,14 +97,25 @@ public object VatRepair {
         if (!isFirstEntersoft(receipt)) return null
         val vat = repairedVat(receipt["issuer_country"], receipt[ISSUER_VAT]) ?: return null
         val wrong = receipt.getValue(ISSUER_VAT) as String
-        val data = receipt[SOURCE_DATA]
-        val repairedData = if (data is String) {
-            mapOf(SOURCE_DATA to data.replace("\"$wrong\"", "\"$vat\""))
-        } else {
-            emptyMap()
-        }
+        val data = repairedSourceData(receipt[SOURCE_DATA], wrong, vat)
+            ?.let { mapOf(SOURCE_DATA to it) }
+            .orEmpty()
         val stamp = maxOf(now, version(receipt) + 1)
-        return receipt + (ISSUER_VAT to vat) + repairedData + (SyncSchema.VERSION to stamp)
+        return receipt + (ISSUER_VAT to vat) + data + (SyncSchema.VERSION to stamp)
+    }
+
+    /**
+     * The stored canonical receipt ([data], `persist/ReceiptValues.kt` `sourceData`) with only
+     * its `issuer.vat_number` repaired; null when that is not [wrong] (nothing else to change).
+     */
+    private fun repairedSourceData(data: Any?, wrong: String, vat: String): String? {
+        val json = (data as? String)
+            ?.let { runCatching { Json.parseToJsonElement(it) }.getOrNull() } as? JsonObject
+        val issuer = json?.get("issuer") as? JsonObject
+        val stored = (issuer?.get(VAT) as? JsonPrimitive)?.content
+        if (json == null || issuer == null || stored != wrong) return null
+        return JsonObject(json + ("issuer" to JsonObject(issuer + (VAT to JsonPrimitive(vat)))))
+            .toString()
     }
 
     private fun version(row: Row): Long = row[SyncSchema.VERSION] as? Long ?: 0L

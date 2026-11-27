@@ -69,11 +69,15 @@ public data class LegacyLink(
         get() = "https://$HOST$VIEW_PATH?ct=$contentType&id=$documentId&s=$source&h=$token"
     override val identity: String get() = "entersoft:$documentId"
 
+    /** The id and token name the receipt; a source and content type, when framed, must agree. */
     override fun framedBy(params: Map<String, List<String>>): Boolean =
         param(params, "id").equals(documentId, ignoreCase = true) &&
             param(params, "hashToken") == token &&
-            param(params, "source").equals(source, ignoreCase = true) &&
-            param(params, "contentType").equals(contentType, ignoreCase = true)
+            agrees(params, "source", source) &&
+            agrees(params, "contentType", contentType)
+
+    private fun agrees(params: Map<String, List<String>>, name: String, value: String): Boolean =
+        name !in params || param(params, name).equals(value, ignoreCase = true)
 }
 
 private fun param(params: Map<String, List<String>>, name: String): String =

@@ -90,6 +90,10 @@ class EntersoftTest {
             legacy.canonicalUrl.replace("ct=PEPPOL", "ct=peppol").replace("s=A", "s=a"),
         ).second
         assertThat(fetchDocument(lower, fetcher(document, legacyShell)).text()).isEqualTo(receipt)
+        // A frame without them is named by its id and token alone.
+        val bare = legacyShell.replace("contentType=PEPPOL&amp;", "").replace("&amp;source=A", "")
+        assertThat(bare).isNotEqualTo(legacyShell)
+        assertThat(fetchDocument(legacy, fetcher(document, bare)).text()).isEqualTo(receipt)
 
         // The shell frames another id, token, source or content type: not this receipt.
         for (other in listOf("id=${"1".repeat(40)}", "h=0x0xxx01", "s=B", "ct=UBL")) {

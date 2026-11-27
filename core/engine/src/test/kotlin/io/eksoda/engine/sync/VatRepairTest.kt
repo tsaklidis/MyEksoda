@@ -20,8 +20,12 @@ class VatRepairTest {
         "provider_code" to "entersoft",
         "parser_version" to "entersoft/1",
         "issuer_vat" to WRONG,
-        "source_data" to """{"issuer":{"vat_number":"$WRONG"}}""",
+        "source_data" to sourceData(WRONG),
     )
+
+    /** The stored receipt, with the same digits in another field, which stays as it is. */
+    private fun sourceData(vat: String) =
+        """{"issuer":{"vat_number":"$vat","legal_name":"Σ"},"lines":[{"barcode":"$WRONG"}]}"""
 
     /** A receipt of [merchant] from another provider. */
     private fun otherReceipt(id: String, merchant: String, vat: String = RIGHT) =
@@ -93,7 +97,7 @@ class VatRepairTest {
         val moved = merged.row("receipt", "r2")
         assertThat(moved["merchant_id"]).isEqualTo("m1")
         assertThat(moved["issuer_vat"]).isEqualTo(RIGHT)
-        assertThat(moved["source_data"]).isEqualTo("""{"issuer":{"vat_number":"$RIGHT"}}""")
+        assertThat(moved["source_data"]).isEqualTo(sourceData(RIGHT))
         assertThat(moved["source_url"]).isEqualTo(URL)
         // The same shop line at both: one mapping, one product.
         assertThat(merged.ids("merchant_product_mapping")).containsExactly("map1")
@@ -124,10 +128,12 @@ class VatRepairTest {
         val cypriot = merchant("m9", vat = RIGHT) + ("country_code" to "CY")
         val alone = snapshot(
             "merchant" to listOf(merchant("m2", vat = WRONG), cypriot),
-            "receipt" to listOf(wrongReceipt),
+            // Unreadable source data is left as it is.
+            "receipt" to listOf(wrongReceipt + ("source_data" to "not json")),
         )
 
         val merged = repaired(alone)
+        assertThat(merged.row("receipt", "r2")["source_data"]).isEqualTo("not json")
 
         assertThat(merged.ids("merchant")).containsExactly("m2", "m9")
         assertThat(merged.row("merchant", "m2")["vat_number"]).isEqualTo(RIGHT)

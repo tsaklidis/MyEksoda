@@ -13,6 +13,9 @@ import io.eksoda.core.data.imports.ImportHarness.Companion.KOGIMOU
 import io.eksoda.core.data.imports.ImportHarness.Companion.METRO_SAMPLE
 import io.eksoda.core.data.imports.ImportHarness.Companion.MYMARKET
 import io.eksoda.core.data.imports.ImportScheduler
+import io.eksoda.core.data.sync.VatRows.RIGHT
+import io.eksoda.core.data.sync.VatRows.WRONG
+import io.eksoda.core.data.sync.VatRows.household
 import io.eksoda.core.model.ImportSubmission
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -128,6 +131,23 @@ class BackupRepositoryTest {
         // Its queued run stops, so it never runs for a job that is gone.
         assertThat(runs(pendingNow).last()).isEqualTo(WorkInfo.State.CANCELLED)
         assertThat(runs(pendingThen).last()).isEqualTo(WorkInfo.State.ENQUEUED)
+    }
+
+    @Test
+    fun `a backup made before the VAT repair restores repaired`() = runTest {
+        // Made before 0.3.10: a Sklavenitis receipt under its VAT followed by phone digits.
+        app.database.openHelper.writableDatabase.household(right = "m1", wrong = "m2")
+        val destination = Uri.fromFile(file("before.eksoda"))
+        backups.export(destination, PASSPHRASE).getOrThrow()
+
+        backups.restore(backups.open(destination, PASSPHRASE).getOrThrow()).getOrThrow()
+
+        assertThat(app.count("SELECT COUNT(*) FROM merchant WHERE vat_number = '$WRONG'"))
+            .isEqualTo(0)
+        assertThat(app.count("SELECT COUNT(*) FROM receipt WHERE merchant_id = 'm1'"))
+            .isEqualTo(2)
+        assertThat(app.count("SELECT COUNT(*) FROM receipt WHERE issuer_vat = '$RIGHT'"))
+            .isEqualTo(2)
     }
 
     @Test
