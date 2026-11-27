@@ -1,0 +1,171 @@
+{
+  "branch": {
+    "address": null,
+    "number": "0"
+  },
+  "coverage": {
+    "cross_checked": false,
+    "issue_time": "date_only",
+    "line_items": true,
+    "line_tax_amounts": true,
+    "mydata_registered": true,
+    "official_codes": true
+  },
+  "culture": "el",
+  "document": {
+    "currency": "EUR",
+    "formatted_number": "Α-15018",
+    "issued_at": "2026-11-27T00:00:00+02:00",
+    "issued_date": "2026-11-27",
+    "kind": "sale",
+    "number": "15018",
+    "series": "Α",
+    "type_code": "11.1",
+    "type_label": null
+  },
+  "identity": {
+    "cancellation_mark": null,
+    "mark": "400016183808125",
+    "source_key": null,
+    "transmission_failure": false,
+    "uid": "4F65400F9F69EBF79C7C1EC810D21793AE25D7DB"
+  },
+  "issuer": {
+    "activity": null,
+    "address": null,
+    "country_code": "GR",
+    "gemi_number": null,
+    "legal_name": "ΣΥΣΤΕΓΑΣΜΕΝΑ ΦΑΡΜΑΚΕΙΑ ΠΑΠΑΔΟΠΟΥΛΟΥ ΡΟΔΗ-ΚΑΙΑΦΑΣ ΠΑΝΑΓΙΩΤΗΣ Ο.Ε.",
+    "tax_office": null,
+    "vat_number": "081258114"
+  },
+  "lines": [
+    {
+      "annotation_code": null,
+      "barcode": null,
+      "deductions": null,
+      "description": "MESULID TAB 100MG/TAB BTx30 (BLIST 3x10)",
+      "digital_fee": null,
+      "discount": null,
+      "fees": null,
+      "gross": "4.01",
+      "gross_before_discount": null,
+      "line_number": 1,
+      "line_type_code": null,
+      "merchant_product_code": null,
+      "net": "3.78",
+      "other_taxes": null,
+      "quantity": "1",
+      "raw": {
+        "line.itemDescr": "MESULID TAB 100MG/TAB BTx30 (BLIST 3x10)",
+        "line.lineNumber": "1",
+        "line.measurementUnit": "1",
+        "line.netValue": "3.78",
+        "line.quantity": "1",
+        "line.vatAmount": "0.23",
+        "line.vatCategory": "3"
+      },
+      "stamp_duty": null,
+      "unit": "piece",
+      "unit_code": "1",
+      "unit_label": null,
+      "unit_price": null,
+      "unit_price_basis": "unknown",
+      "vat": "0.23",
+      "vat_category_code": "3",
+      "vat_exemption_code": null,
+      "vat_rate": "6",
+      "withheld": null
+    },
+    {
+      "annotation_code": null,
+      "barcode": null,
+      "deductions": null,
+      "description": "SODIUM CHLORIDE/ΒΙΟΣΕΡ SOL.INF 0,9% W/V BT x 1 BOTTLE x 1000 ML (με επίπωμα χωρίς latex) (σε συσκευασία των 10 BOTTLES)",
+      "digital_fee": null,
+      "discount": null,
+      "fees": null,
+      "gross": "2.14",
+      "gross_before_discount": null,
+      "line_number": 2,
+      "line_type_code": null,
+      "merchant_product_code": null,
+      "net": "2.02",
+      "other_taxes": null,
+      "quantity": "1",
+      "raw": {
+        "line.itemDescr": "SODIUM CHLORIDE/ΒΙΟΣΕΡ SOL.INF 0,9% W/V BT x 1 BOTTLE x 1000 ML (με επίπωμα χωρίς latex) (σε συσκευασία των 10 BOTTLES)",
+        "line.lineNumber": "2",
+        "line.measurementUnit": "1",
+        "line.netValue": "2.02",
+        "line.quantity": "1",
+        "line.vatAmount": "0.12",
+        "line.vatCategory": "3"
+      },
+      "stamp_duty": null,
+      "unit": "piece",
+      "unit_code": "1",
+      "unit_label": null,
+      "unit_price": null,
+      "unit_price_basis": "unknown",
+      "vat": "0.12",
+      "vat_category_code": "3",
+      "vat_exemption_code": null,
+      "vat_rate": "6",
+      "withheld": null
+    }
+  ],
+  "notices": [],
+  "parser_version": "parochos/1",
+  "payments": [
+    {
+      "amount": "6.15",
+      "derived": false,
+      "method": "cash",
+      "method_code": "3",
+      "method_label": null,
+      "tip": "0"
+    }
+  ],
+  "provider_code": "parochos",
+  "provider_payload": {
+    "header": {
+      "aa": "15018",
+      "currency": "EUR",
+      "invoiceType": "11.1",
+      "issueDate": "2026-11-27",
+      "series": "Α"
+    },
+    "issuer": {
+      "branch": "0",
+      "country": "GR",
+      "vatNumber": "081258114"
+    },
+    "summary": {
+      "totalDeductionsAmount": "0",
+      "totalFeesAmount": "0",
+      "totalGrossValue": "6.15",
+      "totalNetValue": "5.80",
+      "totalOtherTaxesAmount": "0",
+      "totalStampDutyAmount": "0",
+      "totalVatAmount": "0.35",
+      "totalWithheldAmount": "0"
+    }
+  },
+  "source_url": "https://srv2.parochos.gr/fd/00000000000000000000000000000000:2",
+  "totals": {
+    "deductions": "0",
+    "digital_fee": null,
+    "discount": null,
+    "fees": "0",
+    "gross": "6.15",
+    "gross_before_discount": null,
+    "net": "5.80",
+    "other_taxes": "0",
+    "stamp_duty": "0",
+    "vat": "0.35",
+    "withheld": "0"
+  },
+  "unknown_fields": {},
+  "vat_breakdown": []
+}

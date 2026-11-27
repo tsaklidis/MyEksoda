@@ -1,0 +1,1 @@
+{"url": "https://srv2.parochos.gr/fd/00000000000000000000000000000000:2", "description": "Unknown document id: the XML endpoint answers HTTP 404 with a plain-text body", "expect": {"error": "receipt_not_found"}}

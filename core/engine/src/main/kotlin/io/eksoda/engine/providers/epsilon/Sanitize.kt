@@ -9,6 +9,7 @@ import io.eksoda.engine.providers.Secrets
 import io.eksoda.engine.providers.UrlIdentity
 import io.eksoda.engine.providers.finish
 import io.eksoda.engine.providers.redactMydataQr
+import io.eksoda.engine.url.ParsedUrl
 import io.eksoda.engine.url.parseSubmittedUrl
 
 // Removes personal data from a saved Epsilon Digital myDATA XML.
@@ -58,7 +59,15 @@ public fun sanitizeXml(rawXml: String): SanitizeResult {
 }
 
 /** One request: the detailed XML (the viewer page needs a human check). */
-public suspend fun fetchDocument(identity: UrlIdentity, fetcher: Fetcher): FetchedDocument {
+public suspend fun fetchDocument(identity: UrlIdentity, fetcher: Fetcher): FetchedDocument =
+    fetchXml(identity, fetcher, ::split)
+
+/** The detailed XML of a link [split] made, from the link's own host only. */
+internal suspend fun fetchXml(
+    identity: UrlIdentity,
+    fetcher: Fetcher,
+    split: (ParsedUrl) -> EpsilonLink?,
+): FetchedDocument {
     val link = checkNotNull(split(parseSubmittedUrl(identity.canonicalUrl)))
     return fetcher.get(
         parseSubmittedUrl(link.documentUrl),
