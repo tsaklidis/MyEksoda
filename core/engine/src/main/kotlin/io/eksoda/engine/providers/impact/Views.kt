@@ -164,16 +164,21 @@ private fun Element.parent(tag: String, cssClass: String? = null): Element? =
 private fun sectionOf(tr: Element): Pair<String, Element?> {
     val table = tr.parent("table")
     val classes = table?.classNames().orEmpty()
+    val party = tr.parent("table", "Party")
     tr.parent("div", "InvoiceLines")?.let { return "line" to it }
     return when {
         "InvoiceSummary" in classes -> "summary" to table
 
         "PaymentMethodType" in classes -> "payment" to table
 
-        "Party" in classes -> {
-            val title = textOf(table?.selectFirst("h3"))
-            (if (title == Labels.ISSUER_PARTY_TITLE) "issuer" else "counterparty") to table
+        // A party's address is a table of its own inside the party's table (observed 2026-11-27).
+        party != null -> {
+            val title = textOf(party.selectFirst("h3"))
+            (if (title == Labels.ISSUER_PARTY_TITLE) "issuer" else "counterparty") to party
         }
+
+        // Where the goods were delivered: the buyer's address.
+        tr.parent("td", Labels.TAX_DELIVERY_ADDRESS) != null -> "counterparty" to table
 
         tr.parent("div", "InvoiceHeader") != null -> "header" to table
 
