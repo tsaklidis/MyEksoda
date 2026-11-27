@@ -3,6 +3,33 @@
 What changed in each release of Eksoda. Earlier releases are described on the
 [Releases](https://github.com/tsaklidis/MyEksoda/releases) page.
 
+## 0.3.12 - A better scanner, and e-shop receipts from Impact
+
+A small update to the scanner and to receipts from Impact (`einvoice.impact.gr`). Install it
+over 0.3.11 as usual: your data stays, and household sync keeps working between 0.3.11 and
+0.3.12.
+
+### Improved
+
+- **More QR codes read from the camera.** The scanner looks at the camera picture in four times
+  the detail, so small receipt codes, codes held far from the phone and slightly blurry ones
+  read where they did not before. Worn thermal print, with gaps in the code, and codes shown on
+  a phone screen in dark mode now read too, from the camera and from photos.
+- **Tap to focus, pinch to zoom.** Tap the picture to focus where you tapped (a ring shows
+  where), and zoom with two fingers for a small or distant code.
+
+### Fixed
+
+- **E-shop receipts from einvoice.impact.gr.** Some shops print the VAT category by name
+  ("ΦΠΑ Κανονικός (24/17)%") instead of the rate, and their receipts failed with "the
+  provider changed its page". They are now read. Scan them again: nothing was saved for them.
+- **Your address is not saved.** On receipts that print the buyer's address or a delivery
+  address (online orders), the address is no longer saved with the receipt.
+- **Prices before VAT.** Shops that print unit prices before VAT no longer get a price
+  warning, and the price is read as before VAT.
+- **A camera picture the reader cannot take no longer stops the scanner.** It is skipped, and
+  scanning goes on with the next one; before, it could close the app.
+
 ## 0.3.11 - Pharmacy receipts from Parochos
 
 A small update that reads receipts from more shops. Install it over 0.3.10 as usual: your data

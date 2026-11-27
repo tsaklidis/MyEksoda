@@ -10,6 +10,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
@@ -192,11 +193,8 @@ private fun CameraPreview(onCode: (String) -> Unit) {
                     if (!active) return@addListener
                     preview.surfaceProvider = previewView.surfaceProvider
                     analysis.setAnalyzer(executor) { image ->
-                        // A frame the reader cannot take is skipped: an exception here would end
-                        // the analyzer thread, and the app with it. The frame is closed either way.
-                        val text = image.use { frame -> runCatching { reader.read(frame) } }
-                            .getOrNull()
-                            ?.firstNotNullOfOrNull { it.text }
+                        // The frame is closed either way.
+                        val text = image.use { frame -> reader.textOrNull(frame) }
                         if (text != null) {
                             ContextCompat.getMainExecutor(context).execute { currentOnCode(text) }
                         }
@@ -216,4 +214,17 @@ private fun CameraPreview(onCode: (String) -> Unit) {
             previewView
         },
     )
+}
+
+/**
+ * The text of the first QR code in [frame], or null. A frame the reader cannot take is skipped:
+ * an exception here would end the analyzer thread, and the app with it. zxing-cpp reports such a
+ * frame with a [RuntimeException]; an [Error] such as [OutOfMemoryError] is not a bad frame, so it
+ * is not caught.
+ */
+@Suppress("TooGenericExceptionCaught")
+private fun BarcodeReader.textOrNull(frame: ImageProxy): String? = try {
+    read(frame).firstNotNullOfOrNull { it.text }
+} catch (ignored: RuntimeException) {
+    null
 }

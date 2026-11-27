@@ -6,8 +6,8 @@ GRADLE := ./gradlew
 # detekt with type resolution: the debug variant of Android modules, main and test of JVM modules.
 DETEKT := detektDebug detektDebugUnitTest :core:engine:detektMain :core:engine:detektTest :core:model:detektMain :core:model:detektTest
 
-.PHONY: build test lint coverage no-telemetry check install install_rc format clean codemap \
-	release_key bump release_check publish
+.PHONY: build test lint coverage no-telemetry check install install_rc qr_samples format clean \
+	codemap release_key bump release_check publish
 
 # Version part bump raises: patch (0.1.0 -> 0.1.1), minor (-> 0.2.0) or major (-> 1.0.0).
 BUMP ?= patch
@@ -40,6 +40,13 @@ install:  ## Install the debug app on the running emulator or device
 
 install_rc:  ## Build the release APK and install it on one device (DEVICE=<serial> if several)
 	bash scripts/install_rc.sh $(DEVICE)
+
+qr_samples:  ## On a running emulator or device: the hard QR samples through zxing-cpp, and the settings report
+	$(GRADLE) :feature:scan:installDebugAndroidTest
+	@out="$$("$${ANDROID_HOME:-$$HOME/Library/Android/sdk}/platform-tools/adb" shell am instrument -w \
+		-e class io.eksoda.feature.scan.QrSampleSetTest \
+		io.eksoda.feature.scan.test/androidx.test.runner.AndroidJUnitRunner)"; \
+		echo "$$out"; echo "$$out" | grep -q '^OK '
 
 format:  ## Apply ktlint formatting
 	$(GRADLE) spotlessApply

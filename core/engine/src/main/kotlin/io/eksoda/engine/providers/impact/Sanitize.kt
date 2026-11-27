@@ -11,7 +11,8 @@ import io.eksoda.engine.providers.textOf
 
 // Removes personal data from a saved Impact receipt page.
 //
-// Replaced in place (shape-preserving fakes): buyer/counterparty values, payment transaction
+// Replaced in place (shape-preserving fakes): buyer/counterparty values (with the buyer's address
+// and the delivery address), payment transaction
 // ids, POS terminal id, payment and provider signatures, and the URL access GUID (→ 32 zeros)
 // and provider authentication code (→ 40 zeros) wherever a receipt link or the not-found
 // message shows them. Removed: scripts, styles, the QR code (it encodes the URL) and the myDATA
@@ -37,7 +38,9 @@ public fun sanitizeHtml(rawHtml: String): SanitizeResult {
     val document = io.eksoda.engine.providers.parseHtml(rawHtml)
     val secrets = Secrets()
 
-    for (valueElement in document.select(".CounterParty .value")) {
+    // The buyer, and where the goods were delivered (the buyer's address).
+    val buyerValues = document.select(".CounterParty .value, ${Labels.COMMERCIAL_DELIVERY} .value")
+    for (valueElement in buyerValues) {
         // Leaf values only (select() includes the element itself).
         if (valueElement.select(".value").size == 1) {
             secrets.replaceElement(valueElement, "counterparty")
@@ -53,11 +56,14 @@ public fun sanitizeHtml(rawHtml: String): SanitizeResult {
         val cells = childCells(tr, "td")
         if (cells.size != 2) continue
         val label = textOf(cells[0])
-        val table = tr.parents().firstOrNull { it.tagName() == "table" }
         // Party tables are told apart only by their <h3> title; any party that is not the issuer
-        // is the buyer.
-        val inCounterparty = table != null && table.hasClass("Party") &&
-            textOf(table.selectFirst("h3")) != Labels.ISSUER_PARTY_TITLE
+        // is the buyer. A party's address is a table nested in the party's table.
+        val party = tr.parents().firstOrNull { it.tagName() == "table" && it.hasClass("Party") }
+        val inBuyerParty =
+            party != null && textOf(party.selectFirst("h3")) != Labels.ISSUER_PARTY_TITLE
+        val inDeliveryAddress =
+            tr.parents().any { it.tagName() == "td" && it.hasClass(Labels.TAX_DELIVERY_ADDRESS) }
+        val inCounterparty = inBuyerParty || inDeliveryAddress
         when {
             label in Labels.TAX_DROP -> secrets.replaceElement(cells[1], "payment_or_signature")
             inCounterparty -> secrets.replaceElement(cells[1], "counterparty")

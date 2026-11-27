@@ -54,6 +54,12 @@ internal object Labels {
     val TAX_ISSUER =
         mapOf("ΑΦΜ" to "vat", "Κωδ. Χώρας" to "country", "Αρ. Εγκατάστασης" to "branch")
     const val ISSUER_PARTY_TITLE = "Στοιχεία Εκδότη"
+
+    /** The cell holding the delivery (buyer's) address in the tax view's header. */
+    const val TAX_DELIVERY_ADDRESS = "OtherDeliveryNoteHeaderDeliveryAddress"
+
+    /** The commercial view's delivery details: the buyer's address (never read). */
+    const val COMMERCIAL_DELIVERY = ".section-distributiondetails-destination"
     val TAX_SUMMARY = mapOf(
         "Σύνολο Καθαρής Αξίας" to "net",
         "Σύνολο ΦΠΑ" to "vat",

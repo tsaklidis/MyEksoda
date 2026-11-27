@@ -22,16 +22,7 @@ class QrImageDecoder @Inject constructor(
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) {
     /** A photo is decoded once, so the slower, more thorough options are worth it. */
-    private val reader by lazy {
-        BarcodeReader(
-            BarcodeReader.Options(
-                formats = setOf(BarcodeReader.Format.QR_CODE),
-                tryHarder = true,
-                tryRotate = true,
-                tryDownscale = true,
-            ),
-        )
-    }
+    private val reader by lazy { BarcodeReader(QrReading.thoroughOptions()) }
 
     /** The text of the first QR code in the photo, or null. */
     suspend fun decode(uri: Uri): String? {
