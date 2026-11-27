@@ -8,12 +8,6 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.camera.core.Camera
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.Preview
-import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.camera.view.PreviewView
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -48,12 +42,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -65,16 +57,12 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.eksoda.core.designsystem.theme.EksodaTheme
 import kotlinx.coroutines.delay
-import zxingcpp.BarcodeReader
-import java.util.concurrent.Executors
 
 @Composable
 fun ScanRoute(
@@ -155,7 +143,7 @@ fun ScanScreen(
     Surface(modifier = Modifier.fillMaxSize(), color = Color.Black) {
         Box(modifier = Modifier.fillMaxSize()) {
             if (hasPermission) {
-                CameraPreview(
+                ScanCamera(
                     torchOn = state.torchOn,
                     onTorchAvailable = { torchAvailable = it },
                     onQrCode = { onEvent(ScanEvent.CodeScanned(it)) },
@@ -434,84 +422,6 @@ private fun PasteLinkDialog(onImport: (String) -> Unit, onDismiss: () -> Unit) {
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.scan_cancel)) }
-        },
-    )
-}
-
-/**
- * The camera preview with a QR analyzer. zxing-cpp decodes on the device with no network. The
- * analyzer thread is released with the composable.
- */
-@Composable
-private fun CameraPreview(
-    torchOn: Boolean,
-    onTorchAvailable: (Boolean) -> Unit,
-    onQrCode: (String) -> Unit,
-) {
-    val lifecycleOwner = LocalLifecycleOwner.current
-    val currentOnQrCode by rememberUpdatedState(onQrCode)
-    val currentOnTorchAvailable by rememberUpdatedState(onTorchAvailable)
-    val analyzerExecutor = remember { Executors.newSingleThreadExecutor() }
-    var camera by remember { mutableStateOf<Camera?>(null) }
-    val reader = remember {
-        // Receipts carry QR codes only. Looking for other formats makes each frame slower.
-        BarcodeReader(BarcodeReader.Options(formats = setOf(BarcodeReader.Format.QR_CODE)))
-    }
-    val preview = remember { Preview.Builder().build() }
-    val analysis = remember {
-        ImageAnalysis.Builder()
-            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-            .build()
-    }
-    var cameraProvider by remember { mutableStateOf<ProcessCameraProvider?>(null) }
-    var active by remember { mutableStateOf(true) }
-    DisposableEffect(Unit) {
-        // Stop the frames before their thread goes: unbinding first means CameraX never hands a
-        // frame to a shut-down executor, and the camera is released as soon as the screen goes.
-        onDispose {
-            active = false
-            analysis.clearAnalyzer()
-            cameraProvider?.unbind(preview, analysis)
-            analyzerExecutor.shutdown()
-        }
-    }
-    LaunchedEffect(camera, torchOn) {
-        camera?.cameraControl?.enableTorch(torchOn)
-    }
-
-    AndroidView(
-        modifier = Modifier.fillMaxSize(),
-        factory = { context ->
-            val previewView = PreviewView(context)
-            val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
-            cameraProviderFuture.addListener(
-                {
-                    // The screen may be gone before the camera provider is ready.
-                    if (!active) return@addListener
-                    preview.surfaceProvider = previewView.surfaceProvider
-                    analysis.setAnalyzer(analyzerExecutor) { image ->
-                        val text = image.use { reader.read(it) }.firstNotNullOfOrNull { it.text }
-                        if (text != null) {
-                            ContextCompat.getMainExecutor(context).execute { currentOnQrCode(text) }
-                        }
-                    }
-                    val provider = cameraProviderFuture.get()
-                    cameraProvider = provider
-                    val bound = provider.run {
-                        unbindAll()
-                        bindToLifecycle(
-                            lifecycleOwner,
-                            CameraSelector.DEFAULT_BACK_CAMERA,
-                            preview,
-                            analysis,
-                        )
-                    }
-                    camera = bound
-                    currentOnTorchAvailable(bound.cameraInfo.hasFlashUnit())
-                },
-                ContextCompat.getMainExecutor(context),
-            )
-            previewView
         },
     )
 }
