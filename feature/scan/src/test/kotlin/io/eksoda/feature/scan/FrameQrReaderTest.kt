@@ -60,6 +60,34 @@ class FrameQrReaderTest {
             .isEqualTo("https://receipts.example.gr/v/2")
     }
 
+    // zxing-cpp's native code reports a failure as a plain RuntimeException, so the test throws one.
+    @Suppress("TooGenericExceptionThrown")
+    @Test
+    fun `a frame the native decoder fails on is skipped and closed`() {
+        val reader = FrameQrReader<Frame>(
+            quick = { throw RuntimeException("native decoder failure") },
+            thorough = { null },
+        )
+        val frame = Frame("https://receipts.example.gr/v/1")
+
+        assertThat(reader.read(frame)).isNull()
+        assertThat(frame.closed).isTrue()
+    }
+
+    @Test
+    fun `an Error is not taken for a bad frame, it propagates and the frame is still closed`() {
+        val reader = FrameQrReader<Frame>(
+            quick = { throw OutOfMemoryError("no memory for this frame") },
+            thorough = { null },
+        )
+        val frame = Frame()
+
+        assertThat(runCatching { reader.read(frame) })
+            .isFailure()
+            .isInstanceOf(OutOfMemoryError::class)
+        assertThat(frame.closed).isTrue()
+    }
+
     @Test
     fun `every third frame gets the thorough reading`() {
         val reader = reader()

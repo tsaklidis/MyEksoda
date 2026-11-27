@@ -7,8 +7,11 @@ package io.eksoda.feature.scan
  * (`QrSampleSetTest` measures both).
  *
  * A frame the reader cannot take counts as a frame with no code: an exception thrown on the
- * analyzer thread would end it, and the app with it. Not thread safe: the camera analyzer calls
- * it from its one thread.
+ * analyzer thread would end it, and the app with it. zxing-cpp reports such a frame with a
+ * [RuntimeException] (its native code throws only that; its Kotlin wrapper an
+ * [IllegalStateException] for an unsupported image format). An [Error] such as
+ * [OutOfMemoryError] is not a bad frame, so it is not caught. Not thread safe: the camera
+ * analyzer calls it from its one thread.
  */
 internal class FrameQrReader<F : AutoCloseable>(
     private val quick: (F) -> String?,
@@ -22,10 +25,15 @@ internal class FrameQrReader<F : AutoCloseable>(
     }
 
     /** The text of the first QR code in [frame], or null. The frame is closed either way. */
+    @Suppress("TooGenericExceptionCaught")
     fun read(frame: F): String? = frame.use {
         count = (count + 1) % thoroughEvery
         val reading = if (count == 0) thorough else quick
-        runCatching { reading(it) }.getOrNull()
+        try {
+            reading(it)
+        } catch (ignored: RuntimeException) {
+            null
+        }
     }
 
     companion object {
