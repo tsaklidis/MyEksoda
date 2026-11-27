@@ -381,3 +381,8 @@ Text helpers (stored keys depend on their exact behavior; reuse them, don't rein
   `DriftTest` parses every fixture again with each text blanked or garbled and each element
   removed, one at a time: a parser reads the page or throws a `ReceiptException`, never
   anything else.
+  The receipt scanner's settings (feature:scan `QrReading`: frame size and zxing-cpp options,
+  shared by the camera and photos; `FrameQrReader` gives every third frame the thorough reading)
+  are measured by `QrSampleSetTest`, an instrumented test (zxing-cpp is native) on drawn hard
+  codes with made-up links: `make qr_samples` on a running emulator or device, not part of
+  `make check`. Change the scanner's settings against its report.
