@@ -137,15 +137,17 @@ private val ADDRESS = pyRegex(
 )
 
 /**
- * The issuer VAT at the start of the "Α.Φ.Μ" value, after a prefix such as "EL" or "ΕΛ - ".
+ * The issuer VAT: the first digits of the "Α.Φ.Μ" value, after any prefix ("EL", "ΕΛ - ").
  * Some issuers print more on the same line ("800764388, Τηλ: 214 …" or "800764388 214 …"),
- * so only the nine digits are the VAT: nine in a row first ([ISSUER_VAT]), else nine grouped by
- * spaces or dots ("094 063 140", [GROUPED_VAT]) and not followed by another group, which would
- * make them part of a longer number.
+ * so only nine digits are the VAT: nine in a row first ([ISSUER_VAT]), else nine grouped by
+ * spaces, no-break spaces, dots, dashes or slashes ("094 063 140", "094-063-140",
+ * [GROUPED_VAT]) and not followed by another group, which would make them part of a longer
+ * number.
  */
-private val ISSUER_VAT = Regex("""^\D{0,12}(\d{9})(?!\d)""")
-private val GROUPED_VAT = Regex("""^\D{0,12}((?:\d[ .]?){8}\d)(?![ .]?\d)""")
-private val VAT_SEPARATORS = Regex("""[ .]""")
+private const val VAT_SEPARATOR = "[ .\\-/ ]"
+private val ISSUER_VAT = Regex("""^\D*(\d{9})(?!\d)""")
+private val GROUPED_VAT = Regex("""^\D*((?:\d$VAT_SEPARATOR?){8}\d)(?!$VAT_SEPARATOR?\d)""")
+private val VAT_SEPARATORS = Regex(VAT_SEPARATOR)
 private val NOT_CURRENCY = pyRegex("""[\d.,\s-]""")
 private val HEADER_FIELD_KEYS = HEADER_FIELDS.keys.map(::keyOf).toSet()
 private const val VAT_COLUMNS = 3

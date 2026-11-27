@@ -109,6 +109,11 @@ class MerchantVatRepairTest {
                 receipt("r2", "m1", RIGHT, "400002")
             },
             "an empty merchant alone" to { merchant("m2", WRONG, "Σ") },
+            "an empty copy beside a Cypriot merchant's" to {
+                merchant("m1", RIGHT, "Σ", country = "CY")
+                merchant("m2", WRONG, "Σ")
+                receipt("r2", "m1", RIGHT, "400002")
+            },
             "not digits only" to {
                 merchant("m3", "EL094025817", "Α")
                 receipt("r3", "m3", "EL094025817", "400003")
@@ -129,7 +134,7 @@ class MerchantVatRepairTest {
         )
         for ((name, setUp) in cases) {
             val case = database().openHelper.writableDatabase.apply(setUp)
-            val repairs = VatRepair.patch(SnapshotStore.read(case), NOW) != null
+            val repairs = VatRepair.patch(SnapshotStore.read(case)) != null
             assertThat(needsVatRepair(case), name = name).isEqualTo(repairs)
         }
     }

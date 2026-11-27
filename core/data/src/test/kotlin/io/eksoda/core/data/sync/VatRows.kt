@@ -16,13 +16,18 @@ internal object VatRows {
         job("j2", receipt = "r2")
     }
 
-    fun SupportSQLiteDatabase.merchant(id: String, vat: String, name: String) = execSQL(
+    fun SupportSQLiteDatabase.merchant(
+        id: String,
+        vat: String,
+        name: String,
+        country: String = "GR",
+    ) = execSQL(
         "INSERT INTO merchant (id, country_code, vat_number, legal_name, display_name, " +
             "normalized_display_name, display_name_set_by_user, activity_description, " +
             "tax_office, gemi_number, street, street_number, city, postal_code, details_as_of, " +
-            "created_at, updated_at) VALUES (?, 'GR', ?, ?, ?, '', 0, '', '', '', '', '', '', " +
+            "created_at, updated_at) VALUES (?, ?, ?, ?, ?, '', 0, '', '', '', '', '', '', " +
             "'', NULL, 1, 1)",
-        arrayOf<Any?>(id, vat, name, name),
+        arrayOf<Any?>(id, country, vat, name, name),
     )
 
     fun SupportSQLiteDatabase.receipt(

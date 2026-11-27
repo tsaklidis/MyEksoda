@@ -149,7 +149,16 @@ class EntersoftTest {
         )
         assertThat(sklavenitis.issuer.vatNumber).isEqualTo("800764388")
         // Prefixed, grouped, or followed by more digits after a space.
-        for (printed in listOf("EL 093 683.423", "ΕΛ - 093683423", "093683423 2141009999")) {
+        val printedForms = listOf(
+            "EL 093 683.423",
+            "ΕΛ - 093683423",
+            "ΕΛ (ΑΦΜ εταιρείας): 093683423",
+            "093683423 2141009999",
+            "093-683-423",
+            "093/683/423",
+            "093 683 423",
+        )
+        for (printed in printedForms) {
             val line = receipt.replace("Α.Φ.Μ: 093683423", "Α.Φ.Μ: $printed")
             assertThat(parseHtml(line, identity).issuer.vatNumber, name = printed)
                 .isEqualTo("093683423")
@@ -204,7 +213,11 @@ class EntersoftTest {
         val link = "https://e-invoicing.gr/edocuments/ViewInvoice?ct=PEPPOL&id=$id&s=A&h=$token"
         val returnUrl = "/login?ReturnUrl=%2Fedocuments%2FViewInvoice%3Fct%3DPEPPOL%26id%3D$id" +
             "%26s%3DA%26h%3D$token"
+        // The path's trailing slash, as printed or percent-encoded.
+        val slashed = link.replace("ViewInvoice?", "ViewInvoice/?")
+        val slashedReturn = returnUrl.replace("ViewInvoice%3F", "ViewInvoice%2F%3F")
         val extras = "<a href=\"$link\">receipt</a><a href=\"$returnUrl\">sign in</a>" +
+            "<a href=\"$slashed\">again</a><a href=\"$slashedReturn\">back</a>" +
             "<img src=\"/logo.png?w=120&h=40\">"
         val raw = directory.resolve("shell_legacy.html").readText()
             .replace("id=$FAKE_LEGACY_ID", "id=$id")

@@ -62,7 +62,7 @@ class VatRepairTest {
         assertThat(VatRepair.repairedVat("GR", "EL800764388214")).isNull()
         assertThat(VatRepair.repairedVat("CY", WRONG)).isNull()
         assertThat(VatRepair.repairedVat("GR", null)).isNull()
-        assertThat(VatRepair.patch(snapshot("merchant" to listOf(merchant("m1"))), NOW)).isNull()
+        assertThat(VatRepair.patch(snapshot("merchant" to listOf(merchant("m1"))))).isNull()
     }
 
     @Test
@@ -80,8 +80,36 @@ class VatRepairTest {
                 "merchant" to listOf(merchant("m1", vat = RIGHT), merchant("m2", vat = WRONG)),
                 "receipt" to receipts,
             )
-            assertThat(VatRepair.patch(data, NOW), name = name).isNull()
+            assertThat(VatRepair.patch(data), name = name).isNull()
         }
+        // Empty, and the merchant with its nine digits that has them is not Greek.
+        val cypriot = snapshot(
+            "merchant" to listOf(
+                merchant("m1", vat = RIGHT) + ("country_code" to "CY"),
+                merchant("m2", vat = WRONG),
+            ),
+            "receipt" to listOf(wrongReceipt + mapOf("merchant_id" to "m1", "issuer_vat" to RIGHT)),
+        )
+        assertThat(VatRepair.patch(cypriot)).isNull()
+    }
+
+    @Test
+    fun `a merchant the user renamed keeps its name when the two join`() {
+        val data = household()
+        val renamed = data.rows("merchant").map { merchant ->
+            if (merchant["id"] != "m2") return@map merchant
+            merchant + mapOf(
+                "display_name" to "Σκλαβενίτης μου",
+                "display_name_set_by_user" to 1L,
+            )
+        }
+
+        val merged = repaired(Snapshot(TEST_SCHEMA, data.tables + ("merchant" to renamed)))
+
+        assertThat(merged.ids("merchant")).containsExactly("m1")
+        val shop = merged.row("merchant", "m1")
+        assertThat(shop["display_name"]).isEqualTo("Σκλαβενίτης μου")
+        assertThat(shop["vat_number"]).isEqualTo(RIGHT)
     }
 
     @Test
@@ -105,7 +133,7 @@ class VatRepairTest {
         assertThat(merged.row("receipt_item", "i2")["product_id"]).isEqualTo("p1")
 
         // Repaired data needs nothing more.
-        assertThat(VatRepair.patch(Snapshot(TEST_SCHEMA, merged.tables), NOW + 1)).isNull()
+        assertThat(VatRepair.patch(Snapshot(TEST_SCHEMA, merged.tables))).isNull()
     }
 
     @Test
@@ -158,7 +186,7 @@ class VatRepairTest {
         assertThat(receipt["issuer_vat"]).isEqualTo(RIGHT)
         assertThat(receipt["updated_at"]).isEqualTo(NOW + 51)
         assertThat(receipt.containsKey("source_data")).isEqualTo(false)
-        assertThat(VatRepair.patch(Snapshot(TEST_SCHEMA, merged.tables), NOW)).isNull()
+        assertThat(VatRepair.patch(Snapshot(TEST_SCHEMA, merged.tables))).isNull()
     }
 
     @Test
@@ -170,8 +198,10 @@ class VatRepairTest {
         // with its nine digits has the first parser's receipts, so the copy is repaired.
         val onA = Snapshot(TEST_SCHEMA, SyncMerge.merge(phoneA, phoneB).tables)
         assertThat(onA.rows("merchant").map { it["id"] }).containsExactly("m1", "m2")
-        val patch = VatRepair.patch(onA, NOW + 1)
+        val patch = VatRepair.patch(onA)
         assertThat(patch).isNotNull()
+        // The right merchant, already the newest, is not written again at every such sync.
+        assertThat(checkNotNull(patch).rows("merchant").map { it["id"] }).containsExactly("m2")
         val againA = SyncMerge.merge(onA, checkNotNull(patch))
         assertThat(againA.ids("merchant")).containsExactly("m1")
 
@@ -184,7 +214,7 @@ class VatRepairTest {
     }
 
     private fun repaired(snapshot: Snapshot): MergeResult =
-        SyncMerge.merge(snapshot, checkNotNull(VatRepair.patch(snapshot, NOW)))
+        SyncMerge.merge(snapshot, checkNotNull(VatRepair.patch(snapshot)))
 
     private companion object {
         const val RIGHT = "800764388"

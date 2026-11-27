@@ -15,7 +15,7 @@ import io.eksoda.engine.providers.entersoft.PROVIDER_CODE as ENTERSOFT
  * Only that parser's data is repaired, never from the shape of a VAT alone:
  * - a merchant with a Greek VAT of more than nine digits, all digits, and no receipt from
  *   another provider, that has a receipt the first Entersoft parser read; or that has no
- *   receipts while the merchant with its first nine digits has such receipts (the copy a
+ *   receipts while the Greek merchant with its first nine digits has such receipts (the copy a
  *   household phone that has not updated yet sends back, after its receipts moved);
  * - a receipt the first Entersoft parser read with such a VAT, when its nine digits are its
  *   merchant's VAT once repaired.
@@ -24,6 +24,8 @@ import io.eksoda.engine.providers.entersoft.PROVIDER_CODE as ENTERSOFT
  * newer than the stored ones. The merge then does what it does for two phones' copies of a
  * merchant: one merchant per VAT number (the smaller id), its receipts, stores and product
  * mappings repointed, and every phone of the household ends up with the same data.
+ * [NEEDS_REPAIR_SQL] is the same rule as a query, to skip reading the data when there is nothing
+ * to do (core:data compares the two in a test).
  */
 public object VatRepair {
     private const val GREEK_VAT_LENGTH = 9
@@ -35,6 +37,7 @@ public object VatRepair {
     private const val ISSUER_VAT = "issuer_vat"
     private const val SOURCE_DATA = "source_data"
     private const val MERCHANT_ID = "merchant_id"
+    private const val RENAMED = "display_name_set_by_user"
 
     /** The VAT number [vat] stands for when it is a Greek VAT followed by more digits; else null. */
     public fun repairedVat(country: Any?, vat: Any?): String? {
@@ -44,32 +47,53 @@ public object VatRepair {
 
     /**
      * The corrected rows to merge into [local], or null when nothing needs repairing. Each is
-     * newer than its stored copy and than [now]. A merchant already under the right VAT is
-     * stamped newer still, so when the merge joins the two, its own details (a rename, a default
-     * category) are the ones kept.
+     * newer than its stored copy. Of the merchants that become one, the one whose details
+     * (name, default category) are kept ([keeperOrder]: renamed by the user, else the one
+     * already under the right VAT) is the newest; it is left out when it already is.
      */
-    public fun patch(local: Snapshot, now: Long): Snapshot? {
+    public fun patch(local: Snapshot): Snapshot? {
         val merchants = local.rows(SyncSchema.MERCHANT)
-        val wrong = wrongMerchants(merchants, local.rows(SyncSchema.RECEIPT))
-        val vats = wrong.values.toSet()
-        val existing = merchants.filter { it["country_code"] == GREECE && it[VAT] in vats }
-        val wrongRows = merchants.filter { it[SyncSchema.ID] in wrong }
-        val base = (wrongRows + existing).maxOfOrNull { version(it) + 1 }?.coerceAtLeast(now)
-            ?: now
-        val corrected = wrongRows.map { merchant ->
-            merchant + (VAT to wrong[merchant[SyncSchema.ID]]) + (SyncSchema.VERSION to base)
-        } + existing.map { it + (SyncSchema.VERSION to base + 1) }
+        val receipts = local.rows(SyncSchema.RECEIPT)
+        val wrong = wrongMerchants(merchants, receipts)
+        val corrected = merchants
+            .filter { it[SyncSchema.ID] in wrong || (isGreek(it) && it[VAT] in wrong.values) }
+            .groupBy { wrong[it[SyncSchema.ID]] ?: it[VAT] }
+            .values
+            .flatMap { group -> stamped(group, wrong) }
 
         // Each merchant's VAT once repaired: a receipt is repaired only to match it.
         val finalVat = merchants.associate { it[SyncSchema.ID] to it[VAT] } + wrong
-        val movedReceipts = local.rows(SyncSchema.RECEIPT).mapNotNull { receipt ->
-            repairedReceipt(receipt, now)?.takeIf { it[ISSUER_VAT] == finalVat[it[MERCHANT_ID]] }
+        val movedReceipts = receipts.mapNotNull { receipt ->
+            repairedReceipt(receipt)?.takeIf { it[ISSUER_VAT] == finalVat[it[MERCHANT_ID]] }
         }
         if (corrected.isEmpty() && movedReceipts.isEmpty()) return null
         return Snapshot(
             local.schema,
             mapOf(SyncSchema.MERCHANT to corrected, SyncSchema.RECEIPT to movedReceipts),
         )
+    }
+
+    /** Of one VAT's merchants: user-renamed first, then the right one, then the smaller id. */
+    private fun keeperOrder(wrong: Map<Any?, String>): Comparator<Row> =
+        compareBy<Row>({ (it[RENAMED] as? Long ?: 0L) != 0L }, { it[SyncSchema.ID] !in wrong })
+            .thenByDescending { it[SyncSchema.ID] as? String }
+
+    /** One VAT's merchants ([group]) as patched: see [patch]. */
+    private fun stamped(group: List<Row>, wrong: Map<Any?, String>): List<Row> {
+        val keeper = group.maxWith(keeperOrder(wrong))
+        val corrected = group.filter { it[SyncSchema.ID] in wrong }.associate { merchant ->
+            val id = merchant[SyncSchema.ID]
+            val stamp = version(merchant) + 1
+            id to merchant + (VAT to wrong.getValue(id)) + (SyncSchema.VERSION to stamp)
+        }
+        val keeperId = keeper[SyncSchema.ID]
+        val others = corrected.values.filter { it[SyncSchema.ID] != keeperId }
+        val newest = group.filter { it[SyncSchema.ID] != keeperId }
+            .maxOfOrNull { version(corrected[it[SyncSchema.ID]] ?: it) }
+            ?: Long.MIN_VALUE
+        val kept = corrected[keeperId] ?: keeper
+        if (keeperId !in wrong && version(kept) > newest) return others
+        return others + (kept + (SyncSchema.VERSION to maxOf(version(kept), newest + 1)))
     }
 
     /** Merchant id → its VAT once repaired, for the merchants to repair. */
@@ -79,7 +103,8 @@ public object VatRepair {
         val elsewhere = receipts.filter { it["provider_code"] != ENTERSOFT }
             .map { it[MERCHANT_ID] }
             .toSet()
-        val entersoftVats = merchants.filter { it[SyncSchema.ID] in firstEntersoft }
+        val entersoftVats = merchants
+            .filter { isGreek(it) && it[SyncSchema.ID] in firstEntersoft }
             .map { it[VAT] }
             .toSet()
         return merchants.mapNotNull { merchant ->
@@ -90,18 +115,19 @@ public object VatRepair {
         }.toMap()
     }
 
+    private fun isGreek(merchant: Row): Boolean = merchant["country_code"] == GREECE
+
     private fun isFirstEntersoft(receipt: Row): Boolean =
         receipt["provider_code"] == ENTERSOFT && receipt["parser_version"] == FIRST_VERSION
 
-    private fun repairedReceipt(receipt: Row, now: Long): Row? {
+    private fun repairedReceipt(receipt: Row): Row? {
         if (!isFirstEntersoft(receipt)) return null
         val vat = repairedVat(receipt["issuer_country"], receipt[ISSUER_VAT]) ?: return null
         val wrong = receipt.getValue(ISSUER_VAT) as String
         val data = repairedSourceData(receipt[SOURCE_DATA], wrong, vat)
             ?.let { mapOf(SOURCE_DATA to it) }
             .orEmpty()
-        val stamp = maxOf(now, version(receipt) + 1)
-        return receipt + (ISSUER_VAT to vat) + data + (SyncSchema.VERSION to stamp)
+        return receipt + (ISSUER_VAT to vat) + data + (SyncSchema.VERSION to version(receipt) + 1)
     }
 
     /**
@@ -119,4 +145,31 @@ public object VatRepair {
     }
 
     private fun version(row: Row): Long = row[SyncSchema.VERSION] as? Long ?: 0L
+
+    private fun longVat(column: String) = "length($column) > 9 AND $column NOT GLOB '*[^0-9]*'"
+
+    private fun firstParse(receipt: String) =
+        "$receipt.provider_code = '$ENTERSOFT' AND $receipt.parser_version = '$FIRST_VERSION'"
+
+    /** Whether [patch] has anything to do, as one query on the synced tables: the same rule. */
+    public val NEEDS_REPAIR_SQL: String = """
+        SELECT 1 FROM merchant m WHERE m.country_code = '$GREECE' AND ${longVat("m.vat_number")}
+          AND NOT EXISTS (SELECT 1 FROM receipt r
+            WHERE r.merchant_id = m.id AND r.provider_code != '$ENTERSOFT')
+          AND (
+            EXISTS (SELECT 1 FROM receipt r WHERE r.merchant_id = m.id AND ${firstParse("r")})
+            OR (
+              NOT EXISTS (SELECT 1 FROM receipt r WHERE r.merchant_id = m.id)
+              AND EXISTS (SELECT 1 FROM merchant y JOIN receipt s ON s.merchant_id = y.id
+                WHERE y.country_code = '$GREECE' AND y.vat_number = substr(m.vat_number, 1, 9)
+                  AND ${firstParse("s")})
+            )
+          )
+        UNION ALL
+        SELECT 1 FROM receipt r WHERE ${firstParse("r")} AND r.issuer_country = '$GREECE'
+          AND ${longVat("r.issuer_vat")}
+          AND EXISTS (SELECT 1 FROM merchant m
+            WHERE m.id = r.merchant_id AND m.vat_number = substr(r.issuer_vat, 1, 9))
+        LIMIT 1
+    """.trimIndent()
 }

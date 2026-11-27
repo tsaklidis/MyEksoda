@@ -33,18 +33,21 @@ class SyncMerger @Inject constructor(
      * Merges [remote] into this phone's data, in one transaction: on any failure nothing
      * changes. Throws [SyncException] (schema_mismatch, damaged, merge_failed).
      */
-    suspend fun merge(remote: Snapshot): SyncCounts = try {
-        coordinator.write {
-            val db = database.openHelper.writableDatabase
-            val result = SyncMerge.merge(SnapshotStore.read(db), remote)
-            SnapshotStore.apply(db, result, clock.millis())
-            // A phone that has not updated sends merchants saved under a wrong VAT number
-            // back: they are repaired here, not left split until the next start (VatRepair).
-            repairVat(db, clock.millis())
-            SyncCounts(result.inserted, result.updated, result.deleted)
+    suspend fun merge(remote: Snapshot): SyncCounts {
+        val counts = try {
+            coordinator.write {
+                val db = database.openHelper.writableDatabase
+                val result = SyncMerge.merge(SnapshotStore.read(db), remote)
+                SnapshotStore.apply(db, result, clock.millis())
+                SyncCounts(result.inserted, result.updated, result.deleted)
+            }
+        } catch (e: SQLException) {
+            // A constraint failed while writing: the transaction rolled back.
+            throw SyncException(SyncException.MERGE_FAILED, e)
         }
-    } catch (e: SQLException) {
-        // A constraint failed while writing: the transaction rolled back.
-        throw SyncException(SyncException.MERGE_FAILED, e)
+        // A phone that has not updated sends merchants saved under a wrong VAT number back:
+        // they are repaired now, not left split until the next start (VatRepair).
+        repairVatAfter(database, coordinator, clock.millis())
+        return counts
     }
 }

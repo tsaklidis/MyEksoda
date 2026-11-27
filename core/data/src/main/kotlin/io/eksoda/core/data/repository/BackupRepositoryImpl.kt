@@ -11,7 +11,7 @@ import io.eksoda.core.data.db.WriteCoordinator
 import io.eksoda.core.data.di.ApplicationScope
 import io.eksoda.core.data.di.IoDispatcher
 import io.eksoda.core.data.imports.ImportScheduler
-import io.eksoda.core.data.sync.repairVat
+import io.eksoda.core.data.sync.repairVatAfter
 import io.eksoda.core.database.EksodaDatabase
 import io.eksoda.core.database.dao.ImportJobDao
 import io.eksoda.core.model.BackupSummary
@@ -62,12 +62,9 @@ class BackupRepositoryImpl @Inject constructor(
 
     override suspend fun restore(plan: RestorePlan): Result<Unit> = outliving {
         val before = jobs.pending().map { it.id }.toSet()
-        coordinator.write {
-            val db = database.writable()
-            BackupArchive.restore(db, plan.archive)
-            // A backup from before 0.3.10 can hold receipts saved under a wrong VAT number.
-            repairVat(db, clock.millis())
-        }
+        coordinator.write { BackupArchive.restore(database.writable(), plan.archive) }
+        // A backup from before 0.3.10 can hold receipts saved under a wrong VAT number.
+        repairVatAfter(database, coordinator, clock.millis())
         // Queued imports of jobs that are gone stop; the backup's pending jobs run again.
         val after = jobs.pending().map { it.id }.toSet()
         (before - after).forEach(scheduler::cancel)

@@ -36,7 +36,9 @@ private val PARAM_TOKEN = Regex("""hashToken=([0-9a-z]+)""", RegexOption.IGNORE_
 public val FAKE_LEGACY_ID: String = "0".repeat(40)
 private const val SEPARATOR = """(?:[?&]|&amp;|%3F|%26)"""
 private const val EQUALS = """(?:=|%3D)"""
-private const val QUERY_START = """(?:\?|%3F)(?:[^"'<>\s]*?$SEPARATOR)?"""
+
+/** The query's start, after the path's trailing slash if any (`ViewInvoice/?ct=…`). */
+private const val QUERY_START = """(?:/|%2F)?(?:\?|%3F)(?:[^"'<>\s]*?$SEPARATOR)?"""
 private val LEGACY_ID = Regex(
     """(?:ViewInvoice|GetInvoice)${QUERY_START}id$EQUALS([0-9a-f]{40})""",
     RegexOption.IGNORE_CASE,
