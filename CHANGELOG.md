@@ -3,6 +3,21 @@
 What changed in each release of Eksoda. Earlier releases are described on the
 [Releases](https://github.com/tsaklidis/MyEksoda/releases) page.
 
+## 0.3.12 - E-shop receipts from Impact
+
+A small update for receipts from Impact (`einvoice.impact.gr`). Install it over 0.3.11 as
+usual: your data stays, and household sync keeps working between 0.3.11 and 0.3.12.
+
+### Fixed
+
+- **E-shop receipts from einvoice.impact.gr.** Some shops print the VAT category by name
+  ("ΦΠΑ Κανονικός (24/17)%") instead of the rate, and their receipts failed with "the
+  provider changed its page". They are now read. Scan them again: nothing was saved for them.
+- **Your address is not saved.** On receipts that print the buyer's address or a delivery
+  address (online orders), the address is no longer saved with the receipt.
+- **Prices before VAT.** Shops that print unit prices before VAT no longer get a price
+  warning, and the price is read as before VAT.
+
 ## 0.3.11 - Pharmacy receipts from Parochos
 
 A small update that reads receipts from more shops. Install it over 0.3.10 as usual: your data
