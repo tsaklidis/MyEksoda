@@ -131,7 +131,13 @@ UBL, `/filedocument/getfile?fileType=4&documentId=<uuid>`, which is not fetched)
 Epsilon host is Epsilon's and one on a Parochos host is Parochos's: each refuses an XML that
 prints the other's link.
 Impact: the link's 40-hex id is usually the myDATA UID but not always; when it differs, the
-page's tax view must print the link itself.
+page's tax view must print the link itself. The tax view's VAT category decides a line's rate;
+the commercial "Κατηγορία Φ.Π.Α" column, a rate ("24") or the category's name with its
+mainland and island rates ("ΦΠΑ Κανονικός (24/17)%"), must allow it (`lineRate`). Unit prices
+are with VAT unless more of the receipt's lines fit them before VAT (`inferPriceBasis`; e-shops).
+Buyer data is never read: a party table other than the issuer's, the address table nested in it,
+and the delivery address (tax header `OtherDeliveryNoteHeaderDeliveryAddress`, commercial
+`section-distributiondetails-destination`, `Labels`); the sanitizer replaces the same cells.
 s1ecos (`einvoice.s1ecos.gr`) serves Impact's pages under its own host: its own provider code and
 parser version, read by Impact's layout (`impact/Parser.kt` `Site`: code, version, printed-link
 rule; `parsePage`) and Impact's sanitizer. Its QR link is `/v/<prefix><VAT>-<number>-<40-hex

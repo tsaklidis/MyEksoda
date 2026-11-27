@@ -9,8 +9,10 @@ import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.isInstanceOf
 import assertk.assertions.isNull
+import io.eksoda.engine.FormatChanged
 import io.eksoda.engine.InconsistentSource
 import io.eksoda.engine.TestData
+import io.eksoda.engine.canonical.PriceBasis
 import io.eksoda.engine.providers.REGISTRY
 import io.eksoda.engine.validation.validate
 import kotlinx.serialization.json.Json
@@ -189,5 +191,86 @@ class ImpactTest {
                 "TimologioQR/QRInfo?q=REDACTED\"",
         )
         assertThat(result.replaced["mydata_qr_token"]).isEqualTo(3)
+    }
+
+    // --- An e-shop receipt with delivery (observed 2026-11-27) ----------------------------------
+
+    /** 1 × 48.32 before VAT, 24%; the VAT column prints the category's name. */
+    private val eshop = directory.resolve("eshop_1_line_net_prices.html").readText()
+    private val eshopIdentity = identityOf("eshop_1_line_net_prices")
+    private val categoryName = "ΦΠΑ Κανονικός (24/17)%"
+    private val taxCategory = "<td b-a2eovsz6vx>Κατηγορία ΦΠΑ</td>\n" +
+        "                <td b-a2eovsz6vx>1</td>"
+
+    /** The page with the buyer's name and address (faked in the fixture) as a buyer's would be. */
+    private val eshopWithBuyer = eshop
+        .replace(">XXXXXXXX XXXXXXXXX<", ">ΟΝΟΜΑ ΠΕΛΑΤΗ<")
+        .replace("XXXXX XXXXXX", "ΟΔΟΣ ΠΕΛΑΤΗ")
+        .replace(">XXXXXX<", ">ΠΟΛΗΠΕΛΑΤΗ<")
+    private val buyer = listOf("ΟΝΟΜΑ ΠΕΛΑΤΗ", "ΟΔΟΣ ΠΕΛΑΤΗ", "ΠΟΛΗΠΕΛΑΤΗ")
+
+    @Test
+    fun `the VAT column may print the category's name with its mainland and island rates`() {
+        assertThat(eshop).contains(categoryName)
+        val line = parseHtml(eshop, eshopIdentity).lines.single()
+        assertThat(line.vatRate?.toPlainString()).isEqualTo("24")
+        assertThat(line.vatCategoryCode).isEqualTo("1")
+        // The plain rate, as other merchants print it, is read the same way.
+        val plain = eshop.replace(categoryName, "24")
+        assertThat(parseHtml(plain, eshopIdentity).lines.single().vatRate?.toPlainString())
+            .isEqualTo("24")
+    }
+
+    @Test
+    fun `a VAT column naming other rates than the tax view's category is refused`() {
+        for (other in listOf("ΦΠΑ Μειωμένος (13/9)%", "13")) {
+            val page = eshop.replace(categoryName, other)
+            assertFailure { parseHtml(page, eshopIdentity) }.isInstanceOf<InconsistentSource>()
+        }
+        // A name without rates is a layout not seen yet.
+        val unnamed = eshop.replace(categoryName, "ΦΠΑ Κανονικός")
+        assertFailure { parseHtml(unnamed, eshopIdentity) }.isInstanceOf<FormatChanged>()
+    }
+
+    @Test
+    fun `without a known tax category the VAT column gives the rate only when it names one`() {
+        assertThat(eshop).contains(taxCategory)
+        val unknown = eshop.replace(taxCategory, taxCategory.replace(">1<", ">99<"))
+        // "(24/17)" cannot tell the mainland rate from the island one.
+        assertThat(parseHtml(unknown, eshopIdentity).lines.single().vatRate).isNull()
+        val plain = unknown.replace(categoryName, "24")
+        assertThat(parseHtml(plain, eshopIdentity).lines.single().vatRate?.toPlainString())
+            .isEqualTo("24")
+    }
+
+    @Test
+    fun `unit prices before VAT are read as such, with VAT on other receipts`() {
+        val receipt = parseHtml(eshop, eshopIdentity)
+        assertThat(receipt.lines.single().unitPriceBasis).isEqualTo(PriceBasis.NET)
+        assertThat(validate(receipt)).isEmpty()
+        val supermarket = parseHtml(discounted, discountedIdentity)
+        assertThat(supermarket.lines.map { it.unitPriceBasis }.toSet())
+            .isEqualTo(setOf(PriceBasis.GROSS))
+    }
+
+    @Test
+    fun `the buyer's address and the delivery address are never read`() {
+        for (value in buyer) assertThat(eshopWithBuyer, name = value).contains(value)
+        val receipt = parseHtml(eshopWithBuyer, eshopIdentity)
+        val json = receipt.toJson().toString()
+        for (value in buyer) assertThat(json, name = value).doesNotContain(value)
+        assertThat(receipt.totals.gross.toPlainString()).isEqualTo("59.92")
+        // The issuer's own address and where the goods left from are business data.
+        assertThat(receipt.unknownFields["tax.issuer.Οδός"]).isEqualTo("ΚΑΤΣΙΜΙΔΗ")
+        assertThat(receipt.unknownFields["tax.header.Οδός"]).isEqualTo("ΚΑΤΣΙΜΙΔΗ 68")
+    }
+
+    @Test
+    fun `sanitizing replaces the buyer's address and the delivery address in both views`() {
+        val result = sanitizeHtml(eshopWithBuyer)
+        for (value in buyer) assertThat(result.html, name = value).doesNotContain(value)
+        assertThat(result.html).contains("ΚΑΤΣΙΜΙΔΗ 68")
+        assertThat(parseHtml(result.html, eshopIdentity).totals.gross.toPlainString())
+            .isEqualTo("59.92")
     }
 }

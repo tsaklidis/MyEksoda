@@ -1,0 +1,228 @@
+{
+  "branch": {
+    "address": null,
+    "number": "0"
+  },
+  "coverage": {
+    "cross_checked": true,
+    "issue_time": "exact",
+    "line_items": true,
+    "line_tax_amounts": true,
+    "mydata_registered": true,
+    "official_codes": true
+  },
+  "culture": "el",
+  "document": {
+    "currency": "EUR",
+    "formatted_number": "60-03-15679",
+    "issued_at": "2026-11-26T09:07:00+02:00",
+    "issued_date": "2026-11-26",
+    "kind": "sale",
+    "number": "15679",
+    "series": "60-03",
+    "type_code": "11.1",
+    "type_label": null
+  },
+  "identity": {
+    "cancellation_mark": null,
+    "mark": "400016169235529",
+    "source_key": null,
+    "transmission_failure": false,
+    "uid": "20E46DD716BF94F187CC17EF9393AF9DBB18E2E7"
+  },
+  "issuer": {
+    "activity": null,
+    "address": {
+      "city": "ΘΕΣΣΑΛΟΝΙΚΗ",
+      "country": null,
+      "number": "68",
+      "postal_code": "54638",
+      "street": "ΚΑΤΣΙΜΙΔΗ"
+    },
+    "country_code": "GR",
+    "gemi_number": null,
+    "legal_name": "ΧΙΟΝΟΥ Β. ΘΕΟΔΩΡΑ",
+    "tax_office": "ΚΕΦΟΔΕ ΘΕΣΣΑΛΟΝΙΚΗΣ",
+    "vat_number": "803086911"
+  },
+  "lines": [
+    {
+      "annotation_code": "0",
+      "barcode": null,
+      "deductions": "0.00",
+      "description": "NATURA SIBERICA ADVENT CALENDAR 24 DAYS OF SECRETS TO SHINE",
+      "digital_fee": "0.00",
+      "discount": null,
+      "fees": "0.00",
+      "gross": "59.92",
+      "gross_before_discount": null,
+      "line_number": 1,
+      "line_type_code": "0",
+      "merchant_product_code": "4743318108520",
+      "net": "48.32",
+      "other_taxes": null,
+      "quantity": "1",
+      "raw": {
+        "commercial.Code": "4743318108520",
+        "commercial.Description1": "NATURA SIBERICA ADVENT CALENDAR 24 DAYS OF SECRETS TO SHINE",
+        "commercial.MeasurementUnit": "Τεμάχιο",
+        "commercial.NetTotal": "48,32",
+        "commercial.Quantity": "1,00",
+        "commercial.Total": "59,92",
+        "commercial.UnitPrice": "48,32",
+        "commercial.VATTotal": "11,60",
+        "commercial.VatCategory": "ΦΠΑ Κανονικός (24/17)%",
+        "tax.accommodation_tax": "0,00",
+        "tax.code": "4743318108520",
+        "tax.comments": "",
+        "tax.deduction_right": "Όχι",
+        "tax.deductions": "0,00",
+        "tax.description": "NATURA SIBERICA ADVENT CALENDAR 24 DAYS OF SECRETS TO SHINE",
+        "tax.detail_type": "0",
+        "tax.digital_fee": "0,00",
+        "tax.digital_fee_category": "0",
+        "tax.fees": "0,00",
+        "tax.fees_category": "0",
+        "tax.line_number": "1",
+        "tax.line_type_code": "0",
+        "tax.net": "48,32",
+        "tax.not_vat_relevant": "Όχι",
+        "tax.other_taxes_category": "0",
+        "tax.quantity": "1",
+        "tax.unit_code": "1",
+        "tax.vat": "11,60",
+        "tax.vat_category": "1",
+        "tax.vat_exemption": "0",
+        "tax.withheld": "0,00",
+        "tax.withheld_category": "0"
+      },
+      "stamp_duty": null,
+      "unit": "piece",
+      "unit_code": "1",
+      "unit_label": "Τεμάχιο",
+      "unit_price": "48.32",
+      "unit_price_basis": "net",
+      "vat": "11.60",
+      "vat_category_code": "1",
+      "vat_exemption_code": "0",
+      "vat_rate": "24",
+      "withheld": "0.00"
+    }
+  ],
+  "notices": [],
+  "parser_version": "impact/1",
+  "payments": [
+    {
+      "amount": "59.92",
+      "derived": false,
+      "method": "cash",
+      "method_code": "3",
+      "method_label": "Μετρητά",
+      "tip": "0"
+    }
+  ],
+  "provider_code": "impact",
+  "provider_payload": {
+    "commercial": {
+      "branch": {},
+      "certification": {
+        "Mark": "400016169235529",
+        "ServiceSupplier": "Impact SA https://www.einvoicing.gr",
+        "Uid": "20E46DD716BF94F187CC17EF9393AF9DBB18E2E7"
+      },
+      "head_office": {
+        "City": "ΘΕΣΣΑΛΟΝΙΚΗ",
+        "Number": "68",
+        "Postal": "54638",
+        "Street": "ΚΑΤΣΙΜΙΔΗ"
+      },
+      "identity": {
+        "DateIssued": "26/11/2026 9:07 π.μ.",
+        "IssuerFormatedInvoiceSeriesNumber": "60-03-15679"
+      },
+      "issuer": {
+        "Phones": "2310924000",
+        "RegisteredName": "ΧΙΟΝΟΥ Β. ΘΕΟΔΩΡΑ",
+        "TaxOffice": "ΚΕΦΟΔΕ ΘΕΣΣΑΛΟΝΙΚΗΣ",
+        "Vat": "EL803086911"
+      },
+      "summary": {
+        "CurrencyCode": "EUR",
+        "TotalGrossValue": "59,92",
+        "TotalNetAmount": "48,32",
+        "TotalVATAmount": "11,60"
+      }
+    },
+    "tax": {
+      "header": {
+        "currency": "EUR",
+        "issue_date": "26/11/2026",
+        "number": "15679",
+        "self_billing": "Όχι",
+        "series": "60-03",
+        "type_code": "11.1"
+      },
+      "identifiers": {
+        "cancellation_mark": "0",
+        "mark": "400016169235529",
+        "transmission_failure": "0",
+        "uid": "20E46DD716BF94F187CC17EF9393AF9DBB18E2E7"
+      },
+      "issuer": {
+        "branch": "0",
+        "country": "GR",
+        "vat": "803086911"
+      },
+      "summary": {
+        "deductions": "0,00",
+        "digital_fee": "0,00",
+        "fees": "0,00",
+        "gross": "59,92",
+        "net": "48,32",
+        "other_taxes": "0,00",
+        "vat": "11,60",
+        "withheld": "0,00"
+      }
+    }
+  },
+  "source_url": "https://einvoice.impact.gr/p/EL803086911/20E46DD716BF94F187CC17EF9393AF9DBB18E2E7/00000000000000000000000000000000",
+  "totals": {
+    "deductions": "0.00",
+    "digital_fee": "0.00",
+    "discount": null,
+    "fees": "0.00",
+    "gross": "59.92",
+    "gross_before_discount": null,
+    "net": "48.32",
+    "other_taxes": "0.00",
+    "stamp_duty": null,
+    "vat": "11.60",
+    "withheld": "0.00"
+  },
+  "unknown_fields": {
+    "commercial.identity.DocumentType": "ΑΠΟΔΕΙΞΗ ΛΙΑΝΙΚΗΣ ΠΩΛΗΣΗΣ ESHOP",
+    "commercial.payment.PaymentDate": "26/11/2026",
+    "tax.header.Ένδειξη Είσπραξης Τρίτων": "Όχι",
+    "tax.header.Ένδειξη Παραστατικού Διακίνησης": "Ναι",
+    "tax.header.Αριθμός": "0",
+    "tax.header.Εγκατάσταση έναρξης διακίνησης (Εκδότη)": "0",
+    "tax.header.Εγκατάσταση ολοκλήρωσης διακίνησης (Λήπτη)": "0",
+    "tax.header.Ημερομηνία Έναρξης Αποστολής": "26/11/2026",
+    "tax.header.Οδός": "ΚΑΤΣΙΜΙΔΗ 68",
+    "tax.header.Πόλη": "ΘΕΣΣΑΛΟΝΙΚΗ",
+    "tax.header.Σκοπός Διακίνησης": "1",
+    "tax.header.ΤΚ": "54638",
+    "tax.issuer.Επωνυμία": "ΧΙΟΝΟΥ Β. ΘΕΟΔΩΡΑ",
+    "tax.issuer.Οδός": "ΚΑΤΣΙΜΙΔΗ",
+    "tax.issuer.Πόλη": "ΘΕΣΣΑΛΟΝΙΚΗ",
+    "tax.issuer.ΤΚ": "54638"
+  },
+  "vat_breakdown": [
+    {
+      "category_code": "1",
+      "net": "48.32",
+      "rate": "24.00",
+      "vat": "11.60"
+    }
+  ]
+}

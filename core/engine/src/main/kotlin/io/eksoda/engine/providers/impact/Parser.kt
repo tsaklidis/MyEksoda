@@ -38,6 +38,7 @@ import io.eksoda.engine.text.pyIsDigit
 import io.eksoda.engine.text.pyStrip
 import io.eksoda.engine.url.parseSubmittedUrl
 import io.eksoda.engine.validation.DISCOUNT_UNREADABLE
+import io.eksoda.engine.validation.inferPriceBasis
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
@@ -77,6 +78,9 @@ private val DATE_ORDER = mapOf(
     (Culture.EN to "commercial") to DateOrder.DMY,
     (Culture.EN to "tax") to DateOrder.MDY,
 )
+
+/** The rates a VAT category's name ends with: "ΦΠΑ Κανονικός (24/17)%" → 24 and 17. */
+private val VAT_CATEGORY_RATES = Regex("""\((\d{1,2}(?:/\d{1,2})*)\)\s*%?\s*$""")
 
 /** A host serving these receipt pages. */
 internal class Site(
@@ -341,8 +345,15 @@ private class Builder(
             )
         }
         if (t.lines.isEmpty()) throw FormatChanged("the receipt has no lines")
-        return c.lines.zip(t.lines).mapIndexed { index, (commercial, tax) ->
+        val lines = c.lines.zip(t.lines).mapIndexed { index, (commercial, tax) ->
             line(index + 1, commercial, tax)
+        }
+        // Most merchants print unit prices with VAT (0.622 kg × 7.21 = 4.48 gross); some print
+        // them before VAT (an e-shop, 1 × 48.32 = the net, observed 2026-11-27). The page does
+        // not say which: the basis more of the receipt's lines fit, with VAT on a tie.
+        if (inferPriceBasis(lines) != PriceBasis.NET) return lines
+        return lines.map { line ->
+            line.unitPrice?.let { line.copy(unitPriceBasis = PriceBasis.NET) } ?: line
         }
     }
 
@@ -371,11 +382,7 @@ private class Builder(
         )
 
         val category = normalizeCode(t["vat_category"])
-        var rate = num(c["VatCategory"], where)
-        if (isKnownVatCategory(category)) {
-            agree(rate, vatRate(category), "$where VAT rate")
-            rate = vatRate(category)
-        }
+        val rate = lineRate(category, c["VatCategory"], where)
 
         val unitPrice = num(c["UnitPrice"], where)
         // The line discount in euros, VAT included (column "Έκπτ. 1", observed 2026-11-21; fixture
@@ -398,7 +405,7 @@ private class Builder(
             unitCode = normalizeCode(t["unit_code"]),
             unitLabel = c["MeasurementUnit"]?.ifEmpty { null },
             unitPrice = unitPrice,
-            // Impact prints VAT-inclusive unit prices (0.622 kg × 7.21 = 4.48 gross).
+            // With VAT unless the receipt's lines show otherwise (lines()).
             unitPriceBasis = if (unitPrice != null) PriceBasis.GROSS else PriceBasis.UNKNOWN,
             grossBeforeDiscount = discount?.let { gross + it },
             discount = discount,
@@ -418,6 +425,29 @@ private class Builder(
             vatExemptionCode = normalizeCode(t["vat_exemption"]),
             raw = raw,
         )
+    }
+
+    /**
+     * The line's VAT rate: the tax view's category decides it, and the commercial column must
+     * allow it. That column prints the rate ("24") or, since 2026-11-27 on some merchants' pages,
+     * the category's name with its mainland and island rates ("ΦΠΑ Κανονικός (24/17)%"), which
+     * alone cannot tell the two apart.
+     */
+    fun lineRate(category: String?, commercial: String?, where: String): BigDecimal? {
+        val rates = commercialRates(commercial, where)
+        if (!isKnownVatCategory(category)) return rates?.singleOrNull()
+        val official = vatRate(category)
+        if (official != null && rates != null && rates.none { it.compareTo(official) == 0 }) {
+            throw InconsistentSource("$where VAT rate differs between the commercial and tax views")
+        }
+        return official
+    }
+
+    /** The rates the commercial "Κατηγορία Φ.Π.Α" column allows, or null when it is empty. */
+    fun commercialRates(text: String?, where: String): List<BigDecimal>? {
+        val label = text?.let { VAT_CATEGORY_RATES.find(it) }
+            ?: return num(text, where)?.let(::listOf)
+        return label.groupValues[1].split('/').map { BigDecimal(it) }
     }
 
     fun totals(): Totals {
