@@ -1,0 +1,1 @@
+{"url": "https://e-invoicing.gr/edocuments/ViewInvoice/-1/00000000-0000-4000-8000-000000000000_x000x00", "description": "Sklavenitis Nea Ionia, 12 lines with line discounts, phone and GEMI on the VAT line, 13% VAT, card; line 3 prints a net unit price 3 cents off its total (4 x 2,63 before VAT for 11,92)", "expect": {"warnings": ["unit_price_mismatch"]}}

@@ -29,6 +29,25 @@ private val LINK_TOKEN = Regex("""${UUID}_([0-9a-z]{4,32})""", RegexOption.IGNOR
 private val PARAM_ID = Regex("""intRefDocID=([0-9a-z-]+)""", RegexOption.IGNORE_CASE)
 private val PARAM_TOKEN = Regex("""hashToken=([0-9a-z]+)""", RegexOption.IGNORE_CASE)
 
+/**
+ * The older link's id and token (`ViewInvoice?ct=…&id=…&s=…&h=…`, its frame
+ * `GetInvoice?…&id=…`), only inside those addresses, also percent-encoded (a return URL).
+ */
+public val FAKE_LEGACY_ID: String = "0".repeat(40)
+private const val SEPARATOR = """(?:[?&]|&amp;|%3F|%26)"""
+private const val EQUALS = """(?:=|%3D)"""
+
+/** The query's start, after the path's trailing slash if any (`ViewInvoice/?ct=…`). */
+private const val QUERY_START = """(?:/|%2F)?(?:\?|%3F)(?:[^"'<>\s]*?$SEPARATOR)?"""
+private val LEGACY_ID = Regex(
+    """(?:ViewInvoice|GetInvoice)${QUERY_START}id$EQUALS([0-9a-f]{40})""",
+    RegexOption.IGNORE_CASE,
+)
+private val LEGACY_TOKEN = Regex(
+    """ViewInvoice${QUERY_START}h$EQUALS([0-9a-z]+)""",
+    RegexOption.IGNORE_CASE,
+)
+
 private fun fakeToken(token: String): String = fakeLike(token, letter = 'x')
 
 public fun sanitizeHtml(rawHtml: String): SanitizeResult {
@@ -64,6 +83,8 @@ public fun sanitizeHtml(rawHtml: String): SanitizeResult {
     secrets.replacePattern(LINK_TOKEN, ::fakeToken, "url_access_token")
     secrets.replacePattern(PARAM_ID, { FAKE_UUID }, "url_access_token")
     secrets.replacePattern(PARAM_TOKEN, ::fakeToken, "url_access_token")
+    secrets.replacePattern(LEGACY_ID, { FAKE_LEGACY_ID }, "url_access_token")
+    secrets.replacePattern(LEGACY_TOKEN, ::fakeToken, "url_access_token")
     return finish(document, secrets)
 }
 

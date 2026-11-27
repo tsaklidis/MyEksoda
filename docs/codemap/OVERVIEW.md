@@ -127,6 +127,12 @@ parser version, read by Impact's layout (`impact/Parser.kt` `Site`: code, versio
 rule; `parsePage`) and Impact's sanitizer. Its QR link is `/v/<prefix><VAT>-<number>-<40-hex
 authentication code>-<GUID>` (`s1ecos/Urls.kt`); the page prints the `/p/` form, which must have
 the same issuer and access GUID (`printsLink`). Neither 40-hex id is the myDATA UID.
+Entersoft (`e-invoicing.gr`) has two link forms (`entersoft/Urls.kt` `EntersoftLink`): the
+current `/edocuments/ViewInvoice/<ofenm>/<uuid>_<token>` (`DocumentLink`) and, printed until
+2025, `/edocuments/ViewInvoice?ct=…&id=<40 hex>&s=…&h=<token>` (`LegacyLink`; its id is the
+receipt's AuthenticationCode, not the myDATA UID). Either opens a shell page whose frame
+(`/api/GetInvoice?…`) must name the same receipt (`framedBy`). The issuer VAT is the nine
+digits that start the "Α.Φ.Μ" line; Sklavenitis prints its phone and ΓΕΜΗ after them.
 Entersoft does not say whether its unit prices include VAT (LIDL's do, Masoutis' do not). The
 parser (`entersoft/Parser.kt` `unitPriceBasis`) takes the issuer's basis when it is known
 (`NET_PRICED_ISSUERS`, by VAT number); otherwise the basis more of the receipt's lines fit
@@ -210,7 +216,18 @@ Text helpers (stored keys depend on their exact behavior; reuse them, don't rein
   refusals are `CatalogException`), Analytics (summary, by category with buckets, by merchant,
   top products, monthly trend, Home pace, over `AnalyticsDao`; `changes()` re-emits on table
   changes), Settings (preferences shown in Settings), Backup (export, open, restore; errors are
-  `BackupException(BackupError)`). Each has an `*Impl`. `products/AutoCategoryBackfill`
+  `BackupException(BackupError)`). Each has an `*Impl`. `sync/MerchantVatRepair` (every
+  start, and after every sync merge in `SyncMerger` and every backup restore, in a transaction
+  of its own so a failed repair never undoes them; one query when there is nothing to do)
+  moves receipts the first Entersoft parser (`entersoft/1`, before 0.3.10) saved under a Greek
+  VAT followed by more digits to the right merchant. Only with that parser's receipts as
+  evidence, never from a VAT's shape alone, and never for a merchant with another provider's
+  receipts. The rule and its query (`NEEDS_REPAIR_SQL`) are core:engine `sync/VatRepair`; a
+  core:data test checks they agree. `VatRepair.patch` gives the corrected rows, each just newer
+  than its stored copy, merged in with `SyncMerge` like another phone's copy, so merchants,
+  stores, mappings and products join and the household converges; the merchant whose details
+  are kept is the one the user renamed, else the one already under the right VAT.
+  `products/AutoCategoryBackfill`
   categorizes old products and merchants once (versioned in preferences). Goals (budgets and
   the e-payment target: `GoalsRepository`; the rules are core:engine `analytics/Budgets.kt`
   and `analytics/EPayments.kt`; the annual income is set through `HouseholdRepository`). The

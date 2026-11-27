@@ -3,6 +3,24 @@
 What changed in each release of Eksoda. Earlier releases are described on the
 [Releases](https://github.com/tsaklidis/MyEksoda/releases) page.
 
+## 0.3.10 - Older LIDL receipts and Sklavenitis from e-invoicing.gr
+
+A small update for receipts from Entersoft (`e-invoicing.gr`). Install it over 0.3.9 as usual:
+your data stays, and household sync keeps working between 0.3.9 and 0.3.10.
+
+### Fixed
+
+- **Older e-invoicing.gr receipts.** Links printed until 2025
+  (`e-invoicing.gr/edocuments/ViewInvoice?ct=…&id=…`), such as LIDL's, were refused as an
+  unsupported link. They are now read. Scan receipts that were refused before again: nothing
+  was saved for them.
+- **Sklavenitis receipts from e-invoicing.gr under their own shop.** The VAT number was read
+  together with the phone and ΓΕΜΗ numbers printed next to it, so these receipts went to a
+  new shop named by a long number instead of Sklavenitis. New receipts get the right VAT
+  number, and the ones already saved move to the right shop by themselves when the app
+  starts, keeping your names and categories. On household phones that have not updated yet,
+  the empty extra shop goes once they update.
+
 ## 0.3.9 - AB Vasilopoulos and Market In receipts
 
 A small update that reads receipts from more supermarkets. Install it over 0.3.8 as usual: your

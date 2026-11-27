@@ -63,7 +63,14 @@ import org.jsoup.nodes.Document as HtmlDocument
 // are located by labels and data-title attributes, not positions, so reordered columns keep
 // working.
 
-public const val PARSER_VERSION: String = "entersoft/1"
+/**
+ * 2: the issuer VAT is the nine digits that start the "Α.Φ.Μ" line (0.3.10). Version 1 read
+ * every digit of the line, see [FIRST_VERSION].
+ */
+public const val PARSER_VERSION: String = "entersoft/2"
+
+/** Read every digit of the "Α.Φ.Μ" line as the VAT (core:engine `sync/VatRepair`). */
+public const val FIRST_VERSION: String = "entersoft/1"
 private val CULTURE = Culture.EL
 private val SOURCE_TZ: ZoneId = ZoneId.of("Europe/Athens")
 private val TOLERANCE = BigDecimal("0.02")
@@ -128,7 +135,19 @@ private val NUMBER = pyRegex("""^(?<series>.+)-(?<number>\d+)$""")
 private val ADDRESS = pyRegex(
     """^(?<street>[^,]+),\s*(?<number>[^,]*),\s*(?<postal>\d{5}),\s*(?<city>.+)$""",
 )
-private val NON_DIGIT = pyRegex("""\D""")
+
+/**
+ * The issuer VAT: the first digits of the "Α.Φ.Μ" value, after any prefix ("EL", "ΕΛ - ").
+ * Some issuers print more on the same line ("800764388, Τηλ: 214 …" or "800764388 214 …"),
+ * so only nine digits are the VAT: nine in a row first ([ISSUER_VAT]), else nine grouped by
+ * spaces, no-break spaces, dots, dashes or slashes ("094 063 140", "094-063-140",
+ * [GROUPED_VAT]) and not followed by another group, which would make them part of a longer
+ * number.
+ */
+private const val VAT_SEPARATOR = "[ .\\-/ ]"
+private val ISSUER_VAT = Regex("""^\D*(\d{9})(?!\d)""")
+private val GROUPED_VAT = Regex("""^\D*((?:\d$VAT_SEPARATOR?){8}\d)(?!$VAT_SEPARATOR?\d)""")
+private val VAT_SEPARATORS = Regex(VAT_SEPARATOR)
 private val NOT_CURRENCY = pyRegex("""[\d.,\s-]""")
 private val HEADER_FIELD_KEYS = HEADER_FIELDS.keys.map(::keyOf).toSet()
 private const val VAT_COLUMNS = 3
@@ -151,10 +170,7 @@ public fun documentUrlFromShell(html: String, link: EntersoftLink): ParsedUrl {
     if (!sameSite || parts.path != DOCUMENT_PATH) {
         throw FormatChanged("the document frame points to an unexpected address")
     }
-    val params = parseQs(parts.query)
-    val documentId = params["intRefDocID"]?.firstOrNull().orEmpty().lowercase(Locale.ROOT)
-    val token = params["hashToken"]?.firstOrNull().orEmpty()
-    if (documentId != link.documentId || token != link.token) {
+    if (!link.framedBy(parseQs(parts.query))) {
         throw InconsistentSource("the document frame points to another document")
     }
     return ParsedUrl("https", HOST, null, parts.path, parts.query)
@@ -290,7 +306,10 @@ private class Builder(private val document: HtmlDocument, private val url: UrlId
         val freeRows = freeRows()
         val remarks = remarks(freeRows)
         val totalsRaw = labelMap(freeRows, TOTAL_LABELS).first
-        val vatNumber = NON_DIGIT.replace(required(header, "vat", "issuer VAT"), "")
+        val vatText = required(header, "vat", "issuer VAT")
+        val vatNumber = (ISSUER_VAT.find(vatText) ?: GROUPED_VAT.find(vatText))
+            ?.groupValues?.get(1)?.replace(VAT_SEPARATORS, "")
+            ?: throw FormatChanged("the issuer VAT is not a nine-digit number")
         val lines = lines(vatNumber)
         val totals = totals(totalsRaw)
         val breakdown = vatBreakdown()
