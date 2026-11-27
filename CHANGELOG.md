@@ -3,6 +3,25 @@
 What changed in each release of Eksoda. Earlier releases are described on the
 [Releases](https://github.com/tsaklidis/MyEksoda/releases) page.
 
+## 0.3.13 - The scanner reads more receipts
+
+A small update to the scanner. Install it over the previous version as usual: your data stays,
+and household sync keeps working with phones on 0.3.11 and 0.3.12.
+
+### Improved
+
+- **More QR codes read from the camera.** The scanner looks at the camera picture in four times
+  the detail, so small receipt codes, codes held far from the phone and slightly blurry ones
+  read where they did not before. Worn thermal print, with gaps in the code, and codes shown on
+  a phone screen in dark mode now read too, from the camera and from photos.
+- **Tap to focus, pinch to zoom.** Tap the picture to focus where you tapped (a ring shows
+  where), and zoom with two fingers for a small or distant code.
+
+### Fixed
+
+- **A camera picture the reader cannot take no longer stops the scanner.** It is skipped, and
+  scanning goes on with the next one; before, it could close the app.
+
 ## 0.3.11 - Pharmacy receipts from Parochos
 
 A small update that reads receipts from more shops. Install it over 0.3.10 as usual: your data
