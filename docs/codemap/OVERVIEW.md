@@ -42,6 +42,9 @@ core:ui                Shared composables (EmptyState, MoneyText, HeroMoney) and
                        (formatMoney, formatAmount, currencySymbol, dayLabel, importErrorRes,
                        categoryNameRes); chain logos (component/MerchantLogos.kt,
                        res/drawable/merchant_logo_*.xml)
+core:testing           Test-only (testImplementation of app and the features, never production):
+                       MainDispatcherRule, keepCollecting, a Fake<X>Repository per core:data
+                       repository (Recorder: calls + failure), staticPage, test<Model> builders
 feature:*              Screens. See only core:data interfaces, core:model, core:ui,
                        core:designsystem (wired by the eksoda.android.feature plugin).
                        feature:household: the Sync screen (`sync/`, opened from Settings).
@@ -366,11 +369,24 @@ Text helpers (stored keys depend on their exact behavior; reuse them, don't rein
 - Tests: JUnit 5 + AssertK in `core:engine` (fixtures in `testdata/fixtures/`); JUnit 4 +
   Robolectric in Android modules (in-memory Room). Every change ships with tests for its new
   paths, warning and error paths included. Coverage (Kover, in `make check`): `core:engine`
-  ≥ 95% lines, `core:data` ≥ 92%; on pull requests Codecov (`codecov.yml`)
+  ≥ 97% lines and ≥ 87% branches, `core:data` ≥ 95% lines and ≥ 79% branches, each feature's
+  ViewModel classes ≥ 94% lines and ≥ 80% branches (`AndroidFeatureConventionPlugin`; composables
+  and Hilt code are not counted, so a new ViewModel needs its test). The floors sit just under
+  the measured coverage: raise them as tests are added, never lower them to let a change
+  through. On pull requests Codecov (`codecov.yml`)
   requires 90% of the changed lines covered and lets each module (flag) drop at most 0.5%
   (status checks need the Codecov GitHub App). Check a file
   with `./gradlew :core:engine:koverXmlReport` (`core/engine/build/reports/kover/report.xml`)
   or `:core:data:koverXmlReportDebug` (`core/data/build/reports/kover/reportDebug.xml`).
+  Every ViewModel has a `<Name>ViewModelTest` on `core:testing`: declare `MainDispatcherRule`
+  first (it sets Main before the ViewModel properties are built), `keepCollecting(state)` for a
+  `WhileSubscribed` state, Turbine for effects, `asSnapshot()` for paged lists. A fake's reads
+  fail (`NotFaked`) until the test sets them, and its paged lists are `staticPage` (a bare
+  `PagingData.from` never finishes loading, and `asSnapshot` hangs).
+  `core:data` `CriticalJourneysTest` is what the app is for, end to end: every fixture with an
+  expected output is imported through the real pipeline and stored as its parser reads it (a
+  new provider's sample is checked there by itself), and a receipt shows in the list, Home and
+  Insights and leaves them all when deleted.
   `core:data` tests run the real import pipeline on the fixtures with `ImportHarness`
   (in-memory Room seeded like the app, WorkManager test driver, a fetcher serving
   `testdata/fixtures/`); paged lists are read with `asSnapshot()` (paging-testing).

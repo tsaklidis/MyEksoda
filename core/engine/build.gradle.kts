@@ -1,4 +1,5 @@
 import io.eksoda.buildlogic.useTestData
+import kotlinx.kover.gradle.plugin.dsl.CoverageUnit
 
 plugins {
     alias(libs.plugins.eksoda.jvm.library)
@@ -22,10 +23,16 @@ tasks.test {
 kover {
     reports {
         verify {
-            // A floor, not a target: the tests are at 99.0% (2026-11-22); a drop on a pull
-            // request is Codecov's check (codecov.yml).
+            // Floors, not targets: the tests are at 99.2% of lines and 87.4% of branches
+            // (2026-11-27). Raise them as tests are added, never lower them to let a change
+            // through; a drop on a pull request is also Codecov's check (codecov.yml).
             rule("core:engine line coverage") {
-                minBound(95)
+                minBound(97)
+            }
+            // Branches are the cases a parser or rule handles: a line can run while one of its
+            // `?:`, `if` or `when` arms never does.
+            rule("core:engine branch coverage") {
+                minBound(87, CoverageUnit.BRANCH)
             }
         }
     }

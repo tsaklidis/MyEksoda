@@ -5,6 +5,10 @@ export JAVA_HOME
 GRADLE := ./gradlew
 # detekt with type resolution: the debug variant of Android modules, main and test of JVM modules.
 DETEKT := detektDebug detektDebugUnitTest :core:engine:detektMain :core:engine:detektTest :core:model:detektMain :core:model:detektTest
+# Kover floors: core:engine and core:data overall, each feature over its ViewModels.
+FEATURES := home household insights onboarding products receipts scan settings
+KOVER := :core:engine:koverVerify :core:data:koverVerifyDebug \
+	$(foreach feature,$(FEATURES),:feature:$(feature):koverVerifyDebug)
 
 .PHONY: build test lint coverage no-telemetry check install install_rc qr_samples format clean \
 	codemap release_key bump release_check publish
@@ -23,8 +27,8 @@ test:  ## JVM unit tests: engine and model (JUnit 5), Android modules on Robolec
 lint:  ## ktlint (Spotless), detekt with type resolution, Android Lint
 	$(GRADLE) spotlessCheck $(DETEKT) lintDebug
 
-coverage:  ## Kover thresholds: core:engine >= 95%, core:data >= 92%
-	$(GRADLE) :core:engine:koverVerify :core:data:koverVerifyDebug
+coverage:  ## Kover floors: engine 97% lines/87% branches, data 95%/79%, feature ViewModels 94%/80%
+	$(GRADLE) $(KOVER)
 
 no-telemetry:  ## Fails if a telemetry, analytics or crash SDK is on the app's classpath
 	$(GRADLE) :app:checkNoTelemetry
@@ -32,7 +36,7 @@ no-telemetry:  ## Fails if a telemetry, analytics or crash SDK is on the app's c
 check:  ## Everything above in one Gradle run. Must pass before a task counts as done.
 	$(GRADLE) spotlessCheck $(DETEKT) lintDebug \
 		:core:engine:test :core:model:test testDebugUnitTest \
-		:core:engine:koverVerify :core:data:koverVerifyDebug \
+		$(KOVER) \
 		:app:checkNoTelemetry assembleDebug
 
 install:  ## Install the debug app on the running emulator or device
