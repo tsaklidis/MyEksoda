@@ -44,7 +44,8 @@ core:ui                Shared composables (EmptyState, MoneyText, HeroMoney) and
                        res/drawable/merchant_logo_*.xml)
 core:testing           Test-only (testImplementation of app and the features, never production):
                        MainDispatcherRule, keepCollecting, a Fake<X>Repository per core:data
-                       repository (Recorder: calls + failure), staticPage, test<Model> builders
+                       repository (Recorder: calls, failNext/failOperation/failure), staticPage,
+                       test<Model> builders
 feature:*              Screens. See only core:data interfaces, core:model, core:ui,
                        core:designsystem (wired by the eksoda.android.feature plugin).
                        feature:household: the Sync screen (`sync/`, opened from Settings).
@@ -73,7 +74,9 @@ a drawable and its arm in `core:ui` `MerchantLogos.kt` (the `when` will not comp
 ## The import pipeline (the heart of the app)
 
 ```
-Scan/paste/share/photo (feature:scan)
+Scan/paste/share/photo (feature:scan; ScanViewModel: the camera skips a link already sent this
+ session, a photo or paste always sends it, a link whose submit failed unexpectedly is forgotten
+ so any of the three retries it; photos are read through PhotoQrReader, zxing-cpp's QrImageDecoder)
  → ReceiptRepository.importReceipt(url)               core:data/repository/ReceiptRepositoryImpl
  → ImportService.submit(rawUrl)                       core:data/imports/ImportService
      engine.resolve(url)  (Rejected(code) on InvalidUrl/Unsupported*: nothing stored)
@@ -382,7 +385,11 @@ Text helpers (stored keys depend on their exact behavior; reuse them, don't rein
   first (it sets Main before the ViewModel properties are built), `keepCollecting(state)` for a
   `WhileSubscribed` state, Turbine for effects, `asSnapshot()` for paged lists. A fake's reads
   fail (`NotFaked`) until the test sets them, and its paged lists are `staticPage` (a bare
-  `PagingData.from` never finishes loading, and `asSnapshot` hangs).
+  `PagingData.from` never finishes loading, and `asSnapshot` hangs). A fake's writes fail with
+  `failNext("op")` (the next call only: fail, then succeed on retry), `failOperation("op", e)`
+  or `failure` (all); every write, `importReceipt` too, is in `calls`. To see intermediate
+  states, pass `MainDispatcherRule(StandardTestDispatcher())` and step with `runCurrent` /
+  `advanceUntilIdle` (`ScanPhotoTest`).
   `core:data` `CriticalJourneysTest` is what the app is for, end to end: every fixture with an
   expected output is imported through the real pipeline and stored as its parser reads it (a
   new provider's sample is checked there by itself), and a receipt shows in the list, Home and
