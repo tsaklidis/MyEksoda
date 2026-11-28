@@ -28,7 +28,10 @@ import io.eksoda.engine.fetch.FetchedDocument
 import io.eksoda.engine.fetch.Fetcher
 import io.eksoda.engine.providers.REGISTRY
 import io.eksoda.engine.providers.entersoft.DOCUMENT_PATH
+import io.eksoda.engine.providers.entersoft.DocumentLink
+import io.eksoda.engine.providers.entersoft.LegacyLink
 import io.eksoda.engine.url.ParsedUrl
+import io.eksoda.engine.url.parseSubmittedUrl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.SupervisorJob
@@ -39,11 +42,13 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import java.io.File
+import java.net.URI
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneOffset
 import java.util.concurrent.Executors
 import io.eksoda.engine.providers.entersoft.HOST as ENTERSOFT_HOST
+import io.eksoda.engine.providers.entersoft.split as entersoftLink
 
 /** This repository's receipt fixtures, by "<provider>/<name>". */
 internal object Fixtures {
@@ -58,6 +63,26 @@ internal object Fixtures {
 
     fun page(name: String): ByteArray = root.resolve("$name.html").readBytes()
 
+    /** The detailed myDATA XML of an Epsilon Digital or Parochos fixture. */
+    fun xml(name: String): ByteArray = root.resolve("$name.xml").readBytes()
+
+    /** Whether [name] is read from its XML (Epsilon Digital's platform) or from its page. */
+    fun isXml(name: String): Boolean = root.resolve("$name.xml").exists()
+
+    /** Every receipt fixture with an expected output, by "<provider>/<name>". */
+    fun withExpected(): List<String> = root.listFiles().orEmpty()
+        .flatMap { provider ->
+            provider.resolve("expected").listFiles().orEmpty()
+                .map { "${provider.name}/${it.nameWithoutExtension}" }
+        }
+        .sorted()
+
+    /** The parser's expected output for [name]. */
+    fun expected(name: String): String {
+        val (provider, file) = name.split('/')
+        return root.resolve("$provider/expected/$file.json").readText()
+    }
+
     fun canonicalUrl(name: String): String = REGISTRY.resolveUrl(url(name)).second.canonicalUrl
 }
 
@@ -68,6 +93,9 @@ internal class FixtureFetcher : Fetcher {
 
     /** Framed documents by host and path, whatever their query (Entersoft's GetInvoice). */
     private val frames = mutableMapOf<String, ByteArray>()
+
+    /** Detailed XML documents by host (Epsilon Digital's platform). */
+    private val xmlDocuments = mutableMapOf<String, ByteArray>()
     var failure: Exception? = null
 
     /** [fixture]'s page at its link, changed by [edit] (a page the parsers have not seen). */
@@ -76,9 +104,30 @@ internal class FixtureFetcher : Fetcher {
         pages[Fixtures.canonicalUrl(fixture)] = page.toByteArray(Charsets.UTF_8)
     }
 
-    /** An Entersoft receipt: the shell page at its link, the receipt in the frame it points to. */
+    /**
+     * An Epsilon Digital or Parochos receipt: its detailed XML at the document address of its
+     * link's host (`/filedocument/GetInvoiceDocDetailed/<uuid>`).
+     */
+    fun serveXml(fixture: String) {
+        val host = URI(Fixtures.canonicalUrl(fixture)).host
+        xmlDocuments[host] = Fixtures.xml(fixture)
+    }
+
+    /**
+     * An Entersoft receipt: the shell page at its link, framing that link's own document (the
+     * sample shells frame one token; the app refuses a frame that names another receipt), and
+     * the receipt in the frame.
+     */
     fun serveEntersoft(fixture: String) {
-        pages[Fixtures.canonicalUrl(fixture)] = Fixtures.page("entersoft/shell")
+        val link = Fixtures.canonicalUrl(fixture)
+        val shell = when (val parts = checkNotNull(entersoftLink(parseSubmittedUrl(link)))) {
+            is DocumentLink -> Fixtures.page("entersoft/shell").toString(Charsets.UTF_8)
+                .replace("hashToken=0xxx0000", "hashToken=${parts.token}")
+
+            is LegacyLink -> Fixtures.page("entersoft/shell_legacy").toString(Charsets.UTF_8)
+                .replace("hashToken=0x0xxx00", "hashToken=${parts.token}")
+        }
+        pages[link] = shell.toByteArray(Charsets.UTF_8)
         frames[ENTERSOFT_HOST + DOCUMENT_PATH] = Fixtures.page(fixture)
     }
 
@@ -92,8 +141,13 @@ internal class FixtureFetcher : Fetcher {
         check(url.host in allowedHosts) { "a request outside the provider's hosts" }
         // Only what was served for this very host: a setup mistake fails, never another page.
         val page = pages[url.geturl()] ?: frames[url.host + url.path]
+            ?: xmlDocuments[url.host]?.takeIf { url.path.startsWith(XML_DOCUMENT_PATH) }
             ?: error("no fixture for ${url.host}${url.path}")
         return FetchedDocument(page)
+    }
+
+    private companion object {
+        const val XML_DOCUMENT_PATH = "/filedocument/GetInvoiceDocDetailed/"
     }
 }
 

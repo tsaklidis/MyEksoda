@@ -1,4 +1,4 @@
-// Shared by the feature modules' unit tests (eksoda.android.feature adds it as a test
+// Shared by the feature and app modules' unit tests (eksoda.android.feature adds it as a test
 // dependency): the main-dispatcher rule and in-memory fakes of core:data's repositories.
 // Never a dependency of production code.
 plugins {
@@ -11,4 +11,6 @@ dependencies {
     api(libs.junit4)
     api(libs.kotlinx.coroutines.test)
     api(libs.androidx.paging.common)
+    // Reads the paged lists (receipts, products, imports) the ViewModels expose.
+    api(libs.androidx.paging.testing)
 }

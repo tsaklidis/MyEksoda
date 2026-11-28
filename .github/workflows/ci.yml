@@ -55,8 +55,8 @@ jobs:
       - name: make check
         run: make check
 
-      # `make check` only verifies coverage; this writes the reports, reusing its test results.
-      # core:engine and core:data apply Kover so far.
+      # `make check` only verifies coverage (the feature modules' ViewModel floors included); this
+      # writes the core:engine and core:data reports Codecov tracks, reusing its test results.
       - name: Coverage reports
         run: ./gradlew :core:engine:koverXmlReport :core:data:koverXmlReportDebug
 

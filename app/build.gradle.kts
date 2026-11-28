@@ -98,6 +98,9 @@ dependencies {
     implementation(libs.androidx.hilt.work)
 
     testImplementation(libs.junit4)
+    testImplementation(libs.assertk)
+    // MainDispatcherRule and the fake repositories (AppViewModelTest).
+    testImplementation(project(":core:testing"))
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.espresso.core)
 }
