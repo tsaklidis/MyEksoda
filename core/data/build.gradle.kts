@@ -27,6 +27,8 @@ dependencies {
     testImplementation(libs.androidx.work.testing)
     // Reads the paged lists (receipts, review) in the repository tests.
     testImplementation(libs.androidx.paging.testing)
+    // Follows the repositories' flows as a job moves (ImportLifecycleTest).
+    testImplementation(libs.turbine)
 }
 
 tasks.withType<Test>().configureEach {
