@@ -6,7 +6,9 @@ import androidx.paging.PagingData
 
 /**
  * What every fake repository shares: the writes it was asked for ([calls], as
- * "name(arguments)", in order) and a [failure] that, while set, every write fails with.
+ * "name(arguments)", in order) and the failures a test sets up. A call fails with, first, the
+ * next failure queued for its operation ([failNext]: one request fails, the retry succeeds),
+ * then its operation's lasting failure ([failOperation]), then [failure] (every operation).
  */
 open class Recorder {
     /** When set, every write fails with it. */
@@ -15,10 +17,29 @@ open class Recorder {
     /** Every write, as "name(arguments)", in order. */
     val calls = mutableListOf<String>()
 
-    /** Records [call]; [failure] if one is set, else [value]'s result. */
+    private val lasting = mutableMapOf<String, Throwable>()
+    private val queued = mutableMapOf<String, ArrayDeque<Throwable>>()
+
+    /** The next [times] calls of [operation] (a method name: "importReceipt") fail. */
+    fun failNext(
+        operation: String,
+        times: Int = 1,
+        error: Throwable = IllegalStateException("$operation failed"),
+    ) {
+        repeat(times) { queued.getOrPut(operation) { ArrayDeque() }.addLast(error) }
+    }
+
+    /** Every call of [operation] fails with [error] until it is set to null. */
+    fun failOperation(operation: String, error: Throwable?) {
+        if (error == null) lasting -= operation else lasting[operation] = error
+    }
+
+    /** Records [call] ("operation(arguments)"); its failure if one is due, else [value]'s. */
     protected fun <T> answer(call: String, value: () -> T): Result<T> {
         calls += call
-        return failure?.let { Result.failure(it) } ?: Result.success(value())
+        val operation = call.substringBefore('(')
+        val error = queued[operation]?.removeFirstOrNull() ?: lasting[operation] ?: failure
+        return error?.let { Result.failure(it) } ?: Result.success(value())
     }
 }
 

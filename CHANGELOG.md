@@ -3,6 +3,18 @@
 What changed in each release of Eksoda. Earlier releases are described on the
 [Releases](https://github.com/tsaklidis/MyEksoda/releases) page.
 
+## 0.3.13 - Scan a receipt again after it failed to save
+
+A small fix to the scanner. Install it over 0.3.12 as usual: your data stays, and household
+sync keeps working between 0.3.12 and 0.3.13.
+
+### Fixed
+
+- **A receipt that failed to save can be scanned again.** If saving a receipt from a photo or
+  a pasted link failed, scanning the same QR code with the camera did nothing until you left
+  the scanner. It now tries again, as it already did for a code scanned with the camera first.
+  Picking the photo or pasting the link again still works too.
+
 ## 0.3.12 - A better scanner, and e-shop receipts from Impact
 
 A small update to the scanner and to receipts from Impact (`einvoice.impact.gr`). Install it

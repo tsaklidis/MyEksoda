@@ -12,6 +12,11 @@ import kotlinx.coroutines.withContext
 import zxingcpp.BarcodeReader
 import javax.inject.Inject
 
+/** Reads the QR code in a photo the user picked: the text of the first one, or null. */
+fun interface PhotoQrReader {
+    suspend fun decode(uri: Uri): String?
+}
+
 /**
  * Reads a receipt QR code from a gallery photo with zxing-cpp, on the device. The photo
  * is scaled down while decoding, so a large picture does not exhaust memory.
@@ -20,12 +25,12 @@ class QrImageDecoder @Inject constructor(
     @ApplicationContext private val context: Context,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
-) {
+) : PhotoQrReader {
     /** A photo is decoded once, so the slower, more thorough options are worth it. */
     private val reader by lazy { BarcodeReader(QrReading.thoroughOptions()) }
 
     /** The text of the first QR code in the photo, or null. */
-    suspend fun decode(uri: Uri): String? {
+    override suspend fun decode(uri: Uri): String? {
         val bitmap = withContext(ioDispatcher) { load(uri) } ?: return null
         return withContext(defaultDispatcher) {
             try {

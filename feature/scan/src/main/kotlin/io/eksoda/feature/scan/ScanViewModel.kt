@@ -47,13 +47,17 @@ sealed interface ScanEffect {
 }
 
 /**
- * Continuous scanning. Each new code is submitted at once and the camera keeps scanning; the
- * same code again in this session is ignored. Links stay in memory only and are never logged.
+ * Continuous scanning. Each new code is submitted at once and the camera keeps scanning. The
+ * camera reports a code many times a second, so it skips a link already sent in this session,
+ * whether the camera, a photo or a paste sent it. A photo or a paste is the user asking, so it
+ * is always sent (the repository answers that it is already imported or pending). A link whose
+ * submission failed unexpectedly (nothing was saved) is forgotten, so any of the three can try
+ * it again. Links stay in memory only and are never logged.
  */
 @HiltViewModel
 class ScanViewModel @Inject constructor(
     private val receipts: ReceiptRepository,
-    private val photoDecoder: QrImageDecoder,
+    private val photoDecoder: PhotoQrReader,
 ) : ViewModel() {
     private val _state = MutableStateFlow(ScanUiState())
     val state: StateFlow<ScanUiState> = _state.asStateFlow()
@@ -82,7 +86,7 @@ class ScanViewModel @Inject constructor(
             show(ImportFeedback.NotAReceipt)
             return
         }
-        submit(text, forgetOnFailure = true)
+        submit(text)
     }
 
     private fun onPasted(text: String) {
@@ -92,7 +96,7 @@ class ScanViewModel @Inject constructor(
             show(ImportFeedback.Rejected(INVALID_URL))
         } else {
             seen += link
-            submit(link, forgetOnFailure = false)
+            submit(link)
         }
     }
 
@@ -106,7 +110,7 @@ class ScanViewModel @Inject constructor(
 
                 ReceiptLinks.isHttpsLink(text) -> {
                     seen += text
-                    submit(text, forgetOnFailure = false)
+                    submit(text)
                 }
 
                 else -> show(ImportFeedback.NotAReceipt)
@@ -114,13 +118,13 @@ class ScanViewModel @Inject constructor(
         }
     }
 
-    /** [forgetOnFailure]: after an unexpected error, scanning the code again retries it. */
-    private fun submit(link: String, forgetOnFailure: Boolean) {
+    /** After an unexpected error nothing was saved: the link is forgotten, so it can be retried. */
+    private fun submit(link: String) {
         viewModelScope.launch {
             val result = receipts.importReceipt(link)
             val submission = result.getOrNull()
             if (submission == null) {
-                if (forgetOnFailure) seen -= link
+                seen -= link
                 show(ImportFeedback.Failed)
                 return@launch
             }

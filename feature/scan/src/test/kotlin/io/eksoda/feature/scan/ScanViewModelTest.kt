@@ -1,7 +1,6 @@
 package io.eksoda.feature.scan
 
 import android.net.Uri
-import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.test
 import assertk.assertThat
@@ -24,14 +23,9 @@ class ScanViewModelTest {
     val main = MainDispatcherRule()
 
     private val receipts = FakeReceiptRepository()
-    private val viewModel = ScanViewModel(
-        receipts,
-        QrImageDecoder(
-            ApplicationProvider.getApplicationContext(),
-            main.dispatcher,
-            main.dispatcher,
-        ),
-    )
+
+    // A photo without a code; ScanPhotoTest reads photos with one.
+    private val viewModel = ScanViewModel(receipts) { null }
     private val state get() = viewModel.state.value
 
     private fun scan(text: String) = viewModel.onEvent(ScanEvent.CodeScanned(text))

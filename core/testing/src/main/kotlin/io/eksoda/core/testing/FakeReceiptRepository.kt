@@ -14,7 +14,8 @@ import kotlinx.coroutines.flow.map
 
 /**
  * [ReceiptRepository] in memory. Tests set what it answers ([submission], [receipts],
- * [details], [jobs]) and read what it was asked ([submitted], [filters], [calls]).
+ * [details], [jobs]) and read what it was asked ([submitted], [filters], [calls], where
+ * `importReceipt` is recorded with the writes).
  */
 class FakeReceiptRepository :
     Recorder(),
@@ -52,7 +53,7 @@ class FakeReceiptRepository :
 
     override suspend fun importReceipt(url: String): Result<ImportSubmission> {
         submitted += url
-        return failure?.let { Result.failure(it) } ?: Result.success(submission(url))
+        return answer("importReceipt($url)") { submission(url) }
     }
 
     override fun getImportJobs(status: ImportStatus?): Flow<PagingData<ImportJob>> =
